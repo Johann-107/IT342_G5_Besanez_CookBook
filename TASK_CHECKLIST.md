@@ -37,4 +37,5 @@ DONE
 WEB
     Create:
         React App - fbe32ba458873410b86bc5b2ddc7f7731f291cc9
-        Header and Login Page
+        Header and Login Page - 762391bcf5bb485544d2147953e77b6708bee300
+        Register Page - 

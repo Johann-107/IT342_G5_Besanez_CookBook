@@ -1,14 +1,3 @@
-/* Login.css */
-
-/*
-Color Palette:
-    #222831 - Main header background
-    #00ADB5 - Primary accent color (brand, hover effects, borders)
-    #EEEEEE - Main text color on dark backgrounds
-    #393E46 - Secondary button background
-    rgba(0, 173, 181, 0.1) - Subtle hover backgrounds
-    rgba variations - For transparency effects and shadows
-*/
 .container {
     max-width: 60rem;
     margin: 2rem auto 0;
@@ -80,25 +69,25 @@ Color Palette:
   z-index: 1;
 }
 
-.login-container {
-  width: 50%;
-  padding: 3.5rem 3rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background: transparent;
+.register-container {
+    width: 50%;
+    padding: 3.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: transparent;
 }
 
-.login-title { 
-  color: #00ADB5;
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin-top: -0.5rem;
-  margin-bottom: 2.5rem;
-  text-align: center;
-  letter-spacing: -0.5px;
-  position: relative;
-  padding-bottom: 1rem;
+.register-title {
+    color: #00ADB5;
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-top: -0.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    letter-spacing: -0.5px;
+    position: relative;
+    padding-bottom: 1rem;
 }
 
 .error-message {
@@ -123,29 +112,38 @@ Color Palette:
     }
 }
 
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem; 
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: auto;
+    max-height: 5rem;
+    justify-content: space-evenly;
+    gap: 1rem;
 }
 
 .form-group {
-  display: flex;
-  flex-direction: column;
-  position: relative;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    flex: 1;
 }
 
 .form-label {
   display: block;
   color: #00ADB5;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   font-weight: 500;
-  font-size: 1rem;
-  letter-spacing: 0.3px;
 }
 
 .form-input {
   width: 100%;
+  height: 2.5rem;
   padding: 0.875rem 1.25rem;
   border: 2px solid #d1d5db; 
   border-radius: 0.75rem; 
@@ -160,14 +158,14 @@ Color Palette:
   color: rgba(238, 238, 238, 0.5);
 }
 
-.form-input:focus {
+.form-input:focus, .form-select:focus {
   outline: none;
   border-color: #00ADB5;
   box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
   transform: translateY(-1px);
 }
 
-.form-input:hover {
+.form-input:hover, .form-select:hover {
   border-color: rgba(0, 173, 181, 0.5);
 }
 
@@ -201,14 +199,14 @@ Color Palette:
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
 }
 
-.register-link-container {
+.login-link-container {
   margin-top: 1rem;
   text-align: center;
   color: #EEEEEE; 
   font-size: 0.9rem;
 }
 
-.register-link {
+.login-link {
   color: #00ADB5; 
   text-decoration: none;
   font-weight: 600;
@@ -218,11 +216,11 @@ Color Palette:
   transition: all 0.5s ease;
 }
 
-.register-link:hover {
+.login-link:hover {
   color: #EEEEEE;
 }
 
-.register-link::after {
+.login-link::after {
   content: '';
   position: absolute;
   bottom: -2px;
@@ -234,7 +232,7 @@ Color Palette:
   transform: translateX(-50%);
 }
 
-.register-link:hover::after {
+.login-link:hover::after {
   width: 80%;
 }
 
@@ -272,5 +270,60 @@ Color Palette:
     .login-title {
         font-size: 1.75rem;
         margin-bottom: 2rem;
+    }
+}
+
+/* Add these styles to your existing Register.css */
+
+.birthdate-selectors {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: rgba(57, 62, 70, 0.6);
+    border: 2px solid #d1d5db;
+    border-radius: 0.75rem;
+    color: #EEEEEE;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2300ADB5' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 12px;
+}
+
+.form-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: rgba(57, 62, 70, 0.4);
+}
+
+.form-select option {
+    background-color: #222831;
+    color: #EEEEEE;
+    padding: 0.5rem;
+}
+
+.form-select option[value=""] {
+    color: rgba(238, 238, 238, 0.5);
+}
+
+/* Responsive adjustments for birthdate selectors */
+@media (max-width: 768px) {
+    .birthdate-selectors {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .form-select {
+        font-size: 0.95rem;
+        padding: 0.75rem 0.875rem;
     }
 }

@@ -2,7 +2,7 @@
 
 .layout {
   min-height: 100vh;
-  background-color: #353d48; /* bg-gray-50 */
+  background-color: #222831; /* bg-gray-50 */
   display: flex;
   flex-direction: column;
 }
