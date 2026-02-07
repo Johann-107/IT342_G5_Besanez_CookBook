@@ -1,0 +1,138 @@
+/* Login.css */
+
+/*
+Color Palette:
+    #222831 - Main header background
+    #00ADB5 - Primary accent color (brand, hover effects, borders)
+    #EEEEEE - Main text color on dark backgrounds
+    #393E46 - Secondary button background
+    rgba(0, 173, 181, 0.1) - Subtle hover backgrounds
+    rgba variations - For transparency effects and shadows
+*/
+
+.login-container {
+  max-width: 28rem;
+  margin: 2.5rem auto 0; 
+  display: flex;
+  flex-direction: column;
+}
+
+.login-title { 
+  color: #00ADB5;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  align-self: center;
+}
+
+.error-message {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 0.75rem 1rem; 
+  border-radius: 0.375rem; 
+  margin-bottom: 1rem; 
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; 
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  display: block;
+  color: #00ADB5;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db; 
+  border-radius: 0.375rem; 
+  font-size: 1rem; 
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); /* focus ring */
+}
+
+.submit-button {
+  width: 100%;
+  background-color: #00ADB5;
+  color: #EEEEEE;
+  padding: 0.5rem 0;
+  border: 2px solid #00ADB5;
+  border-radius: 1rem;
+  font-size: 1rem; 
+  font-weight: 500;
+  align-self: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #222831;
+  color: #00ADB5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+}
+
+.submit-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+.register-link-container {
+  margin-top: 1rem;
+  text-align: center;
+  color: #EEEEEE; 
+}
+
+.register-link {
+  color: #00ADB5; 
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.25rem 1rem;
+  position: relative;
+  transition: all 0.5s ease;
+}
+
+.register-link:hover {
+  color: #EEEEEE;
+}
+
+.register-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: #EEEEEE;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.register-link:hover::after {
+  width: 80%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .login-container {
+    max-width: 90%;
+    margin: 1.5rem auto 0;
+    padding: 0 1rem;
+  }
+}

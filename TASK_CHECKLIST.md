@@ -22,3 +22,19 @@ TODO:
             Login
             Dashboard/Profile
             Logout
+            
+IN PROGRESS
+WEB
+    Create:
+        React App
+        Home Page
+        Login Page
+        Register Page
+        Dashboard Page
+        Profile Page
+
+DONE
+WEB
+    Create:
+        React App - fbe32ba458873410b86bc5b2ddc7f7731f291cc9
+        Header and Login Page
