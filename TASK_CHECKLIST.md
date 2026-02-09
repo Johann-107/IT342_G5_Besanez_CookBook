@@ -22,7 +22,8 @@ TODO:
             Login
             Dashboard/Profile
             Logout
-            
+
+
 IN PROGRESS
 WEB
     Create:
@@ -33,9 +34,21 @@ WEB
         Dashboard Page
         Profile Page
 
+BACKEND
+    Connect frontend to backend with authentication
+
 DONE
+BACKEND
+    Create:
+        Java Springboot App - 
+        User Entity -
+        User Repository -
+        User Service -
+        User Controller -
+        User DTO -
+
 WEB
     Create:
         React App - fbe32ba458873410b86bc5b2ddc7f7731f291cc9
         Header and Login Page - 762391bcf5bb485544d2147953e77b6708bee300
-        Register Page - 
+        Register Page - df08274af1c13f99ab6d43dcaea8204b641f9a3b
