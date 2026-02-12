@@ -49,9 +49,9 @@ BACKEND
         User Controller - e3a2a691248e78a7313093fa7799db1ee0ff1c96
         User DTO - e3a2a691248e78a7313093fa7799db1ee0ff1c96
     
-    Implement User Register, login, and logout - 
-    Connect to database (MySQL) - 
-    Encrypt password using BCrypt - 
+    Implement User Register, login, and logout - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
+    Connect to database (MySQL) - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
+    Encrypt password using BCrypt - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
 
 
 WEB
