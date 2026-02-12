@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import '../styles/Register.css';
+import styles from '../styles/Register.module.css';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -134,56 +134,56 @@ const Register = () => {
     }
 
     return (
-        <div className="container">
-            <div className="welcome-container">
-                <h1 className="welcome-title">Welcome to MyApp!</h1>
-                <p className="welcome-subtitle">Create your account to get started</p>
+        <div className={styles.container}>
+            <div className={styles.welcomeContainer}>
+                <h1 className={styles.welcomeTitle}>Welcome to MyApp!</h1>
+                <p className={styles.welcomeSubtitle}>Create your account to get started</p>
             </div>
-            <div className="register-container">
-                <h2 className="register-title">Create Account</h2>
+            <div className={styles.registerContainer}>
+                <h2 className={styles.registerTitle}>Create Account</h2>
               
                 {error && (
-                    <div className="error-message">
+                    <div className={styles.errorMessage}>
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="register-form">
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">First Name</label>
+                <form onSubmit={handleSubmit} className={styles.registerForm}>
+                    <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>First Name</label>
                             <input
                                 type="text"
                                 name="firstName"
                                 value={formData.firstName}
                                 onChange={handleChange}
-                                className="form-input"
+                                className={styles.formInput}
                                 required
                             />
                         </div>
                         
-                        <div className="form-group">
-                            <label className="form-label">Last Name</label>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Last Name</label>
                             <input
                                 type="text"
                                 name="lastName"
                                 value={formData.lastName}
                                 onChange={handleChange}
-                                className="form-input"
+                                className={styles.formInput}
                                 required
                             />
                         </div>
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Birthdate</label>
-                            <div className="birthdate-selectors">
+                    <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Birthdate</label>
+                            <div className={styles.birthdateSelectors}>
                                 <select
                                     name="birthMonth"
                                     value={formData.birthMonth}
                                     onChange={handleChange}
-                                    className="form-select"
+                                    className={styles.formSelect}
                                     required
                                 >
                                     {months.map(month => (
@@ -197,7 +197,7 @@ const Register = () => {
                                     name="birthDay"
                                     value={formData.birthDay}
                                     onChange={handleChange}
-                                    className="form-select"
+                                    className={styles.formSelect}
                                     required
                                     disabled={!formData.birthMonth || !formData.birthYear}
                                 >
@@ -212,7 +212,7 @@ const Register = () => {
                                     name="birthYear"
                                     value={formData.birthYear}
                                     onChange={handleChange}
-                                    className="form-select"
+                                    className={styles.formSelect}
                                     required
                                 >
                                     {years.map(year => (
@@ -225,41 +225,41 @@ const Register = () => {
                         </div>
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Email</label>
+                    <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Email</label>
                             <input
                                 type="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                className="form-input"
+                                className={styles.formInput}
                                 required
                             />
                         </div>
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Password</label>
+                    <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Password</label>
                             <input
                                 type="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                className="form-input"
+                                className={styles.formInput}
                                 required
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label className="form-label">Confirm Password</label>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Confirm Password</label>
                             <input
                                 type="password"
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
-                                className="form-input"
+                                className={styles.formInput}
                                 required
                             />
                         </div>
@@ -267,15 +267,15 @@ const Register = () => {
 
                     <button
                         type="submit"
-                        className="submit-button"
+                        className={styles.submitButton}
                     >
                         Create Account
                     </button>
                 </form>
 
-                <p className="login-link-container">
+                <p className={styles.loginLinkContainer}>
                     Already have an account? {' '}
-                    <Link to="/login" className="login-link">
+                    <Link to="/login" className={styles.loginLink}>
                         Login here
                     </Link>
                 </p>

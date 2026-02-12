@@ -25,7 +25,7 @@ Color Palette:
     transition: transform 0.3s ease;
 }
 
-.welcome-container {
+.welcomeContainer {
     width: 50%;
     padding: 4rem 3rem;
     display: flex;
@@ -37,7 +37,7 @@ Color Palette:
     overflow: hidden;
 }
 
-.welcome-container::before {
+.welcomeContainer::before {
     content: '';
     position: absolute;
     width: 300px;
@@ -48,7 +48,7 @@ Color Palette:
     right: -100px;
 }
 
-.welcome-container::after {
+.welcomeContainer::after {
     content: '';
     position: absolute;
     width: 200px;
@@ -59,7 +59,7 @@ Color Palette:
     left: -80px;
 }
 
-.welcome-title { 
+.welcomeTitle { 
   color: #222831;
   font-size: 2rem;
   font-weight: 800;
@@ -71,7 +71,7 @@ Color Palette:
   text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.welcome-subtitle {
+.welcomeSubtitle {
   color: rgba(34, 40, 49, 0.85);
   font-size: 1.125rem;
   line-height: 1.6;
@@ -80,7 +80,7 @@ Color Palette:
   z-index: 1;
 }
 
-.login-container {
+.loginContainer {
   width: 50%;
   padding: 3.5rem 3rem;
   display: flex;
@@ -89,7 +89,7 @@ Color Palette:
   background: transparent;
 }
 
-.login-title { 
+.loginTitle { 
   color: #00ADB5;
   font-size: 2.25rem;
   font-weight: 700;
@@ -101,7 +101,7 @@ Color Palette:
   padding-bottom: 1rem;
 }
 
-.error-message {
+.errorMessage {
     background: linear-gradient(135deg, rgba(254, 242, 242, 0.1), rgba(254, 202, 202, 0.05));
     border-left: 4px solid #fecaca;
     color: #fecaca;
@@ -123,19 +123,19 @@ Color Palette:
     }
 }
 
-.login-form {
+.loginForm {
   display: flex;
   flex-direction: column;
   gap: 1.5rem; 
 }
 
-.form-group {
+.formGroup {
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-.form-label {
+.formLabel {
   display: block;
   color: #00ADB5;
   margin-bottom: 0.5rem;
@@ -144,7 +144,7 @@ Color Palette:
   letter-spacing: 0.3px;
 }
 
-.form-input {
+.formInput {
   width: 100%;
   padding: 0.875rem 1.25rem;
   border: 2px solid #d1d5db; 
@@ -156,22 +156,22 @@ Color Palette:
   transition: all 0.3s ease;
 }
 
-.form-input::placeholder {
+.formInput::placeholder {
   color: rgba(238, 238, 238, 0.5);
 }
 
-.form-input:focus {
+.formInput:focus {
   outline: none;
   border-color: #00ADB5;
   box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
   transform: translateY(-1px);
 }
 
-.form-input:hover {
+.formInput:hover {
   border-color: rgba(0, 173, 181, 0.5);
 }
 
-.submit-button {
+.submitButton {
   width: 100%;
   background: linear-gradient(135deg, #00ADB5 0%, #00939a 100%);
   color: #EEEEEE;
@@ -187,7 +187,7 @@ Color Palette:
   transition: all 0.3s ease;
 }
 
-.submit-button:hover {
+.submitButton:hover {
   background: linear-gradient(135deg, #00939a 0%, #00777d 100%);
   color: #222831;
   transform: translateY(-2px);
@@ -196,19 +196,19 @@ Color Palette:
         0 4px 8px rgba(0, 173, 181, 0.15);
 }
 
-.submit-button:focus {
+.submitButton:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
 }
 
-.register-link-container {
+.registerLinkContainer {
   margin-top: 1rem;
   text-align: center;
   color: #EEEEEE; 
   font-size: 0.9rem;
 }
 
-.register-link {
+.registerLink {
   color: #00ADB5; 
   text-decoration: none;
   font-weight: 600;
@@ -218,11 +218,11 @@ Color Palette:
   transition: all 0.5s ease;
 }
 
-.register-link:hover {
+.registerLink:hover {
   color: #EEEEEE;
 }
 
-.register-link::after {
+.registerLink::after {
   content: '';
   position: absolute;
   bottom: -2px;
@@ -234,7 +234,7 @@ Color Palette:
   transform: translateX(-50%);
 }
 
-.register-link:hover::after {
+.registerLink:hover::after {
   width: 80%;
 }
 
@@ -247,29 +247,29 @@ Color Palette:
         border-radius: 1.5rem;
     }
     
-    .welcome-container {
+    .welcomeContainer {
         width: 100%;
         padding: 3rem 2rem;
         border-radius: 1.5rem 1.5rem 0 0;
     }
     
-    .login-container {
+    .loginContainer {
         width: 100%;
         padding: 2.5rem 2rem;
         border-radius: 0 0 1.5rem 1.5rem;
     }
     
-    .welcome-title {
+    .welcomeTitle {
         font-size: 2rem;
         margin-bottom: 0.75rem;
     }
     
-    .welcome-subtitle {
+    .welcomeSubtitle {
         font-size: 1rem;
         max-width: 100%;
     }
     
-    .login-title {
+    .loginTitle {
         font-size: 1.75rem;
         margin-bottom: 2rem;
     }
