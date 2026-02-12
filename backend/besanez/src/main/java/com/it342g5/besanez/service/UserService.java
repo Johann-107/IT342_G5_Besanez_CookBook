@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.it342g5.besanez.dto.userdto.UserRequestDTO;
-import com.it342g5.besanez.dto.userdto.UserResponseDTO;
+import com.it342g5.besanez.dto.user.UserRequestDTO;
+import com.it342g5.besanez.dto.user.UserResponseDTO;
 import com.it342g5.besanez.entity.UserEntity;
 import com.it342g5.besanez.exception.ResourceNotFoundException;
 import com.it342g5.besanez.repository.UserRepository;
-import com.it342g5.besanez.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,18 +20,7 @@ public class UserService {
     
     private final UserRepository userRepository;
     
-    public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
-        // Check if email already exists
-        if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
-            throw new IllegalArgumentException("Email already exists: " + userRequestDTO.getEmail());
-        }
-        
-        UserEntity userEntity = convertRequestToEntity(userRequestDTO);
-        UserEntity savedUser = userRepository.save(userEntity);
-        
-        return convertToResponseDTO(savedUser);
-    }
-    
+    @Transactional(readOnly = true)
     public UserResponseDTO getUserById(long userId) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
@@ -39,6 +28,7 @@ public class UserService {
         return convertToResponseDTO(userEntity);
     }
     
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
         List<UserEntity> users = userRepository.findAll();
         
@@ -47,6 +37,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
     
+    @Transactional
     public UserResponseDTO updateUser(long userId, UserRequestDTO userRequestDTO) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
@@ -61,13 +52,14 @@ public class UserService {
         userEntity.setLastName(userRequestDTO.getLastName());
         userEntity.setBirthdate(userRequestDTO.getBirthdate());
         userEntity.setEmail(userRequestDTO.getEmail());
-        userEntity.setPassword(userRequestDTO.getPassword()); // In real app, encrypt password
+        // Password is NOT updated here - use AuthService changePassword instead
         
         UserEntity updatedUser = userRepository.save(userEntity);
         
         return convertToResponseDTO(updatedUser);
     }
     
+    @Transactional
     public void deleteUser(long userId) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
@@ -76,21 +68,12 @@ public class UserService {
         userRepository.deleteById(userId);
     }
     
+    @Transactional(readOnly = true)
     public UserResponseDTO getUserByEmail(String email) {
         UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
         
         return convertToResponseDTO(userEntity);
-    }
-
-    private UserEntity convertRequestToEntity(UserRequestDTO userRequestDTO) {
-        return UserEntity.builder()
-                .firstName(userRequestDTO.getFirstName())
-                .lastName(userRequestDTO.getLastName())
-                .birthdate(userRequestDTO.getBirthdate())
-                .email(userRequestDTO.getEmail())
-                .password(userRequestDTO.getPassword()) // In real app, encrypt password
-                .build();
     }
     
     private UserResponseDTO convertToResponseDTO(UserEntity userEntity) {

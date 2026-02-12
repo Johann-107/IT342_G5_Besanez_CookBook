@@ -35,7 +35,9 @@ WEB
         Profile Page
 
 BACKEND
-    Connect frontend to backend with authentication
+    Implement User Register, login, and logout
+    Connect to database (MySQL)
+    Encrypt password using BCrypt
 
 DONE
 BACKEND
@@ -46,6 +48,11 @@ BACKEND
         User Service - e3a2a691248e78a7313093fa7799db1ee0ff1c96
         User Controller - e3a2a691248e78a7313093fa7799db1ee0ff1c96
         User DTO - e3a2a691248e78a7313093fa7799db1ee0ff1c96
+    
+    Implement User Register, login, and logout - 
+    Connect to database (MySQL) - 
+    Encrypt password using BCrypt - 
+
 
 WEB
     Create:

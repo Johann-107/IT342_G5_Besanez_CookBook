@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
+import { authAPI } from '../services/auth';
 
 const AuthContext = createContext({});
 
@@ -9,69 +10,89 @@ export const AuthProvider = ({ children }) => {
     
     //check if user is logged in
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
+        const checkAuth = async () => {
+            const token = localStorage.getItem('token');
 
-        if (token && userData) {
-            setUser(JSON.parse(userData));
-        }
-        setLoading(false);
+            if (token) {
+                try {
+                    const response = await authAPI.getProfile();
+                    setUser(response.data); 
+                } catch (error) {
+                    console.error('Auth check failed: ', error);
+                    localStorage.removeItem('token');
+                }
+            }
+            setLoading(false);
+        };
+        checkAuth();
     }, []);
 
     const login = async (email, password) => {
         try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
+            const response = await authAPI.login({ email, password });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                setUser(data.user);
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                setUser(response.data.user);
                 return { success: true };
-            } else {
-                return { success: false, error: data.message };
             }
         } catch (error) {
-            return { success: false, error: 'Something went wrong. Ulitin mo boss / AuthContext.jsx | const login'}
+            return { 
+                success: false, 
+                error: error.response?.data?.message || 'Something went wrong. Ulitin mo boss / AuthContext.jsx | const login'
+            }
         }
     };
 
     const register = async (userData) => {
         try {
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json'},
-                body: JSON.stringify(userData)
-            });
+            console.log('Sending registration data:', userData); // Debug log
+            const response = await authAPI.register(userData);
+            console.log('Registration response:', response.data); // Debug log
 
-            const data = await response.json();
-
-            if (response.ok) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                setUser(data.user);
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                setUser(response.data.user);
                 return { success: true };
+            } else if (response.data?.success === true || response.status === 201 || response.status === 200) {
+                // API says success but no token (maybe needs login)
+                return { 
+                    success: true, 
+                    requiresLogin: true,
+                    message: 'Registration successful! Please login.'
+                };
             } else {
-                return { success: false, error: data.message };
-            }
+            // API returned but no success indicator
+            return { 
+                success: false, 
+                error: response.data?.message || 'Registration failed' 
+            };
+        }
         } catch (error) {
-            return { success: false, error: 'Something went wrong. Ulitin mo boss / AuthContext.jsx | const register' }
+            console.error('Registration error:', error); // Debug log
+            console.error('Error response:', error.response); // Debug log
+            return { 
+                success: false, 
+                error: error.response?.data?.message || 'Something went wrong. Ulitin mo boss / AuthContext.jsx | const register' 
+            }
         }
     };
 
     const logout = () => {
         localStorage.removeItem('token');
-        localStorage.removeItem('user');
         setUser(null);
     }
 
     return (
-        <AuthContext.Provider value = {{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>
+        <AuthContext.Provider value = {{ 
+            user, 
+            loading, 
+            login, 
+            register, 
+            logout 
+        }}>
+            {children}
+        </AuthContext.Provider>
     );
 };
 

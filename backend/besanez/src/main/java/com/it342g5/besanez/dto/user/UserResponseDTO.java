@@ -1,4 +1,4 @@
-package com.it342g5.besanez.dto.userdto;
+package com.it342g5.besanez.dto.user;
 
 import java.time.LocalDate;
 import java.time.Period;
