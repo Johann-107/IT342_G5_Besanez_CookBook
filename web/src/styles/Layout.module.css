@@ -1,63 +1,11 @@
-/* Layout.css - Alternative with exact container behavior */
-
 .layout {
   min-height: 100vh;
-  background-color: #222831; /* bg-gray-50 */
   display: flex;
   flex-direction: column;
 }
 
 .mainContent {
   width: 100%;
-  padding: 2rem 1rem; /* py-8 px-4 */
   box-sizing: border-box;
   flex: 1;
-}
-
-/* Tailwind's container behavior */
-@media (min-width: 640px) {
-  .mainContent {
-    max-width: 640px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
-
-@media (min-width: 768px) {
-  .mainContent {
-    max-width: 768px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .mainContent {
-    max-width: 1024px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .mainContent {
-    max-width: 1280px;
-  }
-}
-
-@media (min-width: 1536px) {
-  .mainContent {
-    max-width: 1536px;
-  }
-}
-
-/* Adjust padding for different screen sizes */
-@media (min-width: 640px) {
-  .mainContent {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .mainContent {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
 }
