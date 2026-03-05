@@ -59,4 +59,4 @@ WEB
         React App - fbe32ba458873410b86bc5b2ddc7f7731f291cc9
         Header and Login Page - 762391bcf5bb485544d2147953e77b6708bee300
         Register Page - df08274af1c13f99ab6d43dcaea8204b641f9a3b
-        Updated Landing page, header, Login, and Register - 
+        Updated Landing page, header, Login, and Register - 2c7883658c286e3f5e91e4fb8075e860eb7389fa
