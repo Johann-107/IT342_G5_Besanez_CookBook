@@ -23,16 +23,14 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     const { register } = useAuth();
     const navigate = useNavigate();
 
-    // Handle closing with animation - wrapped in useCallback
     const handleClose = useCallback(() => {
         setIsClosing(true);
         setTimeout(() => {
             setIsClosing(false);
             onClose();
-        }, 200); // Match this with animation duration
+        }, 300); 
     }, [onClose]);
 
-    // Reset form when modal opens/closes
     useEffect(() => {
         if (!isOpen) {
             setFormData({
@@ -52,7 +50,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         }
     }, [isOpen]);
 
-    // Handle escape key press
     useEffect(() => {
         const handleEscKey = (e) => {
             if (e.key === 'Escape' && isOpen && !isClosing) {
@@ -64,7 +61,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         return () => document.removeEventListener('keydown', handleEscKey);
     }, [isOpen, isClosing, handleClose]);
 
-    // Prevent body scroll when modal is open
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -76,7 +72,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         };
     }, [isOpen]);
 
-    // Months array
     const months = [
         { value: '', label: 'Month' },
         { value: '01', label: 'Jan' },
@@ -98,9 +93,8 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     for (let year = currentYear - 60; year <= currentYear - 15; year++) {
         years.push({ value: year.toString(), label: year.toString() });
     }
-    years.reverse(); // Show most recent years first
+    years.reverse();
 
-    // Generate days based on selected month and year
     useEffect(() => {
         if (formData.birthMonth && formData.birthYear) {
             const year = parseInt(formData.birthYear);
@@ -116,12 +110,10 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
             }
             setDaysInMonth(days);
             
-            // Reset day if it's invalid for the new month/year
             if (formData.birthDay && parseInt(formData.birthDay) > daysInMonthCount) {
                 setFormData(prev => ({ ...prev, birthDay: '' }));
             }
         } else {
-            // Default 31 days if no month/year selected
             const days = [{ value: '', label: 'Day' }];
             for (let day = 1; day <= 31; day++) {
                 days.push({ 
@@ -147,7 +139,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         e.preventDefault();
         setError('');
 
-        // Validate all birthdate fields are filled
         if (!formData.birthMonth || !formData.birthDay || !formData.birthYear) {
             setError('Please select your complete birthdate');
             return;
@@ -158,7 +149,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
             return;
         }
 
-        // Validate age (minimum 13 years old)
         const birthDate = new Date(
             parseInt(formData.birthYear),
             parseInt(formData.birthMonth) - 1,
@@ -173,7 +163,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
             return;
         }
 
-        // Combine birthdate fields into single string for backend
         const birthdate = `${formData.birthYear}-${formData.birthMonth}-${formData.birthDay}`;
         
         const result = await register({
@@ -185,8 +174,10 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         });
 
         if (result.success) {
-            handleClose();
-            navigate('/login');
+            handleClose();        
+            setTimeout(() => {
+                onSwitchToLogin();
+            }, 300);
         } else {
             setError(result.error);
         }
@@ -209,10 +200,9 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     const handleLoginClick = (e) => {
         e.preventDefault();
         handleClose();
-        // Small delay to allow fade out before opening login modal
         setTimeout(() => {
             onSwitchToLogin();
-        }, 200);
+        }, 300);
     };
 
     return (
@@ -231,8 +221,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                 </div>
                 
                 <div className={styles.registerContainer}>
-                    <h2 className={styles.registerTitle}>Create Account</h2>
-                  
                     {error && (
                         <div className={styles.errorMessage}>
                             {error}
@@ -342,7 +330,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         name="password"
                                         value={formData.password}
                                         onChange={handleChange}
-                                        className={`${styles.formInput} ${styles.passwordInput} ${formData.password ? styles.inputActive : ''}`}
+                                        className={`${styles.formInput} ${styles.passwordInput} ${formData.password ? styles.passwordInputActive : ''}`}
                                         placeholder="Enter password"
                                         required
                                     />
@@ -365,7 +353,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         name="confirmPassword"
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
-                                        className={`${styles.formInput} ${styles.passwordInput} ${formData.confirmPassword ? styles.inputActive : ''}`}
+                                        className={`${styles.formInput} ${styles.passwordInput} ${formData.confirmPassword ? styles.passwordInputActive : ''}`}
                                         placeholder="Confirm password"
                                         required
                                     />

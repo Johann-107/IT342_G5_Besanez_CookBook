@@ -1,6 +1,6 @@
 import React from 'react';
-import LandingHeader from '../components/layout/DefaultHeader';
 import styles from '../styles/Landing.module.css';
+import DefaultHeader from '../components/layout/DefaultHeader';
 
 const Landing = ({
   onGetStarted,
@@ -76,7 +76,7 @@ const Landing = ({
 
   return (
     <>
-      <LandingHeader />
+      <DefaultHeader />
       <div className={styles.landingContainer}>
 
         {/* Hero Section */}

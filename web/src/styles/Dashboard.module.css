@@ -1,0 +1,496 @@
+.dashboard {
+    background: var(--cream, #FDF8F2);
+    overflow: hidden;
+    box-shadow: 0 4px 30px var(--shadow-md, rgba(92,61,46,0.14)), 0 1px 4px var(--shadow, rgba(92,61,46,0.08));
+    width: 100%;
+    height: 100%;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-dark, #3A2A1E);
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: var(--warm-white, #FFF9F2);
+    border-bottom: 1px solid var(--border, #EDD8C4);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.logoIcon {
+    width: 32px;
+    height: 32px;
+    background: var(--terracotta, #C97D4E);
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+}
+
+.logoText {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark, #3A2A1E);
+}
+
+.dashNav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* Search Bar */
+.searchBar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--peach-light, #FAE3CC);
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    max-width: 280px;
+    width: 100%;
+}
+
+.searchIcon {
+    color: var(--text-mid, #7A5C46);
+    font-size: 14px;
+}
+
+.searchInput {
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text-mid, #7A5C46);
+}
+
+.searchInput::placeholder {
+    color: var(--text-light, #B09080);
+}
+
+/* Avatar */
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--peach, #F5C9A0) 0%, var(--terracotta, #C97D4E) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.avatar:hover {
+    transform: scale(1.05);
+}
+
+/* Dashboard Content */
+.dashContent {
+    padding: 104px 120px;
+}
+
+/* Welcome Banner */
+.welcomeBanner {
+    background: linear-gradient(135deg, #FFF0E0 0%, #FDE4C4 100%);
+    height: 150px;
+    border-radius: 16px;
+    padding: 22px 26px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.welcomeTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    color: var(--warm-brown, #5C3D2E);
+    margin-bottom: 8px;
+}
+
+.welcomeQuote {
+    font-size: 1rem;
+    color: var(--text-mid, #7A5C46);
+    font-style: italic;
+}
+
+.welcomeEmoji {
+    font-size: 48px;
+}
+
+/* Stats Row */
+.statsRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.statCard {
+    background: white;
+    height: 120px;
+    border-radius: 14px;
+    padding: 18px 20px;
+    border: 1px solid var(--border, #EDD8C4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.statCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--shadow, rgba(92,61,46,0.08));
+}
+
+.statIcon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.statNum {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark, #3A2A1E);
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.statLabel {
+    font-size: 1rem;
+    color: var(--text-light, #B09080);
+    font-weight: 500;
+}
+
+/* Quick Actions */
+.quickActions {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 56px;
+}
+
+.btnPrimary {
+    background: var(--terracotta, #C97D4E);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btnPrimary:hover {
+    background: var(--terracotta-dark, #A05E33);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(201, 125, 78, 0.3);
+}
+
+.btnOutline {
+    background: transparent;
+    color: var(--terracotta, #C97D4E);
+    border: 1.5px solid var(--terracotta, #C97D4E);
+    border-radius: 10px;
+    padding: 7px 17px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btnOutline:hover {
+    background: var(--peach-light, #FAE3CC);
+    transform: translateY(-1px);
+}
+
+/* Section Header */
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.sectionTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--text-dark, #3A2A1E);
+}
+
+.viewAll {
+    font-size: 0.9rem;
+    color: var(--terracotta, #C97D4E);
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.viewAll:hover {
+    color: var(--terracotta-dark, #A05E33);
+    text-decoration: underline;
+}
+
+/* Recipe Grid */
+.recipeGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 56px;
+}
+
+.recipeCard {
+    background: white;
+    height: 250px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border, #EDD8C4);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recipeCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--shadow-md, rgba(92,61,46,0.14));
+}
+
+.recipeCardImg {
+    height: 170px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 6rem;
+}
+
+.rcImg1 {
+    background: linear-gradient(135deg, #FDE4C4, #F5B87A);
+}
+
+.rcImg2 {
+    background: linear-gradient(135deg, #D5EBD6, #8BAF8D);
+}
+
+.rcImg3 {
+    background: linear-gradient(135deg, #FDF1D0, #E8A742);
+}
+
+.recipeCardBody {
+    padding: 12px;
+}
+
+.recipeCardTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-dark, #3A2A1E);
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+
+.recipeCardMeta {
+    display: flex;
+    gap: 6px;
+}
+
+.metaPill {
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta, #C97D4E);
+}
+
+/* Collections Row */
+.collectionsRow {
+    display: flex;
+    gap: 12px;
+}
+
+.collectionCard {
+    flex: 1;
+    border-radius: 14px;
+    padding: 32px;
+    height: 150px;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.collectionCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(92,61,46,0.2);
+}
+
+.ccRust {
+    background: linear-gradient(135deg, #D4845A, #B86640);
+}
+
+.ccSage {
+    background: linear-gradient(135deg, #7BAE7F, #5A8F5E);
+}
+
+.ccAmber {
+    background: linear-gradient(135deg, #D9A84A, #B88428);
+}
+
+.collectionName {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.collectionCount {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.collectionIcons {
+    display: flex;
+    gap: 4px;
+}
+
+.collectionIcon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard {
+        max-width: 100%;
+        border-radius: 0;
+    }
+
+    .nav {
+        padding: 12px 16px;
+    }
+
+    .logoText {
+        font-size: 16px;
+    }
+
+    .logoIcon {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+
+    .dashContent {
+        padding: 20px;
+    }
+
+    .welcomeBanner {
+        padding: 18px 20px;
+    }
+
+    .welcomeTitle {
+        font-size: 20px;
+    }
+
+    .welcomeEmoji {
+        font-size: 40px;
+    }
+
+    .statsRow {
+        gap: 10px;
+    }
+
+    .statCard {
+        padding: 14px 16px;
+    }
+
+    .statNum {
+        font-size: 24px;
+    }
+
+    .quickActions {
+        flex-direction: column;
+    }
+
+    .recipeGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .collectionsRow {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .pageFooter {
+        padding: 10px 16px;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .logoText {
+        display: none;
+    }
+
+    .searchBar {
+        max-width: 160px;
+    }
+
+    .dashContent {
+        padding: 16px;
+    }
+
+    .welcomeBanner {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .statsRow {
+        grid-template-columns: 1fr;
+    }
+
+    .recipeGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .viewAll {
+        font-size: 11px;
+    }
+
+    .copyright {
+        margin-left: 0;
+        width: 100%;
+        text-align: center;
+    }
+}

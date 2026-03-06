@@ -56,7 +56,7 @@ const DefaultHeader = () => {
               onClick={openRegisterModal}
               className={styles.signupButton}
             >
-              Register
+              Sign Up
           </button>
         </div>
       </nav>

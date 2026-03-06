@@ -140,14 +140,14 @@
   color: var(--text-mid, #7A5C46);
 }
 
-.loginContainer {
+.registerContainer {
   padding: 28px 32px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.loginForm {
+.registerForm {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -190,10 +190,71 @@
   border-color: var(--terracotta, #C97D4E);
   background: white;
 }
-
 .formInput::placeholder {
   color: var(--text-light, #B09080);
   font-size: 13px;
+}
+
+.birthdateSelectors {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.formSelect {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: var(--warm-white, #FFF9F2);
+    border: 1.5px solid var(--border, #EDD8C4);
+    border-radius: 0.75rem;
+    color: var(--text-mid, #7A5C46);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23C97D4E' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 12px;
+}
+
+.formSelect:hover {
+    border-color: var(--peach, #F5C9A0);
+}
+
+.formSelect:focus {
+    outline: none;
+    border-color: var(--terracotta, #C97D4E);
+    box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.1);
+}
+
+.selectActive {
+    border-color: var(--terracotta, #C97D4E);
+    box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.1);
+}
+
+.formSelect:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--peach-light, #FAE3CC);
+    border-color: var(--border, #EDD8C4);
+}
+
+.formSelect option {
+    background-color: var(--cream, #FDF8F2);
+    color: var(--text-dark, #3A2A1E);
+    padding: 0.5rem;
+}
+
+.formSelect option:hover,
+.formSelect option:checked {
+    background-color: var(--peach-light, #FAE3CC);
+    color: var(--terracotta, #C97D4E);
+}
+
+.formSelect option[value=""] {
+    color: var(--text-light, #B09080);
 }
 
 /* Password input container */
@@ -266,35 +327,6 @@
   margin: 4px 0;
 }
 
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-mid, #7A5C46);
-  cursor: pointer;
-}
-
-.checkbox {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--terracotta, #C97D4E);
-  cursor: pointer;
-}
-
-.forgotLink {
-  font-size: 12px;
-  color: var(--terracotta, #C97D4E);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.forgotLink:hover {
-  color: var(--terracotta-dark, #A05E33);
-  text-decoration: underline;
-}
-
 .submitButton {
   background: var(--terracotta, #C97D4E);
   color: white;
@@ -349,14 +381,14 @@
   text-align: center;
 }
 
-.registerLinkContainer {
+.loginLinkContainer {
   text-align: center;
   font-size: 13px;
   color: var(--text-light, #B09080);
   margin-top: 6px;
 }
 
-.registerLink {
+.loginLink {
   background: none;
   border: none;
   color: var(--terracotta, #C97D4E);
@@ -370,12 +402,12 @@
   text-decoration: none;
 }
 
-.registerLink:hover {
+.loginLink:hover {
   color: var(--terracotta-dark, #A05E33);
   text-decoration: underline;
 }
 
-.registerLink:focus {
+.loginLink:focus {
   outline: 2px solid var(--terracotta, #C97D4E);
   outline-offset: 2px;
   border-radius: 4px;

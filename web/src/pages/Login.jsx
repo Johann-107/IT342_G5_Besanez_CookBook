@@ -18,7 +18,7 @@ const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
     setTimeout(() => {
       setIsClosing(false);
       onClose();
-    }, 500);
+    }, 300);
   }, [onClose]);
 
   useEffect(() => {
@@ -85,7 +85,7 @@ const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
     handleClose();
     setTimeout(() => {
       onSwitchToRegister();
-    }, 500);
+    }, 300);
   };
 
   return (
