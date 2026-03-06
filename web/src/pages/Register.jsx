@@ -16,6 +16,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     });
 
     const [error, setError] = useState('');
+    const [passwordErrors, setPasswordErrors] = useState([]);
     const [daysInMonth, setDaysInMonth] = useState([]);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -44,6 +45,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                 birthYear: ''
             });
             setError('');
+            setPasswordErrors([]);
             setShowPassword(false);
             setShowConfirmPassword(false);
             setIsClosing(false);
@@ -125,6 +127,39 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         }
     }, [formData.birthDay, formData.birthMonth, formData.birthYear]);
 
+    // Password validation function
+    const validatePassword = (password) => {
+        const errors = [];
+        
+        if (password.length < 8) {
+            errors.push('Password must be at least 8 characters long');
+        }
+        if (!/[A-Z]/.test(password)) {
+            errors.push('Password must contain at least one uppercase letter');
+        }
+        if (!/[a-z]/.test(password)) {
+            errors.push('Password must contain at least one lowercase letter');
+        }
+        if (!/[0-9]/.test(password)) {
+            errors.push('Password must contain at least one number');
+        }
+        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(password)) {
+            errors.push('Password must contain at least one special character');
+        }
+        
+        return errors;
+    };
+
+    // Update password errors when password changes
+    useEffect(() => {
+        if (formData.password) {
+            const errors = validatePassword(formData.password);
+            setPasswordErrors(errors);
+        } else {
+            setPasswordErrors([]);
+        }
+    }, [formData.password]);
+
     if (!isOpen && !isClosing) return null;
 
     const handleChange = (e) => {
@@ -141,6 +176,13 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
 
         if (!formData.birthMonth || !formData.birthDay || !formData.birthYear) {
             setError('Please select your complete birthdate');
+            return;
+        }
+
+        // Validate password requirements
+        const passwordValidationErrors = validatePassword(formData.password);
+        if (passwordValidationErrors.length > 0) {
+            setError('Password does not meet requirements: ' + passwordValidationErrors.join(', '));
             return;
         }
 
@@ -216,7 +258,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                 </button>
                 
                 <div className={styles.welcomeContainer}>
-                    <h1 className={styles.welcomeTitle}>Welcome to RecipeNest!</h1>
+                    <h1 className={styles.welcomeTitle}>Welcome to CookBook!</h1>
                     <p className={styles.welcomeSubtitle}>Create your account to get started</p>
                 </div>
                 
@@ -343,6 +385,29 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         {showPassword ? "👁️" : "👁️"}
                                     </button>
                                 </div>
+                                {/* Password requirements checklist */}
+                                {formData.password && passwordErrors.length > 0 && (
+                                    <div className={styles.passwordRequirements}>
+                                        <p className={styles.passwordRequirementsTitle}>Password must contain:</p>
+                                        <ul className={styles.passwordRequirementsList}>
+                                            <li className={formData.password.length >= 8 ? styles.requirementMet : ''}>
+                                                {formData.password.length >= 8 ? '✓' : '○'} At least 8 characters
+                                            </li>
+                                            <li className={/[A-Z]/.test(formData.password) ? styles.requirementMet : ''}>
+                                                {/[A-Z]/.test(formData.password) ? '✓' : '○'} One uppercase letter
+                                            </li>
+                                            <li className={/[a-z]/.test(formData.password) ? styles.requirementMet : ''}>
+                                                {/[a-z]/.test(formData.password) ? '✓' : '○'} One lowercase letter
+                                            </li>
+                                            <li className={/[0-9]/.test(formData.password) ? styles.requirementMet : ''}>
+                                                {/[0-9]/.test(formData.password) ? '✓' : '○'} One number
+                                            </li>
+                                            <li className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(formData.password) ? styles.requirementMet : ''}>
+                                                {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(formData.password) ? '✓' : '○'} One special character
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
 
                             <div className={styles.formGroup}>
@@ -366,12 +431,24 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         {showConfirmPassword ? "👁️" : "👁️"}
                                     </button>
                                 </div>
+                                {/* Password match indicator */}
+                                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                                    <div className={styles.passwordMismatch}>
+                                        Passwords do not match
+                                    </div>
+                                )}
+                                {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                                    <div className={styles.passwordMatch}>
+                                        Passwords match ✓
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         <button
                             type="submit"
                             className={styles.submitButton}
+                            disabled={passwordErrors.length > 0}
                         >
                             Create Account
                         </button>
