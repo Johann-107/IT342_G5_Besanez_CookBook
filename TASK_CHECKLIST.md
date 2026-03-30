@@ -44,7 +44,7 @@ BACKEND
     Implement User Register, login, and logout - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
     Connect to database (MySQL) - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
     Encrypt password using BCrypt - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
-    Allow users to login using google auth - 8a0673da931ab358f1fdb476162ab0db2a87f0ca
+    Allow users to login using google auth - e725c4272df0c0426cb825c4a53fe3b44750f6e0
 
 
 WEB
