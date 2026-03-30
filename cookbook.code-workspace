@@ -1,0 +1,61 @@
+{
+	"folders": [
+		{
+			"path": "backend/besanez",
+			"name": "Backend (Spring Boot)"
+		},
+		{
+			"path": "web",
+			"name": "Web Frontend (React)"
+		},
+		{
+			"path": "mobile",
+			"name": "Mobile App"
+		}
+	],
+	"settings": {
+		// Java/Spring Boot Settings
+		"java.configuration.updateBuildConfiguration": "automatic",
+		"java.import.maven.enabled": true,
+		"java.autobuild.enabled": true,
+		"java.compile.nullAnalysis.mode": "automatic",
+		"maven.executable.preferMavenWrapper": true,
+		"maven.terminal.customEnv": [
+			{
+				"environmentVariable": "MAVEN_OPTS",
+				"value": "-Xmx1024m"
+			}
+		],
+		// Spring Boot specific
+		"spring-boot.ls.java.override": true,
+		"spring-boot.ls.checkJVM": true,
+		// Web/Frontend Settings
+		"js/ts.updateImportsOnFileMove.enabled": "always",
+		"editor.formatOnSave": true,
+		"files.exclude": {
+			"**/node_modules": true,
+			"**/.classpath": true,
+			"**/.project": true,
+			"**/.settings": true,
+			"**/target": true
+		},
+		"files.watcherExclude": {
+			"**/target/**": true,
+			"**/node_modules/**": true
+		},
+	},
+	"launch": {
+		"configurations": [
+			{
+				"type": "java",
+				"name": "Run Spring Boot Application",
+				"request": "launch",
+				"mainClass": "edu.cit.besanez.cookbook.BesanezApplication",
+				"projectName": "besanez",
+				"cwd": "${workspaceFolder:Backend (Spring Boot)}",
+				"envFile": "${workspaceFolder:Backend (Spring Boot)}/.env"
+			}
+		],
+		"compounds": []
+	}
+}

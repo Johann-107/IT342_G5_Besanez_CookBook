@@ -1,3 +1,7 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.maven.enabled": true,
+    "maven.executable.preferMavenWrapper": true,
+    "spring-boot.ls.java.override": true,
+    "java.compile.nullAnalysis.mode": "automatic"
 }
