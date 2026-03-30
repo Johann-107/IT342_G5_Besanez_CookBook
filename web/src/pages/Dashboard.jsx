@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from 'react-router-dom';
 import styles from '../styles/Dashboard.module.css';
+import DefaultHeader from '../components/layout/DefaultHeader';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -57,35 +58,12 @@ const Dashboard = () => {
         return 'Good evening';
     };
 
-    // Get user's first name or display name
     const displayName = user?.firstName || user?.name || 'Chef';
 
     return (
+        <>
+        <DefaultHeader user={user} />
         <div className={styles.dashboard}>
-            {/* Navigation
-            <nav className={styles.nav}>
-                <div className={styles.logo}>
-                    <div className={styles.logoIcon}>🍳</div>
-                    <span className={styles.logoText}>RecipeNest</span>
-                </div>
-                <div className={styles.dashNav}>
-                    <form className={styles.searchBar} onSubmit={handleSearch}>
-                        <span className={styles.searchIcon}>🔍</span>
-                        <input
-                            type="text"
-                            placeholder="Search recipes…"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className={styles.searchInput}
-                        />
-                    </form>
-                    <div className={styles.avatar}>
-                        {user?.firstName?.[0] || user?.name?.[0] || 'U'}
-                        {user?.lastName?.[0] || ''}
-                    </div>
-                </div>
-            </nav> */}
-
             <div className={styles.dashContent}>
                 <div className={styles.welcomeBanner}>
                     <div>
@@ -181,6 +159,7 @@ const Dashboard = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

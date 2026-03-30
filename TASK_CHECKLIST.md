@@ -1,16 +1,13 @@
 # IT342_G5_BESANEZ_Lab1
 TODO:
     Backend
-        POST /api/auth/register
-        POST /api/auth/login
         GET /api/user/me (protected)
         Database connection (MySQL)
-        Password encryption (BCrypt)
+        Login using google
+        Connect database to supabase
 
     Web
-        Register page
-        Login page
-        Dashboard/Profile page (protected)
+        Profile page (protected)
         Logout functionality
 
     Docs
@@ -27,17 +24,13 @@ TODO:
 IN PROGRESS
 WEB
     Create:
-        React App
-        Home Page
-        Login Page
-        Register Page
         Dashboard Page
         Profile Page
 
 BACKEND
-    Implement User Register, login, and logout
-    Connect to database (MySQL)
-    Encrypt password using BCrypt
+    Implement User Logout
+    Connect to database (Supabase)
+    Allow users to login using google auth
 
 DONE
 BACKEND
