@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from '../styles/Register.module.css';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 
 const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     const [formData, setFormData] = useState({
@@ -453,7 +454,17 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                             Create Account
                         </button>
                     </form>
+                    
+                    <div className={styles.divider}>
+                        <hr className={styles.lineBreak}></hr>
+                        <p className={styles.loginLinkContainerz}>or</p>
+                        <hr className={styles.lineBreak}></hr>
+                    </div>
 
+                    <div className={styles.loginLinkContainer}>
+                        <GoogleLoginButton />
+                    </div>
+                    
                     <p className={styles.loginLinkContainer}>
                         Already have an account?{' '}
                         <button 

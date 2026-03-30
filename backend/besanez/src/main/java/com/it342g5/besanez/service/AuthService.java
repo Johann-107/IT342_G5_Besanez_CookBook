@@ -11,6 +11,7 @@ import com.it342g5.besanez.util.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,12 +25,10 @@ public class AuthService {
     
     @Transactional
     public UserResponseDTO register(UserRequestDTO userRequestDTO) {
-        // Check if email already exists
         if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
             throw new IllegalArgumentException("Email already exists: " + userRequestDTO.getEmail());
         }
         
-        // Encrypt password with BCrypt
         String encryptedPassword = passwordEncoder.encode(userRequestDTO.getPassword());
         
         UserEntity userEntity = UserEntity.builder()
@@ -37,31 +36,60 @@ public class AuthService {
                 .lastName(userRequestDTO.getLastName())
                 .birthdate(userRequestDTO.getBirthdate())
                 .email(userRequestDTO.getEmail())
-                .password(encryptedPassword) // BCrypt encrypted password
+                .password(encryptedPassword)
                 .build();
         
         UserEntity savedUser = userRepository.save(userEntity);
-        
         return convertToResponseDTO(savedUser);
     }
     
     @Transactional
     public LoginResponse login(LoginRequest loginRequest) {
-        // Find user by email
         UserEntity user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + loginRequest.getEmail()));
         
-        // Verify password using BCrypt
+        // Prevent Google users from logging in with password
+        if (user.getPassword() == null) {
+            throw new IllegalArgumentException("This account uses Google Sign-In. Please log in with Google.");
+        }
+
         boolean passwordMatches = passwordEncoder.matches(loginRequest.getPassword(), user.getPassword());
-        
         if (!passwordMatches) {
             throw new IllegalArgumentException("Invalid password");
         }
         
-        // Generate JWT token
         String token = jwtUtil.generateToken(user.getEmail(), user.getUserId());
         
-        // Return login response with token and user info
+        return new LoginResponse(
+            token,
+            user.getUserId(),
+            user.getEmail(),
+            user.getFirstName(),
+            user.getLastName()
+        );
+    }
+
+    // Added: Find existing Google user or create a new one, then return a JWT
+    @Transactional
+    public LoginResponse loginOrRegisterGoogleUser(OAuth2User oauth2User) {
+        String email = oauth2User.getAttribute("email");
+        String firstName = oauth2User.getAttribute("given_name");
+        String lastName = oauth2User.getAttribute("family_name");
+
+        UserEntity user = userRepository.findByEmail(email).orElseGet(() -> {
+            // First time Google login — create a new user
+            UserEntity newUser = UserEntity.builder()
+                    .email(email)
+                    .firstName(firstName != null ? firstName : "Google")
+                    .lastName(lastName != null ? lastName : "User")
+                    .password(null)   // No password for Google users
+                    .birthdate(null)  // Google doesn't provide birthdate
+                    .build();
+            return userRepository.save(newUser);
+        });
+
+        String token = jwtUtil.generateToken(user.getEmail(), user.getUserId());
+
         return new LoginResponse(
             token,
             user.getUserId(),
@@ -76,12 +104,14 @@ public class AuthService {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         
-        // Verify old password
+        if (user.getPassword() == null) {
+            throw new IllegalArgumentException("Google Sign-In accounts cannot change password here.");
+        }
+
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new IllegalArgumentException("Old password is incorrect");
         }
         
-        // Encrypt and set new password
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
@@ -91,7 +121,10 @@ public class AuthService {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
         
-        // In production, send email with reset link instead
+        if (user.getPassword() == null) {
+            throw new IllegalArgumentException("Google Sign-In accounts cannot reset password here.");
+        }
+
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }

@@ -434,6 +434,20 @@
   text-align: center;
 }
 
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -12px 0px -12px 0px;
+}
+
+.lineBreak {
+  border: none;
+  border-top: 2px solid var(--border, #ebc8a8);
+  margin: 16px 12px;
+  width: 70%;
+}
+
 .loginLinkContainer {
   text-align: center;
   font-size: 13px;

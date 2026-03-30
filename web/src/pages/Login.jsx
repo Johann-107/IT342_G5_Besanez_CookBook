@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from '../styles/Login.module.css';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 
-const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
+const Login = ({ isOpen, onClose, onSwitchToRegister, externalError = '' }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,6 +21,13 @@ const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
       onClose();
     }, 300);
   }, [onClose]);
+
+  // Show external error (e.g. from failed Google login) when modal opens
+  useEffect(() => {
+    if (isOpen && externalError) {
+      setError(externalError);
+    }
+  }, [isOpen, externalError]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -59,9 +67,9 @@ const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     const result = await login(email, password);
-    
+
     if (result.success) {
       handleClose();
       navigate('/dashboard');
@@ -89,28 +97,28 @@ const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
   };
 
   return (
-    <div 
-      className={`${styles.modalOverlay} ${isClosing ? styles.fadeOut : ''}`} 
+    <div
+      className={`${styles.modalOverlay} ${isClosing ? styles.fadeOut : ''}`}
       onClick={handleOverlayClick}
     >
       <div className={styles.modalContainer}>
         <button className={styles.closeButton} onClick={handleClose} aria-label="Close modal">
           ×
         </button>
-        
+
         <div className={styles.welcomeContainer}>
           <h1 className={styles.welcomeTitle}>Welcome Back!</h1>
           <p className={styles.welcomeSubtitle}>Sign in to access your recipes</p>
         </div>
-        
+
         <div className={styles.loginContainer}>
-          
+
           {error && (
             <div className={styles.errorMessage}>
               {error}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className={styles.loginForm}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Email</label>
@@ -124,7 +132,7 @@ const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
                 autoFocus
               />
             </div>
-            
+
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Password</label>
               <div className={styles.passwordInputContainer}>
@@ -161,28 +169,31 @@ const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
                 Forgot Password?
               </Link>
             </div>
-            
+
             <button type="submit" className={styles.submitButton}>
               Sign In
             </button>
           </form>
 
           <div className={styles.divider}>
-            <hr className={styles.lineBreak}></hr>
+            <hr className={styles.lineBreak} />
             <p className={styles.registerLinkContainer}>or</p>
-            <hr className={styles.lineBreak}></hr>
+            <hr className={styles.lineBreak} />
+          </div>
+
+          <div className={styles.registerLinkContainer}>
+            <GoogleLoginButton />
           </div>
 
           <p className={styles.registerLinkContainer}>
             Don't have an account?{' '}
-            <button 
+            <button
               onClick={handleRegisterClick}
               className={styles.registerLink}
             >
               Sign Up
             </button>
           </p>
-
 
         </div>
       </div>

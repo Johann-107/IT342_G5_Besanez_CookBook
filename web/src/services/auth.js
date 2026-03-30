@@ -20,16 +20,16 @@ api.interceptors.request.use((config) => {
 export const authAPI = {
   register: (userData) => api.post('/api/auth/register', userData),
   login: (credentials) => api.post('/api/auth/login', credentials),
-  logout: () => api.post('/auth/logout'),
-  getProfile: () => api.get('/auth/me'),
-  changePassword: (passwordData) => api.post('/auth/change-password', passwordData),
-  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  logout: () => api.post('/api/auth/logout'),
+  getProfile: () => api.get('/api/user/me'),
+  changePassword: (passwordData) => api.post('/api/auth/change-password', passwordData),
+  forgotPassword: (data) => api.post('/api/auth/forgot-password', data),
 };
 
 export const userAPI = {
-  getAllUsers: () => api.get('/users'),
-  getUserById: (id) => api.get(`/users/${id}`),
-  getUserByEmail: (email) => api.get('/users/email', { params: { email } }),
-  updateUser: (id, userData) => api.put(`/users/${id}`, userData),
-  deleteUser: (id) => api.delete(`/users/${id}`),
+  getAllUsers: () => api.get('/api/user'),
+  getUserById: (id) => api.get(`/api/user/${id}`),
+  getUserByEmail: (email) => api.get('/api/user/email', { params: { email } }),
+  updateUser: (id, userData) => api.put(`/api/user/${id}`, userData),
+  deleteUser: (id) => api.delete(`/api/user/${id}`),
 };

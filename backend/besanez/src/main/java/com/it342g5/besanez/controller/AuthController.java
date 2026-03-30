@@ -119,29 +119,8 @@ public class AuthController {
         }
     }
     
-    @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String token) {
-        try {
-            // Extract user info from token and return
-            // This would typically call a service method
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "User retrieved successfully");
-            // Add user data here
-            
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
-    }
-    
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
-        // JWT is stateless, so just return success
-        // Client should remove the token
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "Logout successful");
