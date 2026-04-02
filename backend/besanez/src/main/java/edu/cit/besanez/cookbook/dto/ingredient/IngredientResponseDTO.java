@@ -1,16 +1,15 @@
 package edu.cit.besanez.cookbook.dto.ingredient;
 
+import edu.cit.besanez.cookbook.entity.IngredientUnit;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class IngredientResponseDTO {
 
     private Long id;
@@ -18,6 +17,8 @@ public class IngredientResponseDTO {
     private String name;
 
     private Integer quantity;
+
+    private IngredientUnit unit;
 
     private String notes;
 

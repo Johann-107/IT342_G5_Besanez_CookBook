@@ -23,6 +23,8 @@ public class IngredientService {
     private final IngredientRepository ingredientRepository;
     private final RecipeRepository recipeRepository;
 
+    // ─── CRUD ─────────────────────────────────────────────────────────────────
+
     @Transactional
     public IngredientResponseDTO addIngredient(long userId, Long recipeId,
             IngredientRequestDTO requestDTO) {
@@ -33,6 +35,7 @@ public class IngredientService {
         IngredientEntity ingredient = IngredientEntity.builder()
                 .name(requestDTO.getName())
                 .quantity(requestDTO.getQuantity())
+                .unit(requestDTO.getUnit())
                 .notes(requestDTO.getNotes())
                 .recipe(recipe)
                 .build();
@@ -80,6 +83,7 @@ public class IngredientService {
 
         ingredient.setName(requestDTO.getName());
         ingredient.setQuantity(requestDTO.getQuantity());
+        ingredient.setUnit(requestDTO.getUnit());
         ingredient.setNotes(requestDTO.getNotes());
 
         IngredientEntity updated = ingredientRepository.save(ingredient);
@@ -100,11 +104,14 @@ public class IngredientService {
         ingredientRepository.deleteById(ingredientId);
     }
 
+    // ─── Mapping ──────────────────────────────────────────────────────────────
+
     private IngredientResponseDTO convertToResponseDTO(IngredientEntity ingredient) {
         return IngredientResponseDTO.builder()
                 .id(ingredient.getId())
                 .name(ingredient.getName())
                 .quantity(ingredient.getQuantity())
+                .unit(ingredient.getUnit())
                 .notes(ingredient.getNotes())
                 .recipeId(ingredient.getRecipe().getId())
                 .build();

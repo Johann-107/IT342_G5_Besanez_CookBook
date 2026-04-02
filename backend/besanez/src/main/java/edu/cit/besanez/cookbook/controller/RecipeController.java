@@ -1,7 +1,9 @@
 package edu.cit.besanez.cookbook.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +35,7 @@ public class RecipeController {
 
     // ─── CRUD ─────────────────────────────────────────────────────────────────
 
-    /** POST /api/recipe — create a new recipe */
+    /** POST /api/recipe */
     @PostMapping
     public ResponseEntity<RecipeResponseDTO> createRecipe(
             HttpServletRequest request,
@@ -44,46 +46,47 @@ public class RecipeController {
     }
 
     /**
-     * GET /api/recipe — all recipes for the authenticated user
-     * GET /api/recipe?search=x — search user's recipes by name (SDD: GET
-     * /recipe?search={query})
-     * GET /api/recipe?collection=x — recipes scoped to a specific collection
+     * GET /api/recipe — all recipes (paginated)
+     * GET /api/recipe?search=x — search by name (paginated)
+     * GET /api/recipe?collection=x — scoped to a collection (paginated)
+     *
+     * Pagination params (all optional, Spring resolves automatically):
+     * ?page=0 — zero-based page number (default: 0)
+     * ?size=10 — page size (default: 10)
+     * ?sort=name,asc — sort field and direction (default: createdAt, desc)
      */
     @GetMapping
-    public ResponseEntity<List<RecipeResponseDTO>> getRecipes(
+    public ResponseEntity<Page<RecipeResponseDTO>> getRecipes(
             HttpServletRequest request,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) Long collection) {
+            @RequestParam(required = false) Long collection,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         long userId = extractUserId(request);
 
-        List<RecipeResponseDTO> recipes;
+        Page<RecipeResponseDTO> recipes;
 
         if (search != null && !search.isBlank()) {
-            recipes = recipeService.searchUserRecipes(userId, search);
+            recipes = recipeService.searchUserRecipes(userId, search, pageable);
         } else if (collection != null) {
-            recipes = recipeService.getRecipesByCollection(userId, collection);
+            recipes = recipeService.getRecipesByCollection(userId, collection, pageable);
         } else {
-            recipes = recipeService.getAllRecipesByUser(userId);
+            recipes = recipeService.getAllRecipesByUser(userId, pageable);
         }
 
         return ResponseEntity.ok(recipes);
     }
 
-    /**
-     * GET /api/recipe/public?search=x — browse public recipes (shared collections)
-     */
+    /** GET /api/recipe/public?search=x — browse public recipes (paginated) */
     @GetMapping("/public")
-    public ResponseEntity<List<RecipeResponseDTO>> getPublicRecipes(
-            @RequestParam(required = false) String search) {
-
-        List<RecipeResponseDTO> recipes = (search != null && !search.isBlank())
-                ? recipeService.searchPublicRecipes(search)
-                : recipeService.searchPublicRecipes("");
-
+    public ResponseEntity<Page<RecipeResponseDTO>> getPublicRecipes(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<RecipeResponseDTO> recipes = recipeService.searchPublicRecipes(
+                search != null ? search : "", pageable);
         return ResponseEntity.ok(recipes);
     }
 
-    /** GET /api/recipe/{id} — get a single recipe by id */
+    /** GET /api/recipe/{id} */
     @GetMapping("/{id}")
     public ResponseEntity<RecipeResponseDTO> getRecipeById(
             HttpServletRequest request,
@@ -93,7 +96,7 @@ public class RecipeController {
         return ResponseEntity.ok(recipe);
     }
 
-    /** PUT /api/recipe/{id} — update a recipe */
+    /** PUT /api/recipe/{id} */
     @PutMapping("/{id}")
     public ResponseEntity<RecipeResponseDTO> updateRecipe(
             HttpServletRequest request,
@@ -104,7 +107,7 @@ public class RecipeController {
         return ResponseEntity.ok(updated);
     }
 
-    /** DELETE /api/recipe/{id} — delete a recipe */
+    /** DELETE /api/recipe/{id} */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecipe(
             HttpServletRequest request,

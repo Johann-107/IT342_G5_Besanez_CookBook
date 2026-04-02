@@ -3,6 +3,8 @@ package edu.cit.besanez.cookbook.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,43 +59,36 @@ public class RecipeService {
     }
 
     @Transactional(readOnly = true)
-    public List<RecipeResponseDTO> getAllRecipesByUser(long userId) {
+    public Page<RecipeResponseDTO> getAllRecipesByUser(long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
-        return recipeRepository.findByUserId(userId)
-                .stream()
-                .map(this::convertToResponseDTO)
-                .collect(Collectors.toList());
+        return recipeRepository.findByUserId(userId, pageable)
+                .map(this::convertToResponseDTO);
     }
 
     @Transactional(readOnly = true)
-    public List<RecipeResponseDTO> getRecipesByCollection(long userId, Long collectionId) {
-        return recipeRepository.findByCollectionIdAndUserId(collectionId, userId)
-                .stream()
-                .map(this::convertToResponseDTO)
-                .collect(Collectors.toList());
+    public Page<RecipeResponseDTO> getRecipesByCollection(long userId, Long collectionId,
+            Pageable pageable) {
+        return recipeRepository.findByCollectionIdAndUserId(collectionId, userId, pageable)
+                .map(this::convertToResponseDTO);
     }
 
     @Transactional(readOnly = true)
-    public List<RecipeResponseDTO> searchUserRecipes(long userId, String name) {
+    public Page<RecipeResponseDTO> searchUserRecipes(long userId, String name, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
-        return recipeRepository.findByUserIdAndNameContainingIgnoreCase(userId, name)
-                .stream()
-                .map(this::convertToResponseDTO)
-                .collect(Collectors.toList());
+        return recipeRepository.findByUserIdAndNameContainingIgnoreCase(userId, name, pageable)
+                .map(this::convertToResponseDTO);
     }
 
     @Transactional(readOnly = true)
-    public List<RecipeResponseDTO> searchPublicRecipes(String name) {
-        return recipeRepository.findByIsPublicTrueAndNameContainingIgnoreCase(name)
-                .stream()
-                .map(this::convertToResponseDTO)
-                .collect(Collectors.toList());
+    public Page<RecipeResponseDTO> searchPublicRecipes(String name, Pageable pageable) {
+        return recipeRepository.findByIsPublicTrueAndNameContainingIgnoreCase(name, pageable)
+                .map(this::convertToResponseDTO);
     }
 
     @Transactional
@@ -124,6 +119,8 @@ public class RecipeService {
 
         recipeRepository.deleteById(recipeId);
     }
+
+    // ─── Mapping ──────────────────────────────────────────────────────────────
 
     private RecipeResponseDTO convertToResponseDTO(RecipeEntity recipe) {
         return RecipeResponseDTO.builder()

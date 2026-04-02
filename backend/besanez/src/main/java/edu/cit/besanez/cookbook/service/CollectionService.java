@@ -3,6 +3,8 @@ package edu.cit.besanez.cookbook.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,8 @@ public class CollectionService {
     private final CollectionRepository collectionRepository;
     private final UserRepository userRepository;
     private final RecipeRepository recipeRepository;
+
+    // ─── CRUD ─────────────────────────────────────────────────────────────────
 
     @Transactional
     public CollectionResponseDTO createCollection(long userId, CollectionRequestDTO requestDTO) {
@@ -52,27 +56,24 @@ public class CollectionService {
     }
 
     @Transactional(readOnly = true)
-    public List<CollectionResponseDTO> getAllCollectionsByUser(long userId) {
+    public Page<CollectionResponseDTO> getAllCollectionsByUser(long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
-        return collectionRepository.findByUserId(userId)
-                .stream()
-                .map(this::convertToResponseDTO)
-                .collect(Collectors.toList());
+        return collectionRepository.findByUserId(userId, pageable)
+                .map(this::convertToResponseDTO);
     }
 
     @Transactional(readOnly = true)
-    public List<CollectionResponseDTO> searchCollections(long userId, String name) {
+    public Page<CollectionResponseDTO> searchCollections(long userId, String name,
+            Pageable pageable) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
-        return collectionRepository.findByUserIdAndNameContainingIgnoreCase(userId, name)
-                .stream()
-                .map(this::convertToResponseDTO)
-                .collect(Collectors.toList());
+        return collectionRepository.findByUserIdAndNameContainingIgnoreCase(userId, name, pageable)
+                .map(this::convertToResponseDTO);
     }
 
     @Transactional
@@ -99,8 +100,11 @@ public class CollectionService {
         collectionRepository.deleteById(collectionId);
     }
 
+    // ─── Recipe membership ────────────────────────────────────────────────────
+
     @Transactional
-    public CollectionResponseDTO addRecipeToCollection(long userId, Long collectionId, Long recipeId) {
+    public CollectionResponseDTO addRecipeToCollection(long userId, Long collectionId,
+            Long recipeId) {
         CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Collection not found with id: " + collectionId));
@@ -133,6 +137,8 @@ public class CollectionService {
 
         return convertToResponseDTO(updated);
     }
+
+    // ─── Mapping ──────────────────────────────────────────────────────────────
 
     private CollectionResponseDTO convertToResponseDTO(CollectionEntity collection) {
         return CollectionResponseDTO.builder()

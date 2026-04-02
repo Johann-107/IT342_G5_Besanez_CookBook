@@ -1,7 +1,9 @@
 package edu.cit.besanez.cookbook.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +35,7 @@ public class CollectionController {
 
     // ─── CRUD ─────────────────────────────────────────────────────────────────
 
-    /** POST /api/collection — create a new collection for the authenticated user */
+    /** POST /api/collection */
     @PostMapping
     public ResponseEntity<CollectionResponseDTO> createCollection(
             HttpServletRequest request,
@@ -44,23 +46,29 @@ public class CollectionController {
     }
 
     /**
-     * GET /api/collection — all collections for the authenticated user
-     * GET /api/collection?search=x — filtered by name (search bar in UI)
+     * GET /api/collection — all collections (paginated)
+     * GET /api/collection?search=x — filtered by name (paginated)
+     *
+     * Pagination params (all optional):
+     * ?page=0 — zero-based page number (default: 0)
+     * ?size=10 — page size (default: 10)
+     * ?sort=name,asc — sort field and direction (default: createdAt, desc)
      */
     @GetMapping
-    public ResponseEntity<List<CollectionResponseDTO>> getAllCollections(
+    public ResponseEntity<Page<CollectionResponseDTO>> getAllCollections(
             HttpServletRequest request,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         long userId = extractUserId(request);
 
-        List<CollectionResponseDTO> collections = (search != null && !search.isBlank())
-                ? collectionService.searchCollections(userId, search)
-                : collectionService.getAllCollectionsByUser(userId);
+        Page<CollectionResponseDTO> collections = (search != null && !search.isBlank())
+                ? collectionService.searchCollections(userId, search, pageable)
+                : collectionService.getAllCollectionsByUser(userId, pageable);
 
         return ResponseEntity.ok(collections);
     }
 
-    /** GET /api/collection/{id} — get a single collection by id */
+    /** GET /api/collection/{id} */
     @GetMapping("/{id}")
     public ResponseEntity<CollectionResponseDTO> getCollectionById(
             HttpServletRequest request,
@@ -70,7 +78,7 @@ public class CollectionController {
         return ResponseEntity.ok(collection);
     }
 
-    /** PUT /api/collection/{id} — update name/description of a collection */
+    /** PUT /api/collection/{id} */
     @PutMapping("/{id}")
     public ResponseEntity<CollectionResponseDTO> updateCollection(
             HttpServletRequest request,
@@ -81,7 +89,7 @@ public class CollectionController {
         return ResponseEntity.ok(updated);
     }
 
-    /** DELETE /api/collection/{id} — delete a collection */
+    /** DELETE /api/collection/{id} */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCollection(
             HttpServletRequest request,
@@ -93,10 +101,7 @@ public class CollectionController {
 
     // ─── Recipe membership ────────────────────────────────────────────────────
 
-    /**
-     * POST /api/collection/{id}/recipe/{recipeId} — add a recipe to a collection
-     * (the "+ Collection" button)
-     */
+    /** POST /api/collection/{id}/recipe/{recipeId} */
     @PostMapping("/{id}/recipe/{recipeId}")
     public ResponseEntity<CollectionResponseDTO> addRecipeToCollection(
             HttpServletRequest request,
@@ -107,10 +112,7 @@ public class CollectionController {
         return ResponseEntity.ok(updated);
     }
 
-    /**
-     * DELETE /api/collection/{id}/recipe/{recipeId} — remove a recipe from a
-     * collection
-     */
+    /** DELETE /api/collection/{id}/recipe/{recipeId} */
     @DeleteMapping("/{id}/recipe/{recipeId}")
     public ResponseEntity<CollectionResponseDTO> removeRecipeFromCollection(
             HttpServletRequest request,

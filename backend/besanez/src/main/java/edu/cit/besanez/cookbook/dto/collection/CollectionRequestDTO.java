@@ -1,19 +1,22 @@
 package edu.cit.besanez.cookbook.dto.collection;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class CollectionRequestDTO {
 
+    @NotBlank(message = "Collection name is required")
+    @Size(max = 100, message = "Collection name must not exceed 100 characters")
     private String name;
 
+    @Size(max = 255, message = "Description must not exceed 255 characters")
     private String description;
 }
