@@ -18,19 +18,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    
+
     @Transactional
     public UserResponseDTO register(UserRequestDTO userRequestDTO) {
         if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
             throw new IllegalArgumentException("Email already exists: " + userRequestDTO.getEmail());
         }
-        
+
         String encryptedPassword = passwordEncoder.encode(userRequestDTO.getPassword());
-        
+
         UserEntity userEntity = UserEntity.builder()
                 .firstName(userRequestDTO.getFirstName())
                 .lastName(userRequestDTO.getLastName())
@@ -38,16 +38,17 @@ public class AuthService {
                 .email(userRequestDTO.getEmail())
                 .password(encryptedPassword)
                 .build();
-        
+
         UserEntity savedUser = userRepository.save(userEntity);
         return convertToResponseDTO(savedUser);
     }
-    
+
     @Transactional
     public LoginResponse login(LoginRequest loginRequest) {
         UserEntity user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + loginRequest.getEmail()));
-        
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("User not found with email: " + loginRequest.getEmail()));
+
         // Prevent Google users from logging in with password
         if (user.getPassword() == null) {
             throw new IllegalArgumentException("This account uses Google Sign-In. Please log in with Google.");
@@ -57,16 +58,15 @@ public class AuthService {
         if (!passwordMatches) {
             throw new IllegalArgumentException("Invalid password");
         }
-        
-        String token = jwtUtil.generateToken(user.getEmail(), user.getUserId());
-        
+
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId());
+
         return new LoginResponse(
-            token,
-            user.getUserId(),
-            user.getEmail(),
-            user.getFirstName(),
-            user.getLastName()
-        );
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName());
     }
 
     // Added: Find existing Google user or create a new one, then return a JWT
@@ -82,28 +82,27 @@ public class AuthService {
                     .email(email)
                     .firstName(firstName != null ? firstName : "Google")
                     .lastName(lastName != null ? lastName : "User")
-                    .password(null)   // No password for Google users
-                    .birthdate(null)  // Google doesn't provide birthdate
+                    .password(null) // No password for Google users
+                    .birthdate(null) // Google doesn't provide birthdate
                     .build();
             return userRepository.save(newUser);
         });
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getUserId());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId());
 
         return new LoginResponse(
-            token,
-            user.getUserId(),
-            user.getEmail(),
-            user.getFirstName(),
-            user.getLastName()
-        );
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName());
     }
-    
+
     @Transactional
     public void changePassword(Long userId, String oldPassword, String newPassword) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        
+
         if (user.getPassword() == null) {
             throw new IllegalArgumentException("Google Sign-In accounts cannot change password here.");
         }
@@ -111,16 +110,16 @@ public class AuthService {
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new IllegalArgumentException("Old password is incorrect");
         }
-        
+
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
-    
+
     @Transactional
     public void forgotPassword(String email, String newPassword) {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-        
+
         if (user.getPassword() == null) {
             throw new IllegalArgumentException("Google Sign-In accounts cannot reset password here.");
         }
@@ -128,10 +127,10 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
-    
+
     private UserResponseDTO convertToResponseDTO(UserEntity userEntity) {
         return UserResponseDTO.builder()
-                .userId(userEntity.getUserId())
+                .userId(userEntity.getId())
                 .firstName(userEntity.getFirstName())
                 .lastName(userEntity.getLastName())
                 .birthdate(userEntity.getBirthdate())

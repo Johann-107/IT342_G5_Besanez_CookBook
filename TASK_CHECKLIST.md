@@ -29,22 +29,24 @@ WEB
 
 BACKEND
     Implement User Logout
-    Connect to database (Supabase)
+
 
 DONE
 BACKEND
     Create:
         Java Springboot App - e3a2a691248e78a7313093fa7799db1ee0ff1c96
-        User Entity - e3a2a691248e78a7313093fa7799db1ee0ff1c96
-        User Repository - e3a2a691248e78a7313093fa7799db1ee0ff1c96
-        User Service - e3a2a691248e78a7313093fa7799db1ee0ff1c96
-        User Controller - e3a2a691248e78a7313093fa7799db1ee0ff1c96
-        User DTO - e3a2a691248e78a7313093fa7799db1ee0ff1c96
+        Creating Entity, Repository, Service, and Controller classes for:
+            User - e3a2a691248e78a7313093fa7799db1ee0ff1c96
+            Collection - 
+            Recipe - 
+            Ingredient - 
+            Instruction -
     
     Implement User Register, login, and logout - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
     Connect to database (MySQL) - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
     Encrypt password using BCrypt - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
     Allow users to login using google auth - e725c4272df0c0426cb825c4a53fe3b44750f6e0
+    Transfer to Supabase - 497090c2f840c4d75e3cf042cee3badc6ca364f3
 
 
 WEB

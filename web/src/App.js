@@ -5,6 +5,7 @@ import OAuth2Callback from './pages/OAuth2Callback';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 const LandingWrapper = () => {
   const [searchParams] = useSearchParams();
@@ -20,8 +21,22 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<LandingWrapper />} />
             <Route path="oauth2/callback" element={<OAuth2Callback />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="profile" element={<Profile />} />
+            <Route
+              path="dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
           </Route>
         </Routes>
       </Router>
