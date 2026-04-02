@@ -37,8 +37,8 @@ BACKEND
         Java Springboot App - e3a2a691248e78a7313093fa7799db1ee0ff1c96
         Creating Entity, Repository, Service, and Controller classes for:
             User - e3a2a691248e78a7313093fa7799db1ee0ff1c96
-            Collection - 
-            Recipe - 
+            Collection - 4cba828326d95f59c8e755f33adbf4d90e0e5531
+            Recipe - 4cba828326d95f59c8e755f33adbf4d90e0e5531
             Ingredient - 
             Instruction -
     

@@ -55,16 +55,14 @@ public class RecipeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    // @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval =
-    // true, fetch = FetchType.LAZY)
-    // @Builder.Default
-    // private List<IngredientEntity> ingredients = new ArrayList<>();
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<IngredientEntity> ingredients = new ArrayList<>();
 
-    // @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval =
-    // true, fetch = FetchType.LAZY)
-    // @OrderBy("stepNumber ASC")
-    // @Builder.Default
-    // private List<InstructionEntity> instructions = new ArrayList<>();
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("stepNumber ASC")
+    @Builder.Default
+    private List<InstructionEntity> instructions = new ArrayList<>();
 
     @ManyToMany(mappedBy = "recipes", fetch = FetchType.LAZY)
     @Builder.Default
@@ -78,23 +76,23 @@ public class RecipeEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // public void addIngredient(IngredientEntity ingredient) {
-    // this.ingredients.add(ingredient);
-    // ingredient.setRecipe(this);
-    // }
+    public void addIngredient(IngredientEntity ingredient) {
+        this.ingredients.add(ingredient);
+        ingredient.setRecipe(this);
+    }
 
-    // public void removeIngredient(IngredientEntity ingredient) {
-    // this.ingredients.remove(ingredient);
-    // ingredient.setRecipe(null);
-    // }
+    public void removeIngredient(IngredientEntity ingredient) {
+        this.ingredients.remove(ingredient);
+        ingredient.setRecipe(null);
+    }
 
-    // public void addInstruction(InstructionEntity instruction) {
-    // this.instructions.add(instruction);
-    // instruction.setRecipe(this);
-    // }
+    public void addInstruction(InstructionEntity instruction) {
+        this.instructions.add(instruction);
+        instruction.setRecipe(this);
+    }
 
-    // public void removeInstruction(InstructionEntity instruction) {
-    // this.instructions.remove(instruction);
-    // instruction.setRecipe(null);
-    // }
+    public void removeInstruction(InstructionEntity instruction) {
+        this.instructions.remove(instruction);
+        instruction.setRecipe(null);
+    }
 }
