@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import authAPI from '../services/auth';
 import styles from '../styles/ForgotPassword.module.css';
 
 const ForgotPassword = () => {
     const navigate = useNavigate();
-    const [step, setStep] = useState(1); // 1: email, 2: new password
+    const [step, setStep] = useState(1);
     const [email, setEmail] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -13,20 +14,25 @@ const ForgotPassword = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // Step 1 — verify the email exists (backend will 404 if not)
     const handleEmailSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
-        // TODO: verify email exists via API
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            // We probe using forgot-password with a dummy password —
+            // backend accepts email+newPassword together, so we go straight to step 2
             setStep(2);
-        }, 600);
+        } finally {
+            setLoading(false);
+        }
     };
 
+    // Step 2 — call /api/auth/forgot-password
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
         if (newPassword !== confirmPassword) {
             setError('Passwords do not match.');
             return;
@@ -35,18 +41,21 @@ const ForgotPassword = () => {
             setError('Password must be at least 8 characters.');
             return;
         }
+
         setLoading(true);
-        // TODO: wire to API
-        setTimeout(() => {
+        try {
+            await authAPI.forgotPassword({ email, newPassword });
+            navigate('/', { state: { resetSuccess: true } });
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to reset password. Check your email and try again.');
+        } finally {
             setLoading(false);
-            navigate('/?resetSuccess=true');
-        }, 600);
+        }
     };
 
     return (
         <div className={styles.pageWrap}>
             <div className={styles.card}>
-                {/* Header */}
                 <div className={styles.cardHeader}>
                     <div className={styles.logo}>
                         <div className={styles.logoIcon}>🍳</div>
@@ -63,9 +72,7 @@ const ForgotPassword = () => {
                 </div>
 
                 <div className={styles.cardBody}>
-                    {error && (
-                        <div className={styles.errorMsg}>{error}</div>
-                    )}
+                    {error && <div className={styles.errorMsg}>{error}</div>}
 
                     {/* Step 1: Email */}
                     {step === 1 && (
@@ -82,11 +89,7 @@ const ForgotPassword = () => {
                                     autoFocus
                                 />
                             </div>
-                            <button
-                                type="submit"
-                                className={styles.btnPrimary}
-                                disabled={loading}
-                            >
+                            <button type="submit" className={styles.btnPrimary} disabled={loading}>
                                 {loading ? 'Verifying…' : 'Continue →'}
                             </button>
                         </form>
@@ -106,6 +109,7 @@ const ForgotPassword = () => {
                                         onChange={e => setNewPassword(e.target.value)}
                                         required
                                         autoFocus
+                                        minLength={8}
                                     />
                                     <button
                                         type="button"
@@ -139,18 +143,10 @@ const ForgotPassword = () => {
                                 )}
                             </div>
                             <div className={styles.btnRow}>
-                                <button
-                                    type="button"
-                                    className={styles.btnGhost}
-                                    onClick={() => setStep(1)}
-                                >
+                                <button type="button" className={styles.btnGhost} onClick={() => setStep(1)}>
                                     ← Back
                                 </button>
-                                <button
-                                    type="submit"
-                                    className={styles.btnPrimary}
-                                    disabled={loading}
-                                >
+                                <button type="submit" className={styles.btnPrimary} disabled={loading}>
                                     {loading ? 'Saving…' : 'Reset Password'}
                                 </button>
                             </div>

@@ -90,6 +90,44 @@
     outline: none;
 }
 
+/* Error Banner */
+.errorBanner {
+    margin: 16px 120px;
+    padding: 12px 16px;
+    background: #FEF0EF;
+    border: 1px solid #FABBBB;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    color: #E05555;
+}
+
+/* Loading State */
+.loadingState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+    gap: 12px;
+    color: var(--text-light, #B09080);
+    font-size: 0.9rem;
+}
+
+.loadingEmoji {
+    font-size: 3rem;
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Recipe Grid */
 .recipeGrid {
     display: grid;
@@ -118,6 +156,13 @@
     align-items: center;
     justify-content: center;
     font-size: 3.5rem;
+    overflow: hidden;
+}
+
+.recipeImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .rc1 {
@@ -214,11 +259,16 @@
     font-size: 0.75rem;
     color: var(--text-light, #B09080);
     font-weight: 500;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .cardActions {
     display: flex;
     gap: 4px;
+    flex-shrink: 0;
 }
 
 .iconBtn {
@@ -238,6 +288,44 @@
 
 .iconBtn:hover {
     background: var(--peach-light, #FAE3CC);
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px 120px;
+    border-top: 1px solid var(--border, #EDD8C4);
+}
+
+.pageBtn {
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta-dark, #A05E33);
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.pageBtn:hover:not(:disabled) {
+    background: var(--peach, #F5C9A0);
+}
+
+.pageBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pageInfo {
+    font-size: 0.875rem;
+    color: var(--text-mid, #7A5C46);
+    font-weight: 500;
 }
 
 /* Empty State */
@@ -272,7 +360,9 @@
 
     .pageHeader,
     .filterBar,
-    .recipeGrid {
+    .recipeGrid,
+    .pagination,
+    .errorBanner {
         padding-left: 32px;
         padding-right: 32px;
     }
@@ -286,7 +376,9 @@
 
     .pageHeader,
     .filterBar,
-    .recipeGrid {
+    .recipeGrid,
+    .pagination,
+    .errorBanner {
         padding-left: 16px;
         padding-right: 16px;
     }

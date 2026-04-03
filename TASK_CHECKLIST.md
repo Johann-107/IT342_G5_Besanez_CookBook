@@ -24,8 +24,7 @@ TODO:
 IN PROGRESS
 WEB
     Create:
-        Dashboard Page
-        Profile Page
+    
 
 BACKEND
     Implement User Logout
@@ -54,4 +53,14 @@ WEB
         React App - fbe32ba458873410b86bc5b2ddc7f7731f291cc9
         Header and Login Page - 762391bcf5bb485544d2147953e77b6708bee300
         Register Page - df08274af1c13f99ab6d43dcaea8204b641f9a3b
+        Dashboard page - b56d8e76455eff2d93ba44e59cc21e3d483f6c17
+        Profile page - b56d8e76455eff2d93ba44e59cc21e3d483f6c17
+        Recipe page - b56d8e76455eff2d93ba44e59cc21e3d483f6c17
+        RecipeDetail page - b56d8e76455eff2d93ba44e59cc21e3d483f6c17
+        CreateRecipe page - b56d8e76455eff2d93ba44e59cc21e3d483f6c17
+        Collections page - b56d8e76455eff2d93ba44e59cc21e3d483f6c17
+        Forgot Password page - b56d8e76455eff2d93ba44e59cc21e3d483f6c17
         Updated Landing page, header, Login, and Register - 2c7883658c286e3f5e91e4fb8075e860eb7389fa
+
+    Connect backend api to frontend services - 378f94c7130d76156cf2624c1e3bc88076099984
+    

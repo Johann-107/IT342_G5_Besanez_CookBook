@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
+import userAPI from '../services/user';
 import styles from '../styles/Profile.module.css';
 
 const Profile = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, changePassword } = useAuth();
     const navigate = useNavigate();
 
     const [form, setForm] = useState({
         firstName: user?.firstName || '',
         lastName: user?.lastName || '',
         email: user?.email || '',
-        birthdate: user?.birthdate || '',
+        // birthdate not editable here — would need a separate endpoint or
+        // passing the existing value through, but UserRequestDTO requires password too
         cookingLevel: 'intermediate',
         dietaryPrefs: ['Gluten-Free', 'Dairy-Free'],
     });
@@ -24,27 +26,65 @@ const Profile = () => {
     });
 
     const [message, setMessage] = useState({ text: '', type: '' });
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [savingPassword, setSavingPassword] = useState(false);
 
     const showMessage = (text, type = 'success') => {
         setMessage({ text, type });
         setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     };
 
-    const handleProfileSubmit = (e) => {
+    // ─── Update Profile ───────────────────────────────────────────────────────
+    // NOTE: UserRequestDTO requires a non-blank password field (it's validated),
+    // so we send a placeholder — UserService doesn't update the password,
+    // only AuthService.changePassword does.
+    const handleProfileSubmit = async (e) => {
         e.preventDefault();
-        // TODO: wire to API
-        showMessage('Profile updated successfully!');
+        setSavingProfile(true);
+        try {
+            await userAPI.updateUser(user.userId, {
+                firstName: form.firstName,
+                lastName: form.lastName,
+                email: form.email,
+                birthdate: user.birthdate || null,
+                password: 'placeholder-not-updated', // required by DTO but ignored by service
+            });
+            showMessage('Profile updated successfully!');
+        } catch (err) {
+            showMessage(err.response?.data?.message || 'Failed to update profile.', 'error');
+        } finally {
+            setSavingProfile(false);
+        }
     };
 
-    const handlePasswordSubmit = (e) => {
+    // ─── Change Password ──────────────────────────────────────────────────────
+    const handlePasswordSubmit = async (e) => {
         e.preventDefault();
         if (passwordForm.newPass !== passwordForm.confirm) {
-            showMessage('Passwords do not match.', 'error');
+            showMessage('New passwords do not match.', 'error');
             return;
         }
-        // TODO: wire to API
-        setPasswordForm({ current: '', newPass: '', confirm: '' });
-        showMessage('Password updated successfully!');
+        setSavingPassword(true);
+        const result = await changePassword(passwordForm.current, passwordForm.newPass);
+        if (result.success) {
+            setPasswordForm({ current: '', newPass: '', confirm: '' });
+            showMessage('Password updated successfully!');
+        } else {
+            showMessage(result.error || 'Failed to change password.', 'error');
+        }
+        setSavingPassword(false);
+    };
+
+    // ─── Delete Account ───────────────────────────────────────────────────────
+    const handleDeleteAccount = async () => {
+        if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
+        try {
+            await userAPI.deleteUser(user.userId);
+            await logout();
+            navigate('/');
+        } catch {
+            showMessage('Failed to delete account.', 'error');
+        }
     };
 
     const removeTag = (tag) => {
@@ -52,8 +92,8 @@ const Profile = () => {
     };
 
     const getInitials = () => {
-        const first = form.firstName?.[0] || '';
-        const last = form.lastName?.[0] || '';
+        const first = (form.firstName || user?.firstName || '')[0] || '';
+        const last = (form.lastName || user?.lastName || '')[0] || '';
         return (first + last).toUpperCase() || 'U';
     };
 
@@ -62,9 +102,7 @@ const Profile = () => {
             <DefaultHeader user={user} />
             <div className={styles.page}>
                 <div className={styles.pageHeader}>
-                    <div>
-                        <h2 className={styles.pageTitle}>My Profile</h2>
-                    </div>
+                    <h2 className={styles.pageTitle}>My Profile</h2>
                     <button className={styles.backBtn} onClick={() => navigate('/dashboard')}>
                         ← Dashboard
                     </button>
@@ -90,24 +128,23 @@ const Profile = () => {
 
                         <div className={styles.accountInfo}>
                             <span className={styles.aiLabel}>Email</span>
-                            <span className={styles.aiValue}>{form.email || '—'}</span>
+                            <span className={styles.aiValue}>{user?.email || '—'}</span>
 
                             <span className={styles.aiLabel}>Member Since</span>
                             <span className={styles.aiValue}>
                                 {user?.createdAt
-                                    ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                                    ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                                        month: 'long', year: 'numeric'
+                                    })
                                     : 'March 2024'}
                             </span>
-
-                            <span className={styles.aiLabel}>Total Recipes</span>
-                            <span className={styles.aiValue}>42 recipes · 8 collections</span>
                         </div>
                     </div>
 
                     {/* Right Content */}
                     <div className={styles.right}>
 
-                        {/* Personal Info Form */}
+                        {/* Personal Info */}
                         <div className={styles.profileSection}>
                             <h4 className={styles.sectionTitle}>Personal Information</h4>
                             <form onSubmit={handleProfileSubmit}>
@@ -120,6 +157,8 @@ const Profile = () => {
                                             value={form.firstName}
                                             onChange={e => setForm({ ...form, firstName: e.target.value })}
                                             placeholder="First name"
+                                            required
+                                            maxLength={50}
                                         />
                                     </div>
                                     <div className={styles.formGroup}>
@@ -130,6 +169,8 @@ const Profile = () => {
                                             value={form.lastName}
                                             onChange={e => setForm({ ...form, lastName: e.target.value })}
                                             placeholder="Last name"
+                                            required
+                                            maxLength={50}
                                         />
                                     </div>
                                 </div>
@@ -167,10 +208,7 @@ const Profile = () => {
                                         {form.dietaryPrefs.map(tag => (
                                             <span key={tag} className={styles.dietTag}>
                                                 {tag}
-                                                <span
-                                                    className={styles.remove}
-                                                    onClick={() => removeTag(tag)}
-                                                >×</span>
+                                                <span className={styles.remove} onClick={() => removeTag(tag)}>×</span>
                                             </span>
                                         ))}
                                         <span className={styles.addTag}>+ add</span>
@@ -178,7 +216,9 @@ const Profile = () => {
                                 </div>
 
                                 <div className={styles.formActions}>
-                                    <button type="submit" className={styles.btnPrimary}>Save Changes</button>
+                                    <button type="submit" className={styles.btnPrimary} disabled={savingProfile}>
+                                        {savingProfile ? 'Saving…' : 'Save Changes'}
+                                    </button>
                                     <button
                                         type="button"
                                         className={styles.btnOutline}
@@ -186,7 +226,6 @@ const Profile = () => {
                                             firstName: user?.firstName || '',
                                             lastName: user?.lastName || '',
                                             email: user?.email || '',
-                                            birthdate: user?.birthdate || '',
                                             cookingLevel: 'intermediate',
                                             dietaryPrefs: ['Gluten-Free', 'Dairy-Free'],
                                         })}
@@ -209,6 +248,7 @@ const Profile = () => {
                                         placeholder="••••••••"
                                         value={passwordForm.current}
                                         onChange={e => setPasswordForm({ ...passwordForm, current: e.target.value })}
+                                        required
                                     />
                                 </div>
                                 <div className={styles.formRow}>
@@ -217,9 +257,11 @@ const Profile = () => {
                                         <input
                                             className={styles.formInput}
                                             type="password"
-                                            placeholder="••••••••"
+                                            placeholder="Min. 8 characters"
                                             value={passwordForm.newPass}
                                             onChange={e => setPasswordForm({ ...passwordForm, newPass: e.target.value })}
+                                            required
+                                            minLength={8}
                                         />
                                     </div>
                                     <div className={styles.formGroup}>
@@ -227,13 +269,16 @@ const Profile = () => {
                                         <input
                                             className={styles.formInput}
                                             type="password"
-                                            placeholder="••••••••"
+                                            placeholder="Repeat password"
                                             value={passwordForm.confirm}
                                             onChange={e => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
+                                            required
                                         />
                                     </div>
                                 </div>
-                                <button type="submit" className={styles.btnGhost}>Update Password</button>
+                                <button type="submit" className={styles.btnGhost} disabled={savingPassword}>
+                                    {savingPassword ? 'Updating…' : 'Update Password'}
+                                </button>
                             </form>
                         </div>
 
@@ -243,14 +288,18 @@ const Profile = () => {
                             <p className={styles.dangerText}>
                                 Permanently delete your account and all your recipes. This cannot be undone.
                             </p>
-                            <button className={styles.btnDanger}>Delete My Account</button>
+                            <button className={styles.btnDanger} onClick={handleDeleteAccount}>
+                                Delete My Account
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <div className={styles.profileFooter}>
                     <button className={styles.btnOutline} onClick={() => navigate('/dashboard')}>Cancel</button>
-                    <button className={styles.btnPrimary} onClick={handleProfileSubmit}>Save Changes</button>
+                    <button className={styles.btnPrimary} onClick={handleProfileSubmit} disabled={savingProfile}>
+                        {savingProfile ? 'Saving…' : 'Save Changes'}
+                    </button>
                 </div>
             </div>
         </>

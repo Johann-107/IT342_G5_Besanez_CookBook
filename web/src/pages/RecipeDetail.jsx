@@ -1,44 +1,97 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
+import recipeAPI from '../services/recipe';
+import ingredientAPI from '../services/ingredient';
+import instructionAPI from '../services/instruction';
 import styles from '../styles/RecipeDetail.module.css';
 
 const RecipeDetail = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { id } = useParams();
-    const [activeTab, setActiveTab] = useState('ingredients');
 
-    // Sample data
-    const recipe = {
-        id: 1,
-        title: 'Moroccan Lamb Tagine with Preserved Lemons',
-        prepTime: 20,
-        cookTime: 120,
-        totalTime: 140,
-        isPublic: true,
-        createdAt: 'Feb 14, 2025',
-        updatedAt: 'Feb 20, 2025',
-        collections: ['Dinner Mains', 'World Cuisine'],
-        notes: "Marinate lamb overnight for best results. The preserved lemon rind is essential — don't substitute. Serve with couscous and fresh cilantro. 🌿",
-        ingredients: [
-            { amount: '800g', name: 'lamb shoulder, diced' },
-            { amount: '2', name: 'preserved lemons, quartered' },
-            { amount: '1 cup', name: 'Kalamata olives' },
-            { amount: '2 tbsp', name: 'ras el hanout spice blend' },
-            { amount: '400ml', name: 'chicken stock' },
-            { amount: '2', name: 'medium onions, sliced' },
-            { amount: '4 cloves', name: 'garlic, minced' },
-            { amount: '3 tbsp', name: 'olive oil' },
-        ],
-        instructions: [
-            'Heat olive oil in a heavy tagine or Dutch oven over medium-high heat. Season lamb and brown in batches until golden. Remove and set aside.',
-            'In the same pot, sauté onions until soft (5–7 min). Add garlic and ras el hanout, stir for 1 minute until fragrant.',
-            'Return lamb to the pot. Add preserved lemons, olives, and stock. Bring to a boil, then reduce heat, cover, and simmer on low for 1.5–2 hours.',
-            'Taste and adjust seasoning. Garnish with fresh cilantro and serve immediately over fluffy couscous.',
-        ],
+    const [recipe, setRecipe] = useState(null);
+    const [ingredients, setIngredients] = useState([]);
+    const [instructions, setInstructions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        const fetchAll = async () => {
+            setLoading(true);
+            setError('');
+            try {
+                const [recipeRes, ingRes, instRes] = await Promise.all([
+                    recipeAPI.getRecipeById(id),
+                    ingredientAPI.getIngredients(id),
+                    instructionAPI.getInstructions(id),
+                ]);
+                setRecipe(recipeRes.data);
+                setIngredients(ingRes.data);
+                setInstructions(instRes.data);
+            } catch (err) {
+                setError('Failed to load recipe. It may not exist or you may not have access.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAll();
+    }, [id]);
+
+    const handleDelete = async () => {
+        if (!window.confirm('Delete this recipe? This cannot be undone.')) return;
+        try {
+            await recipeAPI.deleteRecipe(id);
+            navigate('/recipes');
+        } catch {
+            alert('Failed to delete recipe.');
+        }
     };
+
+    const formatTime = (minutes) => {
+        if (!minutes) return null;
+        if (minutes < 60) return `${minutes} min`;
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        return m ? `${h}h ${m}m` : `${h}h`;
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric'
+        });
+    };
+
+    if (loading) {
+        return (
+            <>
+                <DefaultHeader user={user} />
+                <div className={styles.loadingState}>
+                    <div className={styles.loadingEmoji}>🍳</div>
+                    <p>Loading recipe…</p>
+                </div>
+            </>
+        );
+    }
+
+    if (error || !recipe) {
+        return (
+            <>
+                <DefaultHeader user={user} />
+                <div className={styles.errorState}>
+                    <div className={styles.emptyEmoji}>😕</div>
+                    <h3>{error || 'Recipe not found.'}</h3>
+                    <button className={styles.btnGhost} onClick={() => navigate('/recipes')}>
+                        ← Back to Recipes
+                    </button>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>
@@ -49,79 +102,124 @@ const RecipeDetail = () => {
                         ← My Recipes
                     </button>
                     <div className={styles.titleRow}>
-                        <h1 className={styles.recipeTitle}>{recipe.title}</h1>
+                        <h1 className={styles.recipeTitle}>{recipe.name}</h1>
                         <div className={styles.recipeActions}>
-                            <button className={styles.btnGhost} onClick={() => navigate(`/recipe/${id}/edit`)}>
+                            <button
+                                className={styles.btnGhost}
+                                onClick={() => navigate(`/recipe/${id}/edit`)}
+                            >
                                 ✏️ Edit
                             </button>
-                            <button className={styles.btnGhost}>
+                            <button className={styles.btnGhost} onClick={() => window.print()}>
                                 🖨 Print
                             </button>
-                            <button className={styles.btnPrimary}>
-                                + Collection
+                            <button
+                                className={styles.btnDanger}
+                                onClick={handleDelete}
+                            >
+                                🗑 Delete
                             </button>
                         </div>
                     </div>
                     <div className={styles.timeBadges}>
-                        <div className={styles.timeBadge}>⏱ Prep <span>{recipe.prepTime} min</span></div>
-                        <div className={styles.timeBadge}>🔥 Cook <span>{recipe.cookTime} min</span></div>
-                        <div className={styles.timeBadge}>⏰ Total <span>{Math.floor(recipe.totalTime / 60)}h {recipe.totalTime % 60}m</span></div>
-                        {recipe.isPublic && <div className={styles.timeBadge}>🌐 <span>Public</span></div>}
+                        {recipe.prepTimeMinutes && (
+                            <div className={styles.timeBadge}>
+                                ⏱ Prep <span>{formatTime(recipe.prepTimeMinutes)}</span>
+                            </div>
+                        )}
+                        {recipe.cookTimeMinutes && (
+                            <div className={styles.timeBadge}>
+                                🔥 Cook <span>{formatTime(recipe.cookTimeMinutes)}</span>
+                            </div>
+                        )}
+                        {recipe.totalTimeMinutes && (
+                            <div className={styles.timeBadge}>
+                                ⏰ Total <span>{formatTime(recipe.totalTimeMinutes)}</span>
+                            </div>
+                        )}
+                        <div className={styles.timeBadge}>
+                            {recipe.isPublic ? '🌐' : '🔒'} <span>{recipe.isPublic ? 'Public' : 'Private'}</span>
+                        </div>
                     </div>
                 </div>
 
                 <div className={styles.body}>
+                    {/* Left column */}
                     <div className={styles.left}>
-                        <div className={styles.detailCard}>
-                            <h4 className={styles.cardTitle}>
-                                Ingredients
-                                <span className={styles.countBadge}>{recipe.ingredients.length}</span>
-                            </h4>
-                            <ul className={styles.ingredientList}>
-                                {recipe.ingredients.map((ing, i) => (
-                                    <li key={i} className={styles.ingredientItem}>
-                                        <strong>{ing.amount}</strong> {ing.name}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div className={styles.detailCard}>
-                            <h4 className={styles.cardTitle}>Notes</h4>
-                            <p className={styles.notesText}>{recipe.notes}</p>
-                        </div>
+                        {ingredients.length > 0 && (
+                            <div className={styles.detailCard}>
+                                <h4 className={styles.cardTitle}>
+                                    Ingredients
+                                    <span className={styles.countBadge}>{ingredients.length}</span>
+                                </h4>
+                                <ul className={styles.ingredientList}>
+                                    {ingredients.map((ing) => (
+                                        <li key={ing.id} className={styles.ingredientItem}>
+                                            <strong>
+                                                {ing.quantity}{ing.unit ? ` ${ing.unit.toLowerCase()}` : ''}
+                                            </strong>{' '}
+                                            {ing.name}
+                                            {ing.notes && (
+                                                <span className={styles.ingNotes}> — {ing.notes}</span>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {recipe.notes && (
+                            <div className={styles.detailCard}>
+                                <h4 className={styles.cardTitle}>Notes</h4>
+                                <p className={styles.notesText}>{recipe.notes}</p>
+                            </div>
+                        )}
+
                         <div className={styles.detailCard}>
                             <h4 className={styles.cardTitle}>Details</h4>
                             <div className={styles.detailMeta}>
-                                <span>Created: <strong>{recipe.createdAt}</strong></span>
-                                <span>Updated: <strong>{recipe.updatedAt}</strong></span>
+                                {recipe.createdAt && (
+                                    <span>Created: <strong>{formatDate(recipe.createdAt)}</strong></span>
+                                )}
+                                {recipe.updatedAt && (
+                                    <span>Updated: <strong>{formatDate(recipe.updatedAt)}</strong></span>
+                                )}
                             </div>
                             <div className={styles.tagRow}>
-                                {recipe.collections.map((col, i) => (
-                                    <span key={i} className={styles.tagCollection}>🍝 {col}</span>
-                                ))}
-                                {recipe.isPublic && <span className={styles.tagPublic}>🌐 Public</span>}
+                                <span className={recipe.isPublic ? styles.tagPublic : styles.tagPrivate}>
+                                    {recipe.isPublic ? '🌐 Public' : '🔒 Private'}
+                                </span>
                             </div>
                         </div>
                     </div>
 
+                    {/* Right column */}
                     <div className={styles.right}>
-                        <div className={styles.detailCard}>
-                            <h4 className={styles.cardTitle}>Instructions</h4>
-                            <ol className={styles.stepsList}>
-                                {recipe.instructions.map((step, i) => (
-                                    <li key={i} className={styles.stepItem}>
-                                        <div className={styles.stepNum}>{i + 1}</div>
-                                        <p className={styles.stepText}>{step}</p>
-                                    </li>
-                                ))}
-                            </ol>
-                        </div>
+                        {recipe.description && (
+                            <div className={styles.detailCard}>
+                                <h4 className={styles.cardTitle}>About</h4>
+                                <p className={styles.notesText}>{recipe.description}</p>
+                            </div>
+                        )}
+
+                        {instructions.length > 0 && (
+                            <div className={styles.detailCard}>
+                                <h4 className={styles.cardTitle}>Instructions</h4>
+                                <ol className={styles.stepsList}>
+                                    {instructions.map((step) => (
+                                        <li key={step.id} className={styles.stepItem}>
+                                            <div className={styles.stepNum}>{step.stepNumber}</div>
+                                            <p className={styles.stepText}>{step.description}</p>
+                                        </li>
+                                    ))}
+                                </ol>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className={styles.footer}>
-                    <button className={styles.btnGhost} onClick={() => navigate(-1)}>← Previous</button>
-                    <button className={styles.btnGhost} style={{ marginLeft: 'auto' }}>Next →</button>
+                    <button className={styles.btnGhost} onClick={() => navigate(-1)}>← Back</button>
                 </div>
             </div>
         </>

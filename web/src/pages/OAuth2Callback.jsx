@@ -1,48 +1,36 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const OAuth2Callback = () => {
     const navigate = useNavigate();
+    const { loginWithGoogle } = useAuth();
 
     useEffect(() => {
         try {
             const params = new URLSearchParams(window.location.search);
 
-            const token = params.get("token");
-            const userId = params.get("userId");
-            const email = params.get("email");
-            const firstName = params.get("firstName");
-            const lastName = params.get("lastName");
+            const token = params.get('token');
+            const userId = params.get('userId');
+            const email = params.get('email');
+            const firstName = params.get('firstName');
+            const lastName = params.get('lastName');
 
             if (token) {
-                // First run — save and redirect
-                localStorage.setItem("token", token);
-                localStorage.setItem("user", JSON.stringify({
-                    userId,
-                    email,
-                    firstName,
-                    lastName
-                }));
-                navigate("/dashboard", { replace: true });
+                loginWithGoogle(token, { userId, email, firstName, lastName });
+                navigate('/dashboard', { replace: true });
             } else {
-                // Check if token was already saved by the first run
-                const savedToken = localStorage.getItem("token");
-                if (savedToken) {
-                    // First run already handled it, just go to dashboard
-                    navigate("/dashboard", { replace: true });
-                } else {
-                    navigate("/?error=true", { replace: true });
-                }
+                navigate('/?error=true', { replace: true });
             }
         } catch (err) {
-            console.error("OAuth2Callback error:", err);
-            navigate("/?error=true", { replace: true });
+            console.error('OAuth2Callback error:', err);
+            navigate('/?error=true', { replace: true });
         }
-    }, [navigate]);
+    }, [navigate, loginWithGoogle]);
 
     return (
-        <div style={{ textAlign: "center", marginTop: "50px" }}>
-            <p>Signing you in with Google...</p>
+        <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'DM Sans, sans-serif', color: '#7A5C46' }}>
+            <p>Signing you in with Google…</p>
         </div>
     );
 };
