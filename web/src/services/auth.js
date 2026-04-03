@@ -1,35 +1,49 @@
-import axios from 'axios';
+import api from './api';
 
-const API_BASE_URL = 'http://localhost:8080';
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+// POST /api/auth/register
+// Body: { firstName, lastName, birthdate, email, password }
+// Response: { success, message, user }
+export const register = (userData) =>
+  api.post('/api/auth/register', userData);
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// POST /api/auth/login
+// Body: { email, password }
+// Response: { success, message, token, type, user }
+export const login = (credentials) =>
+  api.post('/api/auth/login', credentials);
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// POST /api/auth/logout
+export const logout = () =>
+  api.post('/api/auth/logout');
 
-export const authAPI = {
-  register: (userData) => api.post('/api/auth/register', userData),
-  login: (credentials) => api.post('/api/auth/login', credentials),
-  logout: () => api.post('/api/auth/logout'),
-  getProfile: () => api.get('/api/user/me'),
-  changePassword: (passwordData) => api.post('/api/auth/change-password', passwordData),
-  forgotPassword: (data) => api.post('/api/auth/forgot-password', data),
+// POST /api/auth/change-password
+// Body: { oldPassword, newPassword }
+// Header: Authorization Bearer <token>
+export const changePassword = (passwordData) =>
+  api.post('/api/auth/change-password', passwordData);
+
+// POST /api/auth/forgot-password
+// Body: { email, newPassword }
+export const forgotPassword = (data) =>
+  api.post('/api/auth/forgot-password', data);
+
+// ─── Current User ─────────────────────────────────────────────────────────────
+// GET /api/user/me
+// Header: Authorization Bearer <token>
+// Response: { userId, email, firstName, lastName }
+export const getMe = () =>
+  api.get('/api/user/me');
+
+const authAPI = {
+  register,
+  login,
+  logout,
+  changePassword,
+  forgotPassword,
+  getMe,
+  // Keep legacy alias used by AuthContext
+  getProfile: getMe,
 };
 
-export const userAPI = {
-  getAllUsers: () => api.get('/api/user'),
-  getUserById: (id) => api.get(`/api/user/${id}`),
-  getUserByEmail: (email) => api.get('/api/user/email', { params: { email } }),
-  updateUser: (id, userData) => api.put(`/api/user/${id}`, userData),
-  deleteUser: (id) => api.delete(`/api/user/${id}`),
-};
+export default authAPI;

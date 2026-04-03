@@ -1,267 +1,259 @@
-import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import DefaultHeader from '../components/layout/DefaultHeader';
 import styles from '../styles/Profile.module.css';
 
 const Profile = () => {
-    const { user, updateProfile } = useAuth();
-    const [name, setName] = useState(user?.name || '');
-    const [email, setEmail] = useState(user?.email || '');
-    const [phone, setPhone] = useState(user?.phoneNumber || '');
-    const [gender, setGender] = useState(user?.gender || '');
-    const [birthdate, setBirthdate] = useState(user?.birthdate || '');
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const [form, setForm] = useState({
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+        email: user?.email || '',
+        birthdate: user?.birthdate || '',
+        cookingLevel: 'intermediate',
+        dietaryPrefs: ['Gluten-Free', 'Dairy-Free'],
+    });
+
+    const [passwordForm, setPasswordForm] = useState({
+        current: '',
+        newPass: '',
+        confirm: '',
+    });
+
     const [message, setMessage] = useState({ text: '', type: '' });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        const updatedUser = {
-            ...user,
-            name,
-            email,
-            phoneNumber: phone,
-            gender,
-            birthdate
-        };
-        updateProfile(updatedUser);
-
-        setMessage({
-            text: 'Profile updated successfully!',
-            type: 'success'
-        });
+    const showMessage = (text, type = 'success') => {
+        setMessage({ text, type });
         setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     };
 
-    // Format birthdate for display
-    const formatDate = (dateString) => {
-        if (!dateString) return 'Not set';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+    const handleProfileSubmit = (e) => {
+        e.preventDefault();
+        // TODO: wire to API
+        showMessage('Profile updated successfully!');
     };
 
-    // Calculate age from birthdate
-    const calculateAge = () => {
-        if (!user?.birthdate) return 'N/A';
-        const birthDate = new Date(user.birthdate);
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
+    const handlePasswordSubmit = (e) => {
+        e.preventDefault();
+        if (passwordForm.newPass !== passwordForm.confirm) {
+            showMessage('Passwords do not match.', 'error');
+            return;
         }
-
-        return age;
+        // TODO: wire to API
+        setPasswordForm({ current: '', newPass: '', confirm: '' });
+        showMessage('Password updated successfully!');
     };
 
-    // Format member since date
-    const memberSince = user?.createdAt
-        ? new Date(user.createdAt).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        })
-        : new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+    const removeTag = (tag) => {
+        setForm(f => ({ ...f, dietaryPrefs: f.dietaryPrefs.filter(t => t !== tag) }));
+    };
+
+    const getInitials = () => {
+        const first = form.firstName?.[0] || '';
+        const last = form.lastName?.[0] || '';
+        return (first + last).toUpperCase() || 'U';
+    };
 
     return (
-        <div className={styles.profileContainer}>
-            <div className={styles.profileHeader}>
-                <h1 className={styles.profileTitle}>Profile Settings</h1>
-                <p className={styles.profileSubtitle}>Manage your account information</p>
-            </div>
-
-            {message.text && (
-                <div className={styles.message + ' ' + (message.type === 'success' ? styles.success : styles.error)}>
-                    <span className={styles.messageIcon}>
-                        {message.type === 'success' ? '✓' : '⚠'}
-                    </span>
-                    {message.text}
+        <>
+            <DefaultHeader user={user} />
+            <div className={styles.page}>
+                <div className={styles.pageHeader}>
+                    <div>
+                        <h2 className={styles.pageTitle}>My Profile</h2>
+                    </div>
+                    <button className={styles.backBtn} onClick={() => navigate('/dashboard')}>
+                        ← Dashboard
+                    </button>
                 </div>
-            )}
 
-            <div className={styles.profileContent}>
-                {/* Left Sidebar - Profile Info */}
-                <div className={styles.profileSidebar}>
-                    <div className={styles.profileCard}>
-                        <div className={styles.profileAvatar}>
-                            <div className={styles.avatarInitials}>
-                                {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                {message.text && (
+                    <div className={`${styles.message} ${styles[message.type]}`}>
+                        <span>{message.type === 'success' ? '✓' : '⚠'}</span>
+                        {message.text}
+                    </div>
+                )}
+
+                <div className={styles.profileBody}>
+                    {/* Left Sidebar */}
+                    <div className={styles.left}>
+                        <div className={styles.avatarSection}>
+                            <div className={styles.bigAvatar}>{getInitials()}</div>
+                            <div className={styles.avatarBtns}>
+                                <button className={styles.btnGhost}>📷 Upload Photo</button>
+                                <button className={styles.btnGhostOutline}>Remove</button>
                             </div>
                         </div>
-                        <div className={styles.profileInfo}>
-                            <h2 className={styles.profileName}>{user?.name || 'User'}</h2>
-                            <p className={styles.profileEmail}>{user?.email || 'No email'}</p>
-                            <div className={styles.profileStats}>
-                                <div className={styles.statItem}>
-                                    <span className={styles.statLabel}>Age</span>
-                                    <span className={styles.statValue}>{calculateAge()}</span>
-                                </div>
-                                <div className={styles.statItem}>
-                                    <span className={styles.statLabel}>Gender</span>
-                                    <span className={styles.statValue}>{user?.gender || 'Not set'}</span>
-                                </div>
-                            </div>
+
+                        <div className={styles.accountInfo}>
+                            <span className={styles.aiLabel}>Email</span>
+                            <span className={styles.aiValue}>{form.email || '—'}</span>
+
+                            <span className={styles.aiLabel}>Member Since</span>
+                            <span className={styles.aiValue}>
+                                {user?.createdAt
+                                    ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                                    : 'March 2024'}
+                            </span>
+
+                            <span className={styles.aiLabel}>Total Recipes</span>
+                            <span className={styles.aiValue}>42 recipes · 8 collections</span>
                         </div>
                     </div>
 
-                    <div className={styles.accountInfo}>
-                        <h3 className={styles.accountTitle}>Account Details</h3>
-                        <ul className={styles.accountList}>
-                            <li className={styles.accountItem}>
-                                <span className={styles.accountLabel}>Member since:</span>
-                                <span className={styles.accountValue}>{memberSince}</span>
-                            </li>
-                            <li className={styles.accountItem}>
-                                <span className={styles.accountLabel}>User ID:</span>
-                                <span className={styles.accountValue}>{user?.id?.slice(0, 8) || 'N/A'}</span>
-                            </li>
-                            <li className={styles.accountItem}>
-                                <span className={styles.accountLabel}>Status:</span>
-                                <span className={styles.accountStatus + ' ' + styles.accountStatusActive}>Active</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+                    {/* Right Content */}
+                    <div className={styles.right}>
 
-                {/* Right Content - Edit Form */}
-                <div className={styles.profileFormContainer}>
-                    <div className={styles.formCard}>
-                        <div className={styles.formHeader}>
-                            <h2 className={styles.formTitle}>Edit Profile</h2>
-                            <p className={styles.formSubtitle}>Update your personal information</p>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className={styles.profileForm}>
-                            <div className={styles.formSection}>
-                                <h3 className={styles.sectionTitle}>Personal Information</h3>
-                                <div className={styles.formGrid}>
+                        {/* Personal Info Form */}
+                        <div className={styles.profileSection}>
+                            <h4 className={styles.sectionTitle}>Personal Information</h4>
+                            <form onSubmit={handleProfileSubmit}>
+                                <div className={styles.formRow}>
                                     <div className={styles.formGroup}>
-                                        <label className={styles.formLabel}>
-                                            Full Name
-                                            <span className={styles.required}>*</span>
-                                        </label>
+                                        <label className={styles.formLabel}>First Name</label>
                                         <input
+                                            className={`${styles.formInput} ${form.firstName ? styles.inputActive : ''}`}
                                             type="text"
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value)}
-                                            className={styles.formInput}
-                                            placeholder="Enter your full name"
-                                            required
+                                            value={form.firstName}
+                                            onChange={e => setForm({ ...form, firstName: e.target.value })}
+                                            placeholder="First name"
                                         />
                                     </div>
-
                                     <div className={styles.formGroup}>
-                                        <label className={styles.formLabel}>Gender</label>
-                                        <select
-                                            value={gender}
-                                            onChange={(e) => setGender(e.target.value)}
-                                            className={styles.formInput}
-                                        >
-                                            <option value="">Select Gender</option>
-                                            <option value="male">Male</option>
-                                            <option value="female">Female</option>
-                                            <option value="other">Other</option>
-                                            <option value="prefer-not-to-say">Prefer not to say</option>
-                                        </select>
-                                    </div>
-
-                                    <div className={styles.formGroup}>
-                                        <label className={styles.formLabel}>Date of Birth</label>
+                                        <label className={styles.formLabel}>Last Name</label>
                                         <input
-                                            type="date"
-                                            value={birthdate}
-                                            onChange={(e) => setBirthdate(e.target.value)}
-                                            className={styles.formInput}
+                                            className={`${styles.formInput} ${form.lastName ? styles.inputActive : ''}`}
+                                            type="text"
+                                            value={form.lastName}
+                                            onChange={e => setForm({ ...form, lastName: e.target.value })}
+                                            placeholder="Last name"
                                         />
-                                        {birthdate && (
-                                            <div className={styles.dateHint}>
-                                                {formatDate(birthdate)}
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className={styles.formSection}>
-                                <h3 className={styles.sectionTitle}>Contact Information</h3>
-                                <div className={styles.formGrid}>
-                                    <div className={styles.formGroup}>
-                                        <label className={styles.formLabel}>
-                                            Email Address
-                                            <span className={styles.required}>*</span>
-                                        </label>
-                                        <input
-                                            type="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            className={styles.formInput}
-                                            placeholder="your.email@example.com"
-                                            required
-                                        />
-                                    </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.formLabel}>
+                                        Email{' '}
+                                        <span className={styles.verifiedBadge}>✓ Verified</span>
+                                    </label>
+                                    <input
+                                        className={styles.formInput}
+                                        type="email"
+                                        value={form.email}
+                                        disabled
+                                        style={{ opacity: 0.6 }}
+                                    />
+                                </div>
 
-                                    <div className={styles.formGroup}>
-                                        <label className={styles.formLabel}>Phone Number</label>
-                                        <div className={styles.phoneInputContainer}>
-                                            <span className={styles.phonePrefix}>+1</span>
-                                            <input
-                                                type="tel"
-                                                value={phone}
-                                                onChange={(e) => setPhone(e.target.value)}
-                                                className={styles.formInput}
-                                                placeholder="(123) 456-7890"
-                                            />
-                                        </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.formLabel}>Cooking Skill Level</label>
+                                    <select
+                                        className={styles.selectInput}
+                                        value={form.cookingLevel}
+                                        onChange={e => setForm({ ...form, cookingLevel: e.target.value })}
+                                    >
+                                        <option value="beginner">👶 Beginner</option>
+                                        <option value="intermediate">🧑‍🍳 Intermediate</option>
+                                        <option value="advanced">⭐ Advanced</option>
+                                    </select>
+                                </div>
+
+                                <div className={styles.formGroup}>
+                                    <label className={styles.formLabel}>Dietary Preferences</label>
+                                    <div className={styles.tagsInput}>
+                                        {form.dietaryPrefs.map(tag => (
+                                            <span key={tag} className={styles.dietTag}>
+                                                {tag}
+                                                <span
+                                                    className={styles.remove}
+                                                    onClick={() => removeTag(tag)}
+                                                >×</span>
+                                            </span>
+                                        ))}
+                                        <span className={styles.addTag}>+ add</span>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className={styles.formActions}>
-                                <button
-                                    type="submit"
-                                    className={styles.submitButton}
-                                >
-                                    <span className={styles.buttonText}>Save Changes</span>
-                                    <span className={styles.buttonIcon}>✓</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    className={styles.cancelButton}
-                                    onClick={() => {
-                                        setName(user?.name || '');
-                                        setEmail(user?.email || '');
-                                        setPhone(user?.phoneNumber || '');
-                                        setGender(user?.gender || '');
-                                        setBirthdate(user?.birthdate || '');
-                                    }}
-                                >
-                                    Reset
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                                <div className={styles.formActions}>
+                                    <button type="submit" className={styles.btnPrimary}>Save Changes</button>
+                                    <button
+                                        type="button"
+                                        className={styles.btnOutline}
+                                        onClick={() => setForm({
+                                            firstName: user?.firstName || '',
+                                            lastName: user?.lastName || '',
+                                            email: user?.email || '',
+                                            birthdate: user?.birthdate || '',
+                                            cookingLevel: 'intermediate',
+                                            dietaryPrefs: ['Gluten-Free', 'Dairy-Free'],
+                                        })}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
 
-                    <div className={styles.dangerZone}>
-                        <h3 className={styles.dangerTitle}>Account Actions</h3>
-                        <div className={styles.dangerContent}>
+                        {/* Change Password */}
+                        <div className={styles.profileSection}>
+                            <h4 className={styles.sectionTitle}>Change Password ▸</h4>
+                            <form onSubmit={handlePasswordSubmit}>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.formLabel}>Current Password</label>
+                                    <input
+                                        className={styles.formInput}
+                                        type="password"
+                                        placeholder="••••••••"
+                                        value={passwordForm.current}
+                                        onChange={e => setPasswordForm({ ...passwordForm, current: e.target.value })}
+                                    />
+                                </div>
+                                <div className={styles.formRow}>
+                                    <div className={styles.formGroup}>
+                                        <label className={styles.formLabel}>New Password</label>
+                                        <input
+                                            className={styles.formInput}
+                                            type="password"
+                                            placeholder="••••••••"
+                                            value={passwordForm.newPass}
+                                            onChange={e => setPasswordForm({ ...passwordForm, newPass: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label className={styles.formLabel}>Confirm</label>
+                                        <input
+                                            className={styles.formInput}
+                                            type="password"
+                                            placeholder="••••••••"
+                                            value={passwordForm.confirm}
+                                            onChange={e => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <button type="submit" className={styles.btnGhost}>Update Password</button>
+                            </form>
+                        </div>
+
+                        {/* Danger Zone */}
+                        <div className={styles.dangerZone}>
+                            <h4 className={styles.dangerTitle}>⚠️ Danger Zone</h4>
                             <p className={styles.dangerText}>
-                                Permanently delete your account and all associated data.
+                                Permanently delete your account and all your recipes. This cannot be undone.
                             </p>
-                            <button className={styles.dangerButton}>
-                                Delete Account
-                            </button>
+                            <button className={styles.btnDanger}>Delete My Account</button>
                         </div>
                     </div>
                 </div>
+
+                <div className={styles.profileFooter}>
+                    <button className={styles.btnOutline} onClick={() => navigate('/dashboard')}>Cancel</button>
+                    <button className={styles.btnPrimary} onClick={handleProfileSubmit}>Save Changes</button>
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 
