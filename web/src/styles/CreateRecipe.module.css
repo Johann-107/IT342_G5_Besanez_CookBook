@@ -1,0 +1,409 @@
+.page {
+    background: var(--cream, #FDF8F2);
+    min-height: calc(100vh - 80px);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-dark, #3A2A1E);
+    padding-bottom: 80px;
+    /* space for sticky bar */
+}
+
+/* Page Header */
+.pageHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 120px 16px;
+    border-bottom: 1px solid var(--border, #EDD8C4);
+    background: var(--warm-white, #FFF9F2);
+    position: sticky;
+    top: 80px;
+    z-index: 10;
+}
+
+.pageHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pageTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark, #3A2A1E);
+}
+
+.cancelBtn {
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta-dark, #A05E33);
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.cancelBtn:hover {
+    background: var(--peach, #F5C9A0);
+}
+
+/* Form Body */
+.formBody {
+    padding: 24px 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Form Section */
+.formSection {
+    background: white;
+    border: 1px solid var(--border, #EDD8C4);
+    border-radius: 14px;
+    padding: 22px 24px;
+}
+
+.sectionTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    color: var(--text-dark, #3A2A1E);
+    margin-bottom: 18px;
+}
+
+.sectionTitleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+/* Buttons */
+.btnPrimary {
+    background: var(--terracotta, #C97D4E);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btnPrimary:hover {
+    background: var(--terracotta-dark, #A05E33);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(201, 125, 78, 0.3);
+}
+
+.btnOutline {
+    background: transparent;
+    color: var(--terracotta, #C97D4E);
+    border: 1.5px solid var(--terracotta, #C97D4E);
+    border-radius: 10px;
+    padding: 9px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btnOutline:hover {
+    background: var(--peach-light, #FAE3CC);
+}
+
+.btnGhost {
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta-dark, #A05E33);
+    border: none;
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btnGhost:hover {
+    background: var(--peach, #F5C9A0);
+}
+
+/* Form Controls */
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.formGroup:last-child {
+    margin-bottom: 0;
+}
+
+.formLabel {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-mid, #7A5C46);
+    letter-spacing: 0.3px;
+}
+
+.formInput {
+    background: var(--warm-white, #FFF9F2);
+    border: 1.5px solid var(--border, #EDD8C4);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-dark, #3A2A1E);
+    outline: none;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.formInput:focus {
+    border-color: var(--terracotta, #C97D4E);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.1);
+}
+
+.inputActive {
+    border-color: var(--terracotta, #C97D4E);
+    background: white;
+}
+
+.formInput::placeholder {
+    color: var(--text-light, #B09080);
+    font-size: 0.8rem;
+}
+
+.formTextarea {
+    background: var(--warm-white, #FFF9F2);
+    border: 1.5px solid var(--border, #EDD8C4);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-dark, #3A2A1E);
+    outline: none;
+    width: 100%;
+    resize: vertical;
+    transition: all 0.2s ease;
+}
+
+.formTextarea:focus {
+    border-color: var(--terracotta, #C97D4E);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.1);
+}
+
+.formTextarea::placeholder {
+    color: var(--text-light, #B09080);
+    font-size: 0.8rem;
+}
+
+.formSelect {
+    background: var(--warm-white, #FFF9F2);
+    border: 1.5px solid var(--border, #EDD8C4);
+    border-radius: 10px;
+    padding: 10px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-mid, #7A5C46);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.formSelect:focus {
+    border-color: var(--terracotta, #C97D4E);
+}
+
+/* 3-col layout */
+.formRow3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+/* Ingredient Row */
+.ingredientRow {
+    display: grid;
+    grid-template-columns: 80px 90px 1fr 1fr 30px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.ingredientRow:last-child {
+    margin-bottom: 0;
+}
+
+.removeBtn {
+    width: 28px;
+    height: 28px;
+    background: #FEF0EF;
+    border: 1px solid #FABBBB;
+    border-radius: 8px;
+    color: #E05555;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1;
+}
+
+.removeBtn:hover {
+    background: #FABBBB;
+}
+
+/* Step Row */
+.stepRow {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.stepRow:last-child {
+    margin-bottom: 0;
+}
+
+.stepNum {
+    width: 28px;
+    height: 28px;
+    background: var(--terracotta, #C97D4E);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    margin-top: 8px;
+}
+
+.stepTextarea {
+    background: var(--warm-white, #FFF9F2);
+    border: 1.5px solid var(--border, #EDD8C4);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-mid, #7A5C46);
+    width: 100%;
+    resize: none;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.stepTextarea:focus {
+    border-color: var(--terracotta, #C97D4E);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.1);
+}
+
+.stepTextarea::placeholder {
+    color: var(--text-light, #B09080);
+    font-size: 0.8rem;
+}
+
+/* Checkbox */
+.checkboxRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--text-mid, #7A5C46);
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+
+.checkboxRow input[type="checkbox"] {
+    accent-color: var(--terracotta, #C97D4E);
+    width: 15px;
+    height: 15px;
+}
+
+.collectionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+/* Sticky Save Bar */
+.stickyBar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--border, #EDD8C4);
+    padding: 14px 120px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    box-shadow: 0 -4px 20px rgba(92, 61, 46, 0.08);
+    z-index: 20;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+
+    .pageHeader,
+    .formBody,
+    .stickyBar {
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+
+    .ingredientRow {
+        grid-template-columns: 70px 80px 1fr 30px;
+    }
+
+    .ingredientRow .formInput:nth-child(4) {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+
+    .pageHeader,
+    .formBody,
+    .stickyBar {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .formRow3 {
+        grid-template-columns: 1fr;
+    }
+
+    .ingredientRow {
+        grid-template-columns: 1fr 1fr 30px;
+        grid-template-rows: auto auto;
+    }
+
+    .stickyBar {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .stickyBar .btnGhost {
+        order: 3;
+        width: 100%;
+        text-align: center;
+    }
+}

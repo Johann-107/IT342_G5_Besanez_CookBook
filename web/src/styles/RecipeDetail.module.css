@@ -1,0 +1,330 @@
+.page {
+    background: var(--cream, #FDF8F2);
+    min-height: calc(100vh - 80px);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-dark, #3A2A1E);
+}
+
+/* Hero Bar */
+.heroBar {
+    background: linear-gradient(135deg, #FFF4EA, #FDE8D0);
+    padding: 28px 120px 32px;
+    border-bottom: 1px solid var(--border, #EDD8C4);
+}
+
+.backBtn {
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta-dark, #A05E33);
+    border: none;
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background 0.2s ease;
+}
+
+.backBtn:hover {
+    background: var(--peach, #F5C9A0);
+}
+
+.titleRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 18px;
+}
+
+.recipeTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--warm-brown, #5C3D2E);
+    line-height: 1.25;
+    max-width: 560px;
+}
+
+.recipeActions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.btnGhost {
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta-dark, #A05E33);
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btnGhost:hover {
+    background: var(--peach, #F5C9A0);
+}
+
+.btnPrimary {
+    background: var(--terracotta, #C97D4E);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btnPrimary:hover {
+    background: var(--terracotta-dark, #A05E33);
+    transform: translateY(-1px);
+}
+
+.timeBadges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.timeBadge {
+    background: white;
+    border: 1px solid var(--border, #EDD8C4);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    color: var(--text-mid, #7A5C46);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.timeBadge span {
+    color: var(--terracotta, #C97D4E);
+    font-weight: 700;
+}
+
+/* Body */
+.body {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 0;
+    padding: 28px 120px;
+}
+
+.left {
+    padding-right: 28px;
+    border-right: 1px solid var(--border, #EDD8C4);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.right {
+    padding-left: 28px;
+}
+
+/* Cards */
+.detailCard {
+    background: var(--warm-white, #FFF9F2);
+    border: 1px solid var(--border, #EDD8C4);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.cardTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--text-dark, #3A2A1E);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.countBadge {
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta, #C97D4E);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 8px;
+}
+
+/* Ingredients */
+.ingredientList {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ingredientItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--text-mid, #7A5C46);
+}
+
+.ingredientItem::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--terracotta, #C97D4E);
+    flex-shrink: 0;
+}
+
+.ingredientItem strong {
+    color: var(--text-dark, #3A2A1E);
+}
+
+/* Notes */
+.notesText {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-mid, #7A5C46);
+}
+
+/* Details */
+.detailMeta {
+    font-size: 0.8rem;
+    color: var(--text-light, #B09080);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.detailMeta strong {
+    color: var(--text-mid, #7A5C46);
+}
+
+.tagRow {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.tagCollection {
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta, #C97D4E);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+
+.tagPublic {
+    background: #D5EBD6;
+    color: #4A8B4E;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+
+/* Steps */
+.stepsList {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.stepItem {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.stepNum {
+    width: 28px;
+    height: 28px;
+    background: var(--terracotta, #C97D4E);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.stepText {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-mid, #7A5C46);
+}
+
+/* Footer */
+.footer {
+    display: flex;
+    align-items: center;
+    padding: 16px 120px;
+    border-top: 1px solid var(--border, #EDD8C4);
+    background: var(--warm-white, #FFF9F2);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+
+    .heroBar,
+    .body,
+    .footer {
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+
+    .body {
+        grid-template-columns: 1fr;
+    }
+
+    .left {
+        padding-right: 0;
+        border-right: none;
+        border-bottom: 1px solid var(--border, #EDD8C4);
+        padding-bottom: 24px;
+        margin-bottom: 24px;
+    }
+
+    .right {
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 640px) {
+
+    .heroBar,
+    .body,
+    .footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .titleRow {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .recipeTitle {
+        font-size: 1.5rem;
+    }
+
+    .timeBadges {
+        gap: 6px;
+    }
+}

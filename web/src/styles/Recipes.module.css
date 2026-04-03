@@ -1,0 +1,307 @@
+.page {
+    background: var(--cream, #FDF8F2);
+    min-height: calc(100vh - 80px);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-dark, #3A2A1E);
+}
+
+/* Page Header */
+.pageHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 120px 16px;
+    border-bottom: 1px solid var(--border, #EDD8C4);
+}
+
+.pageHeaderLeft {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.pageTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-dark, #3A2A1E);
+}
+
+.recipeCount {
+    font-size: 0.875rem;
+    color: var(--text-light, #B09080);
+    font-weight: 500;
+}
+
+.btnPrimary {
+    background: var(--terracotta, #C97D4E);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btnPrimary:hover {
+    background: var(--terracotta-dark, #A05E33);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(201, 125, 78, 0.3);
+}
+
+/* Filter Bar */
+.filterBar {
+    display: flex;
+    gap: 10px;
+    padding: 14px 120px;
+    border-bottom: 1px solid var(--border, #EDD8C4);
+    background: var(--warm-white, #FFF9F2);
+}
+
+.searchInput {
+    flex: 1;
+    background: white;
+    border: 1.5px solid var(--border, #EDD8C4);
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-mid, #7A5C46);
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.searchInput:focus {
+    border-color: var(--terracotta, #C97D4E);
+}
+
+.sortSelect {
+    background: white;
+    border: 1.5px solid var(--border, #EDD8C4);
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-mid, #7A5C46);
+    cursor: pointer;
+    outline: none;
+}
+
+/* Recipe Grid */
+.recipeGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 24px 120px;
+}
+
+.recipeCard {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border, #EDD8C4);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recipeCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(92, 61, 46, 0.14);
+}
+
+.recipeCardImg {
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+}
+
+.rc1 {
+    background: linear-gradient(135deg, #FDE4C4, #F5B87A);
+}
+
+.rc2 {
+    background: linear-gradient(135deg, #D5EBD6, #8BAF8D);
+}
+
+.rc3 {
+    background: linear-gradient(135deg, #FDF1D0, #E8A742);
+}
+
+.rc4 {
+    background: linear-gradient(135deg, #FAE3CC, #C97D4E);
+}
+
+.rc5 {
+    background: linear-gradient(135deg, #E8D5F5, #9B6BAB);
+}
+
+.rc6 {
+    background: linear-gradient(135deg, #FFE4D6, #D47B85);
+}
+
+.recipeCardBody {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.recipeCardTop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.recipeCardTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark, #3A2A1E);
+    line-height: 1.35;
+    flex: 1;
+}
+
+.tagPublic {
+    background: #D5EBD6;
+    color: #4A8B4E;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tagPrivate {
+    background: var(--peach-light, #FAE3CC);
+    color: var(--text-mid, #7A5C46);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.recipeCardMeta {
+    display: flex;
+    gap: 6px;
+}
+
+.metaPill {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta, #C97D4E);
+}
+
+.recipeCardFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+}
+
+.collectionTag {
+    font-size: 0.75rem;
+    color: var(--text-light, #B09080);
+    font-weight: 500;
+}
+
+.cardActions {
+    display: flex;
+    gap: 4px;
+}
+
+.iconBtn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--warm-white, #FFF9F2);
+    border: 1px solid var(--border, #EDD8C4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    cursor: pointer;
+    color: var(--text-mid, #7A5C46);
+    transition: background 0.2s ease;
+}
+
+.iconBtn:hover {
+    background: var(--peach-light, #FAE3CC);
+}
+
+/* Empty State */
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+    gap: 16px;
+    text-align: center;
+}
+
+.emptyEmoji {
+    font-size: 4rem;
+}
+
+.emptyTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--text-dark, #3A2A1E);
+}
+
+.emptyText {
+    font-size: 0.9rem;
+    color: var(--text-light, #B09080);
+    margin-bottom: 8px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+
+    .pageHeader,
+    .filterBar,
+    .recipeGrid {
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+
+    .recipeGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+
+    .pageHeader,
+    .filterBar,
+    .recipeGrid {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .pageHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .filterBar {
+        flex-wrap: wrap;
+    }
+
+    .recipeGrid {
+        grid-template-columns: 1fr;
+    }
+}

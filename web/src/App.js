@@ -5,6 +5,11 @@ import OAuth2Callback from './pages/OAuth2Callback';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import Recipes from './pages/Recipes';
+import RecipeDetail from './pages/RecipeDetail';
+import CreateRecipe from './pages/CreateRecipe';
+import Collections from './pages/Collections';
+import ForgotPassword from './pages/ForgotPassword';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 const LandingWrapper = () => {
@@ -21,6 +26,9 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<LandingWrapper />} />
             <Route path="oauth2/callback" element={<OAuth2Callback />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+
+            {/* Protected Routes */}
             <Route
               path="dashboard"
               element={
@@ -34,6 +42,46 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="recipes"
+              element={
+                <ProtectedRoute>
+                  <Recipes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="recipe/:id"
+              element={
+                <ProtectedRoute>
+                  <RecipeDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="create-recipe"
+              element={
+                <ProtectedRoute>
+                  <CreateRecipe />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="recipe/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <CreateRecipe />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="collections"
+              element={
+                <ProtectedRoute>
+                  <Collections />
                 </ProtectedRoute>
               }
             />
