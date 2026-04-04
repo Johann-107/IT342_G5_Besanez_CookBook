@@ -1,18 +1,35 @@
-import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import Login from '../../pages/Login';
 import Register from '../../pages/Register';
 import styles from '../../styles/DefaultHeader.module.css';
 
 const DefaultHeader = ({ user = null }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
-  const location = useLocation();
-  const isLandingPage = location.pathname === '/';
-  const isDashboard = location.pathname.startsWith('/dashboard');
+  const dropdownRef = useRef(null);
 
+  const isLandingPage = location.pathname === '/';
+
+  // ─── Close dropdown when clicking outside ─────────────────────────────────
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowProfileDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // ─── Modal helpers ─────────────────────────────────────────────────────────
   const openLoginModal = () => {
     setShowRegisterModal(false);
     setShowLoginModal(true);
@@ -38,19 +55,38 @@ const DefaultHeader = ({ user = null }) => {
     setShowLoginModal(true);
   };
 
-  const toggleProfileDropdown = () => {
-    setShowProfileDropdown((prev) => !prev);
+  // ─── Logout ───────────────────────────────────────────────────────────────
+  const handleLogout = async () => {
+    setShowProfileDropdown(false);
+    await logout();
+    navigate('/');
   };
 
-  const getUserAcronym = (user) => {
-    if (!user?.name) return '?';
-    return user.name
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  // ─── Avatar acronym ───────────────────────────────────────────────────────
+  // Backend returns { firstName, lastName } — never a combined `name` field
+  const getUserAcronym = () => {
+    if (!user) return '?';
+    const first = user.firstName?.[0] ?? '';
+    const last = user.lastName?.[0] ?? '';
+    const initials = (first + last).toUpperCase();
+    // Fallback: use first two characters of email
+    if (!initials && user.email) return user.email.slice(0, 2).toUpperCase();
+    return initials || '?';
   };
+
+  // ─── Display name ─────────────────────────────────────────────────────────
+  const getDisplayName = () => {
+    if (!user) return '';
+    if (user.firstName || user.lastName) {
+      return [user.firstName, user.lastName].filter(Boolean).join(' ');
+    }
+    return user.email ?? '';
+  };
+
+  // ─── Profile image ────────────────────────────────────────────────────────
+  // Backend UserResponseDTO has no profileImage field — always use acronym avatar.
+  // If a profileImage is ever added, this will pick it up automatically.
+  const hasProfileImage = Boolean(user?.profileImage);
 
   return (
     <>
@@ -58,7 +94,7 @@ const DefaultHeader = ({ user = null }) => {
         <nav className={styles.nav}>
 
           {/* Brand / Logo */}
-          <Link to="/" className={styles.brand}>
+          <Link to={user ? "/dashboard" : "/"} className={styles.brand}>
             <div className={styles.logoIcon}>🍳</div>
             <span className={styles.logoText}>CookBook</span>
           </Link>
@@ -75,19 +111,13 @@ const DefaultHeader = ({ user = null }) => {
           {/* Right-side menu */}
           <div className={styles.menu}>
 
-            {/* Login / Sign Up — hidden on dashboard or when user is logged in */}
-            {!isDashboard && !user && (
+            {/* Login / Sign Up — shown only when no user is logged in */}
+            {!user && (
               <>
-                <button
-                  onClick={openLoginModal}
-                  className={styles.navLinkButton}
-                >
+                <button onClick={openLoginModal} className={styles.navLinkButton}>
                   Login
                 </button>
-                <button
-                  onClick={openRegisterModal}
-                  className={styles.signupButton}
-                >
+                <button onClick={openRegisterModal} className={styles.signupButton}>
                   Sign Up
                 </button>
               </>
@@ -95,21 +125,22 @@ const DefaultHeader = ({ user = null }) => {
 
             {/* Avatar — shown when user is logged in */}
             {user && (
-              <div className={styles.avatarWrapper}>
+              <div className={styles.avatarWrapper} ref={dropdownRef}>
                 <button
                   className={styles.avatarButton}
-                  onClick={toggleProfileDropdown}
+                  onClick={() => setShowProfileDropdown(prev => !prev)}
                   aria-label="User profile"
+                  aria-expanded={showProfileDropdown}
                 >
-                  {user.profileImage ? (
+                  {hasProfileImage ? (
                     <img
                       src={user.profileImage}
-                      alt={user.name || 'User avatar'}
+                      alt={getDisplayName() || 'User avatar'}
                       className={styles.avatarImage}
                     />
                   ) : (
                     <span className={styles.avatarAcronym}>
-                      {getUserAcronym(user)}
+                      {getUserAcronym()}
                     </span>
                   )}
                 </button>
@@ -117,10 +148,16 @@ const DefaultHeader = ({ user = null }) => {
                 {showProfileDropdown && (
                   <div className={styles.profileDropdown}>
                     <div className={styles.profileDropdownHeader}>
-                      <div className={styles.profileDropdownName}>{user.name || 'User'}</div>
-                      <div className={styles.profileDropdownEmail}>{user.email || ''}</div>
+                      <div className={styles.profileDropdownName}>
+                        {getDisplayName() || 'User'}
+                      </div>
+                      <div className={styles.profileDropdownEmail}>
+                        {user.email ?? ''}
+                      </div>
                     </div>
+
                     <hr className={styles.dropdownDivider} />
+
                     <Link
                       to="/profile"
                       className={styles.dropdownItem}
@@ -128,6 +165,8 @@ const DefaultHeader = ({ user = null }) => {
                     >
                       👤 My Profile
                     </Link>
+
+                    {/* Settings — intentionally left as-is (no route wired) */}
                     <Link
                       to="/settings"
                       className={styles.dropdownItem}
@@ -135,8 +174,13 @@ const DefaultHeader = ({ user = null }) => {
                     >
                       ⚙️ Settings
                     </Link>
+
                     <hr className={styles.dropdownDivider} />
-                    <button className={styles.dropdownItemLogout}>
+
+                    <button
+                      className={styles.dropdownItemLogout}
+                      onClick={handleLogout}
+                    >
                       🚪 Log Out
                     </button>
                   </div>
