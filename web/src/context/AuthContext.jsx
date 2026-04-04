@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import authAPI from '../services/auth';
 
 const AuthContext = createContext({});
@@ -117,10 +117,10 @@ export const AuthProvider = ({ children }) => {
     };
 
     // ─── OAuth2 Google login (called by OAuth2Callback) ───────────────────────
-    const loginWithGoogle = (token, userData) => {
+    const loginWithGoogle = useCallback((token, userData) => {
         localStorage.setItem('token', token);
         setUser(userData);
-    };
+    }, []); // No dependencies – function identity is stable
 
     return (
         <AuthContext.Provider

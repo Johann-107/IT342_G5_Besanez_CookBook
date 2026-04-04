@@ -23,8 +23,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
+            HttpServletResponse response,
+            Authentication authentication) throws IOException {
         try {
             OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
             LoginResponse loginResponse = authService.loginOrRegisterGoogleUser(oauth2User);

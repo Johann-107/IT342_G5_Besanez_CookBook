@@ -1,23 +1,35 @@
-import { useEffect } from 'react';
+// OAuth2Callback.jsx
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const OAuth2Callback = () => {
     const navigate = useNavigate();
     const { loginWithGoogle } = useAuth();
+    const processed = useRef(false);
 
     useEffect(() => {
+        // Prevent re-processing
+        if (processed.current) return;
+
         try {
             const params = new URLSearchParams(window.location.search);
-
             const token = params.get('token');
-            const userId = params.get('userId');
-            const email = params.get('email');
-            const firstName = params.get('firstName');
-            const lastName = params.get('lastName');
 
             if (token) {
-                loginWithGoogle(token, { userId, email, firstName, lastName });
+                processed.current = true;
+
+                // Optional: clean URL to prevent accidental reprocessing
+                window.history.replaceState({}, document.title, window.location.pathname);
+
+                const userData = {
+                    userId: params.get('userId'),
+                    email: params.get('email'),
+                    firstName: params.get('firstName'),
+                    lastName: params.get('lastName'),
+                };
+
+                loginWithGoogle(token, userData);
                 navigate('/dashboard', { replace: true });
             } else {
                 navigate('/?error=true', { replace: true });
@@ -26,10 +38,10 @@ const OAuth2Callback = () => {
             console.error('OAuth2Callback error:', err);
             navigate('/?error=true', { replace: true });
         }
-    }, [navigate, loginWithGoogle]);
+    }, [navigate, loginWithGoogle]); // dependencies are now stable
 
     return (
-        <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'DM Sans, sans-serif', color: '#7A5C46' }}>
+        <div style={{ textAlign: 'center', marginTop: '50px' }}>
             <p>Signing you in with Google…</p>
         </div>
     );
