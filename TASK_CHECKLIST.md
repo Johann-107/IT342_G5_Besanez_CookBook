@@ -40,15 +40,15 @@ BACKEND
             User - e3a2a691248e78a7313093fa7799db1ee0ff1c96
             Collection - 4cba828326d95f59c8e755f33adbf4d90e0e5531
             Recipe - 4cba828326d95f59c8e755f33adbf4d90e0e5531
-            Ingredient - 
-            Instruction -
+            Ingredient - d7f12185ffeff74a4e358bb4a985a7fe14e87c3b
+            Instruction - d7f12185ffeff74a4e358bb4a985a7fe14e87c3b
     
     Implement User Register, login, and logout - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
     Connect to database (MySQL) - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
     Encrypt password using BCrypt - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
     Allow users to login using google auth - e725c4272df0c0426cb825c4a53fe3b44750f6e0
     Transfer to Supabase - 497090c2f840c4d75e3cf042cee3badc6ca364f3
-    Implement User Logout
+    Updated user entity to include profile image - 9865d3d915cf4abe5e96e715e493333b4c35007a
 
 WEB
     Create:

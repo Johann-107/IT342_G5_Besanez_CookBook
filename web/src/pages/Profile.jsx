@@ -13,8 +13,6 @@ const Profile = () => {
         firstName: user?.firstName || '',
         lastName: user?.lastName || '',
         email: user?.email || '',
-        // birthdate not editable here — would need a separate endpoint or
-        // passing the existing value through, but UserRequestDTO requires password too
         cookingLevel: 'intermediate',
         dietaryPrefs: ['Gluten-Free', 'Dairy-Free'],
     });
@@ -25,19 +23,55 @@ const Profile = () => {
         confirm: '',
     });
 
+    // Local profileImage state — starts from what the API returned via AuthContext
+    const [profileImage, setProfileImage] = useState(user?.profileImage || null);
+    const [imageUrlInput, setImageUrlInput] = useState('');
+    const [showImageInput, setShowImageInput] = useState(false);
+    const [updatingImage, setUpdatingImage] = useState(false);
+
     const [message, setMessage] = useState({ text: '', type: '' });
     const [savingProfile, setSavingProfile] = useState(false);
     const [savingPassword, setSavingPassword] = useState(false);
 
     const showMessage = (text, type = 'success') => {
         setMessage({ text, type });
-        setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+        setTimeout(() => setMessage({ text: '', type: '' }), 3500);
+    };
+
+    // ─── Profile image ────────────────────────────────────────────────────────
+
+    const handleUpdateProfileImage = async () => {
+        if (!imageUrlInput.trim()) return;
+        setUpdatingImage(true);
+        try {
+            const res = await userAPI.updateProfileImage(imageUrlInput.trim());
+            setProfileImage(res.data.profileImage);
+            setImageUrlInput('');
+            setShowImageInput(false);
+            showMessage('Profile photo updated!');
+        } catch (err) {
+            showMessage(err.response?.data?.message || 'Failed to update photo.', 'error');
+        } finally {
+            setUpdatingImage(false);
+        }
+    };
+
+    const handleRemoveProfileImage = async () => {
+        setUpdatingImage(true);
+        try {
+            await userAPI.updateProfileImage('');
+            setProfileImage(null);
+            showMessage('Profile photo removed.');
+        } catch (err) {
+            showMessage(err.response?.data?.message || 'Failed to remove photo.', 'error');
+        } finally {
+            setUpdatingImage(false);
+        }
     };
 
     // ─── Update Profile ───────────────────────────────────────────────────────
-    // NOTE: UserRequestDTO requires a non-blank password field (it's validated),
-    // so we send a placeholder — UserService doesn't update the password,
-    // only AuthService.changePassword does.
+    // NOTE: UserRequestDTO requires a non-blank password field (validated),
+    // so we send a placeholder — UserService ignores it and only updates name/email.
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
         setSavingProfile(true);
@@ -47,7 +81,7 @@ const Profile = () => {
                 lastName: form.lastName,
                 email: form.email,
                 birthdate: user.birthdate || null,
-                password: 'placeholder-not-updated', // required by DTO but ignored by service
+                password: 'placeholder-not-updated',
             });
             showMessage('Profile updated successfully!');
         } catch (err) {
@@ -99,7 +133,11 @@ const Profile = () => {
 
     return (
         <>
-            <DefaultHeader user={user} />
+            {/*
+              Pass updated profileImage to DefaultHeader so the avatar there
+              reflects changes made on this page immediately without a reload.
+            */}
+            <DefaultHeader user={{ ...user, profileImage }} />
             <div className={styles.page}>
                 <div className={styles.pageHeader}>
                     <h2 className={styles.pageTitle}>My Profile</h2>
@@ -116,16 +154,80 @@ const Profile = () => {
                 )}
 
                 <div className={styles.profileBody}>
-                    {/* Left Sidebar */}
+
+                    {/* ── Left Sidebar ── */}
                     <div className={styles.left}>
                         <div className={styles.avatarSection}>
-                            <div className={styles.bigAvatar}>{getInitials()}</div>
-                            <div className={styles.avatarBtns}>
-                                <button className={styles.btnGhost}>📷 Upload Photo</button>
-                                <button className={styles.btnGhostOutline}>Remove</button>
-                            </div>
+
+                            {/* Avatar — real photo or initials fallback */}
+                            {profileImage ? (
+                                <img
+                                    src={profileImage}
+                                    alt={getInitials()}
+                                    className={styles.bigAvatarImg}
+                                    onError={() => setProfileImage(null)}
+                                />
+                            ) : (
+                                <div className={styles.bigAvatar}>{getInitials()}</div>
+                            )}
+
+                            {/* Inline URL input shown when "Upload Photo" is clicked */}
+                            {showImageInput && (
+                                <div className={styles.imageInputWrap}>
+                                    <input
+                                        className={styles.imageUrlInput}
+                                        type="url"
+                                        placeholder="Paste image URL…"
+                                        value={imageUrlInput}
+                                        onChange={e => setImageUrlInput(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && handleUpdateProfileImage()}
+                                        autoFocus
+                                    />
+                                    <div className={styles.imageInputActions}>
+                                        <button
+                                            className={styles.btnGhost}
+                                            onClick={handleUpdateProfileImage}
+                                            disabled={updatingImage || !imageUrlInput.trim()}
+                                        >
+                                            {updatingImage ? 'Saving…' : 'Save'}
+                                        </button>
+                                        <button
+                                            className={styles.btnGhostOutline}
+                                            onClick={() => {
+                                                setShowImageInput(false);
+                                                setImageUrlInput('');
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Avatar action buttons — hidden while URL input is open */}
+                            {!showImageInput && (
+                                <div className={styles.avatarBtns}>
+                                    <button
+                                        className={styles.btnGhost}
+                                        onClick={() => setShowImageInput(true)}
+                                        disabled={updatingImage}
+                                    >
+                                        📷 Upload Photo
+                                    </button>
+                                    {profileImage && (
+                                        <button
+                                            className={styles.btnGhostOutline}
+                                            onClick={handleRemoveProfileImage}
+                                            disabled={updatingImage}
+                                        >
+                                            {updatingImage ? 'Removing…' : 'Remove'}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
+                        {/* Account meta */}
                         <div className={styles.accountInfo}>
                             <span className={styles.aiLabel}>Email</span>
                             <span className={styles.aiValue}>{user?.email || '—'}</span>
@@ -134,14 +236,14 @@ const Profile = () => {
                             <span className={styles.aiValue}>
                                 {user?.createdAt
                                     ? new Date(user.createdAt).toLocaleDateString('en-US', {
-                                        month: 'long', year: 'numeric'
+                                        month: 'long', year: 'numeric',
                                     })
                                     : 'March 2024'}
                             </span>
                         </div>
                     </div>
 
-                    {/* Right Content */}
+                    {/* ── Right Content ── */}
                     <div className={styles.right}>
 
                         {/* Personal Info */}

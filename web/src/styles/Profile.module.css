@@ -66,7 +66,7 @@
 /* Profile Body */
 .profileBody {
     display: grid;
-    grid-template-columns: 200px 1fr;
+    grid-template-columns: 220px 1fr;
     padding: 24px 120px;
     gap: 0;
 }
@@ -82,22 +82,79 @@
     margin-bottom: 24px;
 }
 
+/* Initials avatar (no photo) */
 .bigAvatar {
-    width: 80px;
-    height: 80px;
+    width: 88px;
+    height: 88px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--peach, #F5C9A0) 0%, var(--terracotta, #C97D4E) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'Playfair Display', serif;
-    font-size: 1.75rem;
+    font-size: 1.9rem;
     font-weight: 700;
     color: white;
     margin: 0 auto 12px;
     box-shadow: 0 4px 16px rgba(201, 125, 78, 0.25);
 }
 
+/* Real profile photo */
+.bigAvatarImg {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto 12px;
+    border: 3px solid var(--border, #EDD8C4);
+    box-shadow: 0 4px 16px rgba(92, 61, 46, 0.15);
+    transition: border-color 0.2s ease;
+}
+
+.bigAvatarImg:hover {
+    border-color: var(--terracotta, #C97D4E);
+}
+
+/* Inline URL input for updating photo */
+.imageInputWrap {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.imageUrlInput {
+    background: var(--warm-white, #FFF9F2);
+    border: 1.5px solid var(--border, #EDD8C4);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text-dark, #3A2A1E);
+    outline: none;
+    width: 100%;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.imageUrlInput:focus {
+    border-color: var(--terracotta, #C97D4E);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.1);
+}
+
+.imageUrlInput::placeholder {
+    color: var(--text-light, #B09080);
+    font-size: 0.75rem;
+}
+
+.imageInputActions {
+    display: flex;
+    gap: 6px;
+}
+
+/* Avatar action buttons */
 .avatarBtns {
     display: flex;
     flex-direction: column;
@@ -118,8 +175,13 @@
     width: 100%;
 }
 
-.btnGhost:hover {
+.btnGhost:hover:not(:disabled) {
     background: var(--peach, #F5C9A0);
+}
+
+.btnGhost:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .btnGhostOutline {
@@ -136,9 +198,14 @@
     width: 100%;
 }
 
-.btnGhostOutline:hover {
+.btnGhostOutline:hover:not(:disabled) {
     border-color: var(--text-mid, #7A5C46);
     background: var(--peach-light, #FAE3CC);
+}
+
+.btnGhostOutline:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 /* Account Info */
@@ -281,7 +348,7 @@
     border-color: var(--terracotta, #C97D4E);
 }
 
-/* Tags */
+/* Dietary Tags */
 .tagsInput {
     display: flex;
     flex-wrap: wrap;
@@ -349,10 +416,15 @@
     transition: all 0.2s ease;
 }
 
-.btnPrimary:hover {
+.btnPrimary:hover:not(:disabled) {
     background: var(--terracotta-dark, #A05E33);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(201, 125, 78, 0.3);
+}
+
+.btnPrimary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 .btnOutline {
@@ -437,7 +509,7 @@
     }
 
     .profileBody {
-        grid-template-columns: 180px 1fr;
+        grid-template-columns: 200px 1fr;
     }
 }
 
