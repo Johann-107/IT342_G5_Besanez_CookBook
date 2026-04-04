@@ -35,4 +35,8 @@ public class UserRequestDTO {
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
+
+    // Optional — URL to profile image (Google picture, uploaded URL, etc.)
+    @Size(max = 1000, message = "Profile image URL must not exceed 1000 characters")
+    private String profileImage;
 }

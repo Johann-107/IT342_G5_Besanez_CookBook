@@ -23,6 +23,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+    // ─── Register ─────────────────────────────────────────────────────────────
+
     @Transactional
     public UserResponseDTO register(UserRequestDTO userRequestDTO) {
         if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
@@ -37,74 +39,79 @@ public class AuthService {
                 .birthdate(userRequestDTO.getBirthdate())
                 .email(userRequestDTO.getEmail())
                 .password(encryptedPassword)
+                .profileImage(userRequestDTO.getProfileImage()) // optional, usually null on registration
                 .build();
 
         UserEntity savedUser = userRepository.save(userEntity);
         return convertToResponseDTO(savedUser);
     }
 
+    // ─── Login ────────────────────────────────────────────────────────────────
+
     @Transactional
     public LoginResponse login(LoginRequest loginRequest) {
         UserEntity user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("User not found with email: " + loginRequest.getEmail()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with email: " + loginRequest.getEmail()));
 
         // Prevent Google users from logging in with password
         if (user.getPassword() == null) {
-            throw new IllegalArgumentException("This account uses Google Sign-In. Please log in with Google.");
+            throw new IllegalArgumentException(
+                    "This account uses Google Sign-In. Please log in with Google.");
         }
 
-        boolean passwordMatches = passwordEncoder.matches(loginRequest.getPassword(), user.getPassword());
-        if (!passwordMatches) {
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid password");
         }
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getId());
-
-        return new LoginResponse(
-                token,
-                user.getId(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName());
+        return buildLoginResponse(token, user);
     }
 
-    // Added: Find existing Google user or create a new one, then return a JWT
+    // ─── Google OAuth2 ────────────────────────────────────────────────────────
+
     @Transactional
     public LoginResponse loginOrRegisterGoogleUser(OAuth2User oauth2User) {
         String email = oauth2User.getAttribute("email");
         String firstName = oauth2User.getAttribute("given_name");
         String lastName = oauth2User.getAttribute("family_name");
+        String picture = oauth2User.getAttribute("picture"); // Google profile photo URL
 
         UserEntity user = userRepository.findByEmail(email).orElseGet(() -> {
-            // First time Google login — create a new user
+            // First-time Google login — create new user and save their profile picture
             UserEntity newUser = UserEntity.builder()
                     .email(email)
                     .firstName(firstName != null ? firstName : "Google")
                     .lastName(lastName != null ? lastName : "User")
-                    .password(null) // No password for Google users
+                    .password(null) // no password for Google users
                     .birthdate(null) // Google doesn't provide birthdate
+                    .profileImage(picture) // save Google profile photo URL
                     .build();
             return userRepository.save(newUser);
         });
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getId());
+        // Refresh profile image on every Google login in case the user changed their
+        // photo
+        if (picture != null && !picture.equals(user.getProfileImage())) {
+            user.setProfileImage(picture);
+            userRepository.save(user);
+        }
 
-        return new LoginResponse(
-                token,
-                user.getId(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId());
+        return buildLoginResponse(token, user);
     }
+
+    // ─── Password management ──────────────────────────────────────────────────
 
     @Transactional
     public void changePassword(Long userId, String oldPassword, String newPassword) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with id: " + userId));
 
         if (user.getPassword() == null) {
-            throw new IllegalArgumentException("Google Sign-In accounts cannot change password here.");
+            throw new IllegalArgumentException(
+                    "Google Sign-In accounts cannot change password here.");
         }
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
@@ -118,14 +125,31 @@ public class AuthService {
     @Transactional
     public void forgotPassword(String email, String newPassword) {
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with email: " + email));
 
         if (user.getPassword() == null) {
-            throw new IllegalArgumentException("Google Sign-In accounts cannot reset password here.");
+            throw new IllegalArgumentException(
+                    "Google Sign-In accounts cannot reset password here.");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    private LoginResponse buildLoginResponse(String token, UserEntity user) {
+        UserResponseDTO userDTO = convertToResponseDTO(user);
+        return LoginResponse.builder()
+                .token(token)
+                .type("Bearer") // set explicitly — no @Builder.Default needed
+                .id(user.getId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .user(userDTO)
+                .build();
     }
 
     private UserResponseDTO convertToResponseDTO(UserEntity userEntity) {
@@ -135,6 +159,7 @@ public class AuthService {
                 .lastName(userEntity.getLastName())
                 .birthdate(userEntity.getBirthdate())
                 .email(userEntity.getEmail())
+                .profileImage(userEntity.getProfileImage())
                 .build();
     }
 }

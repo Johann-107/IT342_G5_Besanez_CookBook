@@ -18,7 +18,8 @@ public class UserResponseDTO {
     private String lastName;
     private LocalDate birthdate;
     private String email;
-    
+    private String profileImage;
+
     public int getAge() {
         if (this.birthdate == null) {
             return 0;

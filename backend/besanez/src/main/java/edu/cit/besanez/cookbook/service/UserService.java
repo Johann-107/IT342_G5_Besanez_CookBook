@@ -30,9 +30,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
-        List<UserEntity> users = userRepository.findAll();
-
-        return users.stream()
+        return userRepository.findAll()
+                .stream()
                 .map(this::convertToResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -52,10 +51,15 @@ public class UserService {
         userEntity.setLastName(userRequestDTO.getLastName());
         userEntity.setBirthdate(userRequestDTO.getBirthdate());
         userEntity.setEmail(userRequestDTO.getEmail());
-        // Password is NOT updated here - use AuthService changePassword instead
+
+        // Update profileImage only when the field is explicitly provided
+        if (userRequestDTO.getProfileImage() != null) {
+            userEntity.setProfileImage(userRequestDTO.getProfileImage());
+        }
+
+        // Password is NOT updated here — use AuthService.changePassword instead
 
         UserEntity updatedUser = userRepository.save(userEntity);
-
         return convertToResponseDTO(updatedUser);
     }
 
@@ -76,6 +80,23 @@ public class UserService {
         return convertToResponseDTO(userEntity);
     }
 
+    // ─── Profile image ────────────────────────────────────────────────────────
+
+    @Transactional
+    public UserResponseDTO updateProfileImage(long userId, String profileImageUrl) {
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        // Allow null/empty to clear the image
+        userEntity.setProfileImage(
+                (profileImageUrl != null && profileImageUrl.isBlank()) ? null : profileImageUrl);
+
+        UserEntity updated = userRepository.save(userEntity);
+        return convertToResponseDTO(updated);
+    }
+
+    // ─── Mapping ──────────────────────────────────────────────────────────────
+
     private UserResponseDTO convertToResponseDTO(UserEntity userEntity) {
         return UserResponseDTO.builder()
                 .userId(userEntity.getId())
@@ -83,6 +104,7 @@ public class UserService {
                 .lastName(userEntity.getLastName())
                 .birthdate(userEntity.getBirthdate())
                 .email(userEntity.getEmail())
+                .profileImage(userEntity.getProfileImage())
                 .build();
     }
 }

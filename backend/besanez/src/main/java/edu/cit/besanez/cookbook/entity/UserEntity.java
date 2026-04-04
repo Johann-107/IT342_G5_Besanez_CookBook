@@ -52,6 +52,9 @@ public class UserEntity {
     @Column(nullable = true)
     private String password;
 
+    @Column(nullable = true, length = 1000)
+    private String profileImage;
+
     @Column(nullable = false)
     @Builder.Default
     private String role = "USER";

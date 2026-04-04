@@ -1,15 +1,5 @@
 # IT342_G5_BESANEZ_Lab1
 TODO:
-    Backend
-        GET /api/user/me (protected)
-        Database connection (MySQL)
-        Login using google
-        Connect database to supabase
-
-    Web
-        Profile page (protected)
-        Logout functionality
-
     Docs
         Inside the /docs folder, update your FRS PDF to include:
         ERD
@@ -24,11 +14,23 @@ TODO:
 IN PROGRESS
 WEB
     Create:
-    
+        Settings page
 
 BACKEND
-    Implement User Logout
+    Implement share collection functionality
 
+Mobile 
+    Create:
+        Landing page
+        Login page
+        Register page
+        Dashboard page
+        Profile page
+        Recipe page
+        Recipedetail page
+        Create recipe page
+        Collections page
+        Forgot password page
 
 DONE
 BACKEND
@@ -46,7 +48,7 @@ BACKEND
     Encrypt password using BCrypt - c2c9f2747d9348744a00d726ce1b08b6f5f18a27
     Allow users to login using google auth - e725c4272df0c0426cb825c4a53fe3b44750f6e0
     Transfer to Supabase - 497090c2f840c4d75e3cf042cee3badc6ca364f3
-
+    Implement User Logout
 
 WEB
     Create:
