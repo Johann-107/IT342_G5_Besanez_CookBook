@@ -9,6 +9,8 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -52,8 +54,22 @@ public class UserEntity {
     @Column(nullable = true)
     private String password;
 
-    @Column(nullable = true, length = 1000)
+    /**
+     * URL or base64 data URL for the user's profile photo.
+     * Stored as TEXT to accommodate large base64 strings during development.
+     * In production this should be a CDN URL (Cloudinary / S3).
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
     private String profileImage;
+
+    /**
+     * Cooking skill level. Stored as a string enum.
+     * Defaults to BEGINNER for new accounts.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private CookingLevel cookingLevel = CookingLevel.BEGINNER;
 
     @Column(nullable = false)
     @Builder.Default

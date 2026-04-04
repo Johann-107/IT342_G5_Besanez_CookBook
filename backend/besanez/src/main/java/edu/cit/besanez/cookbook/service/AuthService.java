@@ -4,6 +4,7 @@ import edu.cit.besanez.cookbook.dto.auth.LoginRequest;
 import edu.cit.besanez.cookbook.dto.auth.LoginResponse;
 import edu.cit.besanez.cookbook.dto.user.UserRequestDTO;
 import edu.cit.besanez.cookbook.dto.user.UserResponseDTO;
+import edu.cit.besanez.cookbook.entity.CookingLevel;
 import edu.cit.besanez.cookbook.entity.UserEntity;
 import edu.cit.besanez.cookbook.exception.ResourceNotFoundException;
 import edu.cit.besanez.cookbook.repository.UserRepository;
@@ -39,7 +40,10 @@ public class AuthService {
                 .birthdate(userRequestDTO.getBirthdate())
                 .email(userRequestDTO.getEmail())
                 .password(encryptedPassword)
-                .profileImage(userRequestDTO.getProfileImage()) // optional, usually null on registration
+                .profileImage(userRequestDTO.getProfileImage())
+                .cookingLevel(userRequestDTO.getCookingLevel() != null
+                        ? userRequestDTO.getCookingLevel()
+                        : CookingLevel.BEGINNER)
                 .build();
 
         UserEntity savedUser = userRepository.save(userEntity);
@@ -54,7 +58,6 @@ public class AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found with email: " + loginRequest.getEmail()));
 
-        // Prevent Google users from logging in with password
         if (user.getPassword() == null) {
             throw new IllegalArgumentException(
                     "This account uses Google Sign-In. Please log in with Google.");
@@ -75,23 +78,21 @@ public class AuthService {
         String email = oauth2User.getAttribute("email");
         String firstName = oauth2User.getAttribute("given_name");
         String lastName = oauth2User.getAttribute("family_name");
-        String picture = oauth2User.getAttribute("picture"); // Google profile photo URL
+        String picture = oauth2User.getAttribute("picture");
 
         UserEntity user = userRepository.findByEmail(email).orElseGet(() -> {
-            // First-time Google login — create new user and save their profile picture
             UserEntity newUser = UserEntity.builder()
                     .email(email)
                     .firstName(firstName != null ? firstName : "Google")
                     .lastName(lastName != null ? lastName : "User")
-                    .password(null) // no password for Google users
-                    .birthdate(null) // Google doesn't provide birthdate
-                    .profileImage(picture) // save Google profile photo URL
+                    .password(null)
+                    .birthdate(null)
+                    .profileImage(picture)
+                    .cookingLevel(CookingLevel.BEGINNER)
                     .build();
             return userRepository.save(newUser);
         });
 
-        // Refresh profile image on every Google login in case the user changed their
-        // photo
         if (picture != null && !picture.equals(user.getProfileImage())) {
             user.setProfileImage(picture);
             userRepository.save(user);
@@ -143,7 +144,7 @@ public class AuthService {
         UserResponseDTO userDTO = convertToResponseDTO(user);
         return LoginResponse.builder()
                 .token(token)
-                .type("Bearer") // set explicitly — no @Builder.Default needed
+                .type("Bearer")
                 .id(user.getId())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
@@ -160,6 +161,7 @@ public class AuthService {
                 .birthdate(userEntity.getBirthdate())
                 .email(userEntity.getEmail())
                 .profileImage(userEntity.getProfileImage())
+                .cookingLevel(userEntity.getCookingLevel())
                 .build();
     }
 }

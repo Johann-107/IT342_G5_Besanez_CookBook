@@ -57,7 +57,6 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authAPI.register(userData);
 
-            // Backend returns { success, message, user } on 201 — no token on register
             if (response.data?.success || response.status === 201) {
                 return {
                     success: true,
@@ -90,6 +89,23 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // ─── Refresh user ─────────────────────────────────────────────────────────
+    /**
+     * Re-fetches the current user from /api/user/me and updates context state.
+     * Call this after any profile update so that the header avatar, initials,
+     * and other consumer components reflect the latest data immediately.
+     */
+    const refreshUser = useCallback(async () => {
+        try {
+            const response = await authAPI.getMe();
+            setUser(response.data);
+            return { success: true };
+        } catch (error) {
+            console.error('refreshUser failed:', error);
+            return { success: false };
+        }
+    }, []);
+
     // ─── Change password ──────────────────────────────────────────────────────
     const changePassword = async (oldPassword, newPassword) => {
         try {
@@ -120,7 +136,7 @@ export const AuthProvider = ({ children }) => {
     const loginWithGoogle = useCallback((token, userData) => {
         localStorage.setItem('token', token);
         setUser(userData);
-    }, []); // No dependencies – function identity is stable
+    }, []);
 
     return (
         <AuthContext.Provider
@@ -132,6 +148,7 @@ export const AuthProvider = ({ children }) => {
                 logout,
                 changePassword,
                 resetPassword,
+                refreshUser,
                 loginWithGoogle,
             }}
         >

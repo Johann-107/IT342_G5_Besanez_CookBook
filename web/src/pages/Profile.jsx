@@ -1,77 +1,113 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import userAPI from '../services/user';
 import styles from '../styles/Profile.module.css';
 
+const COOKING_LEVELS = [
+    { value: 'BEGINNER', label: '👶 Beginner' },
+    { value: 'INTERMEDIATE', label: '🧑‍🍳 Intermediate' },
+    { value: 'ADVANCED', label: '⭐ Advanced' },
+];
+
 const Profile = () => {
-    const { user, logout, changePassword } = useAuth();
+    const { user, logout, refreshUser } = useAuth();
     const navigate = useNavigate();
+    const fileInputRef = useRef(null);
+
+    // ─── Edit mode ────────────────────────────────────────────────────────────
+    const [isEditing, setIsEditing] = useState(false);
 
     const [form, setForm] = useState({
         firstName: user?.firstName || '',
         lastName: user?.lastName || '',
         email: user?.email || '',
-        cookingLevel: 'intermediate',
-        dietaryPrefs: ['Gluten-Free', 'Dairy-Free'],
+        birthdate: user?.birthdate || '',
+        cookingLevel: user?.cookingLevel || 'BEGINNER',
     });
 
-    const [passwordForm, setPasswordForm] = useState({
-        current: '',
-        newPass: '',
-        confirm: '',
-    });
+    // Snapshot so Cancel can revert without a network call
+    const [formSnapshot, setFormSnapshot] = useState({ ...form });
 
-    // Local profileImage state — starts from what the API returned via AuthContext
+    // Local profileImage — starts from AuthContext value
     const [profileImage, setProfileImage] = useState(user?.profileImage || null);
-    const [imageUrlInput, setImageUrlInput] = useState('');
-    const [showImageInput, setShowImageInput] = useState(false);
-    const [updatingImage, setUpdatingImage] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     const [message, setMessage] = useState({ text: '', type: '' });
     const [savingProfile, setSavingProfile] = useState(false);
-    const [savingPassword, setSavingPassword] = useState(false);
 
     const showMessage = (text, type = 'success') => {
         setMessage({ text, type });
         setTimeout(() => setMessage({ text: '', type: '' }), 3500);
     };
 
-    // ─── Profile image ────────────────────────────────────────────────────────
+    // ─── Edit mode helpers ────────────────────────────────────────────────────
+    const handleStartEdit = () => {
+        setFormSnapshot({ ...form });
+        setIsEditing(true);
+    };
 
-    const handleUpdateProfileImage = async () => {
-        if (!imageUrlInput.trim()) return;
-        setUpdatingImage(true);
+    const handleCancelEdit = () => {
+        setForm({ ...formSnapshot });
+        setIsEditing(false);
+    };
+
+    // ─── Profile image — multipart file upload ────────────────────────────────
+    const handleFileChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            showMessage('Please select a valid image file (JPEG, PNG, GIF, WEBP).', 'error');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showMessage('Image must be smaller than 5 MB.', 'error');
+            return;
+        }
+
+        // Instant local preview via object URL
+        const previewUrl = URL.createObjectURL(file);
+        setProfileImage(previewUrl);
+        setUploadingImage(true);
+
         try {
-            const res = await userAPI.updateProfileImage(imageUrlInput.trim());
+            // Multipart upload → backend encodes to base64 data URL and saves
+            const res = await userAPI.uploadProfileImageFile(file);
+            // Replace object URL with the persisted value from the server
             setProfileImage(res.data.profileImage);
-            setImageUrlInput('');
-            setShowImageInput(false);
             showMessage('Profile photo updated!');
+            // Keep AuthContext in sync so the header avatar updates immediately
+            await refreshUser();
         } catch (err) {
-            showMessage(err.response?.data?.message || 'Failed to update photo.', 'error');
+            setProfileImage(user?.profileImage || null); // revert preview on failure
+            showMessage(
+                err.response?.data?.message || 'Failed to upload photo.',
+                'error'
+            );
         } finally {
-            setUpdatingImage(false);
+            setUploadingImage(false);
+            // Allow the same file to be re-selected
+            e.target.value = '';
         }
     };
 
     const handleRemoveProfileImage = async () => {
-        setUpdatingImage(true);
+        setUploadingImage(true);
         try {
             await userAPI.updateProfileImage('');
             setProfileImage(null);
             showMessage('Profile photo removed.');
+            await refreshUser();
         } catch (err) {
             showMessage(err.response?.data?.message || 'Failed to remove photo.', 'error');
         } finally {
-            setUpdatingImage(false);
+            setUploadingImage(false);
         }
     };
 
     // ─── Update Profile ───────────────────────────────────────────────────────
-    // NOTE: UserRequestDTO requires a non-blank password field (validated),
-    // so we send a placeholder — UserService ignores it and only updates name/email.
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
         setSavingProfile(true);
@@ -80,33 +116,21 @@ const Profile = () => {
                 firstName: form.firstName,
                 lastName: form.lastName,
                 email: form.email,
-                birthdate: user.birthdate || null,
+                birthdate: form.birthdate || null,
+                cookingLevel: form.cookingLevel,
+                // password is required by the DTO validator but ignored by the service
                 password: 'placeholder-not-updated',
             });
+            setFormSnapshot({ ...form });
+            setIsEditing(false);
             showMessage('Profile updated successfully!');
+            // Sync name/cookingLevel changes into AuthContext so header reflects them
+            await refreshUser();
         } catch (err) {
             showMessage(err.response?.data?.message || 'Failed to update profile.', 'error');
         } finally {
             setSavingProfile(false);
         }
-    };
-
-    // ─── Change Password ──────────────────────────────────────────────────────
-    const handlePasswordSubmit = async (e) => {
-        e.preventDefault();
-        if (passwordForm.newPass !== passwordForm.confirm) {
-            showMessage('New passwords do not match.', 'error');
-            return;
-        }
-        setSavingPassword(true);
-        const result = await changePassword(passwordForm.current, passwordForm.newPass);
-        if (result.success) {
-            setPasswordForm({ current: '', newPass: '', confirm: '' });
-            showMessage('Password updated successfully!');
-        } else {
-            showMessage(result.error || 'Failed to change password.', 'error');
-        }
-        setSavingPassword(false);
     };
 
     // ─── Delete Account ───────────────────────────────────────────────────────
@@ -121,24 +145,36 @@ const Profile = () => {
         }
     };
 
-    const removeTag = (tag) => {
-        setForm(f => ({ ...f, dietaryPrefs: f.dietaryPrefs.filter(t => t !== tag) }));
-    };
-
+    // ─── Helpers ──────────────────────────────────────────────────────────────
     const getInitials = () => {
         const first = (form.firstName || user?.firstName || '')[0] || '';
         const last = (form.lastName || user?.lastName || '')[0] || '';
         return (first + last).toUpperCase() || 'U';
     };
 
+    const formatBirthdate = (dateStr) => {
+        if (!dateStr) return '—';
+        try {
+            return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+                month: 'long', day: 'numeric', year: 'numeric',
+            });
+        } catch {
+            return dateStr;
+        }
+    };
+
+    const cookingLevelLabel = (value) =>
+        COOKING_LEVELS.find(l => l.value === value)?.label || value;
+
     return (
         <>
             {/*
-              Pass updated profileImage to DefaultHeader so the avatar there
-              reflects changes made on this page immediately without a reload.
+              Pass the local profileImage so the header avatar reflects photo
+              changes immediately without waiting for a full page reload.
             */}
             <DefaultHeader user={{ ...user, profileImage }} />
             <div className={styles.page}>
+
                 <div className={styles.pageHeader}>
                     <h2 className={styles.pageTitle}>My Profile</h2>
                     <button className={styles.backBtn} onClick={() => navigate('/dashboard')}>
@@ -159,72 +195,56 @@ const Profile = () => {
                     <div className={styles.left}>
                         <div className={styles.avatarSection}>
 
-                            {/* Avatar — real photo or initials fallback */}
-                            {profileImage ? (
-                                <img
-                                    src={profileImage}
-                                    alt={getInitials()}
-                                    className={styles.bigAvatarImg}
-                                    onError={() => setProfileImage(null)}
-                                />
-                            ) : (
-                                <div className={styles.bigAvatar}>{getInitials()}</div>
-                            )}
-
-                            {/* Inline URL input shown when "Upload Photo" is clicked */}
-                            {showImageInput && (
-                                <div className={styles.imageInputWrap}>
-                                    <input
-                                        className={styles.imageUrlInput}
-                                        type="url"
-                                        placeholder="Paste image URL…"
-                                        value={imageUrlInput}
-                                        onChange={e => setImageUrlInput(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && handleUpdateProfileImage()}
-                                        autoFocus
+                            {/* Avatar with camera overlay */}
+                            <div
+                                className={styles.avatarWrapper}
+                                onClick={() => !uploadingImage && fileInputRef.current?.click()}
+                                title="Change photo"
+                            >
+                                {profileImage ? (
+                                    <img
+                                        src={profileImage}
+                                        alt={getInitials()}
+                                        className={styles.bigAvatarImg}
+                                        onError={() => setProfileImage(null)}
                                     />
-                                    <div className={styles.imageInputActions}>
-                                        <button
-                                            className={styles.btnGhost}
-                                            onClick={handleUpdateProfileImage}
-                                            disabled={updatingImage || !imageUrlInput.trim()}
-                                        >
-                                            {updatingImage ? 'Saving…' : 'Save'}
-                                        </button>
-                                        <button
-                                            className={styles.btnGhostOutline}
-                                            onClick={() => {
-                                                setShowImageInput(false);
-                                                setImageUrlInput('');
-                                            }}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
+                                ) : (
+                                    <div className={styles.bigAvatar}>{getInitials()}</div>
+                                )}
 
-                            {/* Avatar action buttons — hidden while URL input is open */}
-                            {!showImageInput && (
-                                <div className={styles.avatarBtns}>
-                                    <button
-                                        className={styles.btnGhost}
-                                        onClick={() => setShowImageInput(true)}
-                                        disabled={updatingImage}
-                                    >
-                                        📷 Upload Photo
-                                    </button>
-                                    {profileImage && (
-                                        <button
-                                            className={styles.btnGhostOutline}
-                                            onClick={handleRemoveProfileImage}
-                                            disabled={updatingImage}
-                                        >
-                                            {updatingImage ? 'Removing…' : 'Remove'}
-                                        </button>
-                                    )}
+                                <div className={`${styles.cameraOverlay} ${uploadingImage ? styles.uploading : ''}`}>
+                                    {uploadingImage ? '⏳' : '📷'}
                                 </div>
-                            )}
+                            </div>
+
+                            {/* Hidden native file input */}
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/jpeg,image/png,image/gif,image/webp"
+                                className={styles.hiddenFileInput}
+                                onChange={handleFileChange}
+                            />
+
+                            <div className={styles.avatarBtns}>
+                                <button
+                                    className={styles.btnGhost}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={uploadingImage}
+                                >
+                                    {uploadingImage ? 'Uploading…' : '📷 Upload Photo'}
+                                </button>
+                                {profileImage && !uploadingImage && (
+                                    <button
+                                        className={styles.btnGhostOutline}
+                                        onClick={handleRemoveProfileImage}
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                            </div>
+
+                            <p className={styles.uploadHint}>JPEG, PNG, GIF or WEBP · max 5 MB</p>
                         </div>
 
                         {/* Account meta */}
@@ -232,13 +252,23 @@ const Profile = () => {
                             <span className={styles.aiLabel}>Email</span>
                             <span className={styles.aiValue}>{user?.email || '—'}</span>
 
+                            <span className={styles.aiLabel}>Date of Birth</span>
+                            <span className={styles.aiValue}>
+                                {formatBirthdate(form.birthdate || user?.birthdate)}
+                            </span>
+
+                            <span className={styles.aiLabel}>Cooking Level</span>
+                            <span className={styles.aiValue}>
+                                {cookingLevelLabel(form.cookingLevel || user?.cookingLevel)}
+                            </span>
+
                             <span className={styles.aiLabel}>Member Since</span>
                             <span className={styles.aiValue}>
                                 {user?.createdAt
                                     ? new Date(user.createdAt).toLocaleDateString('en-US', {
                                         month: 'long', year: 'numeric',
                                     })
-                                    : 'March 2024'}
+                                    : '—'}
                             </span>
                         </div>
                     </div>
@@ -248,42 +278,58 @@ const Profile = () => {
 
                         {/* Personal Info */}
                         <div className={styles.profileSection}>
-                            <h4 className={styles.sectionTitle}>Personal Information</h4>
+                            <div className={styles.sectionHeader}>
+                                <h4 className={styles.sectionTitle}>Personal Information</h4>
+                                {!isEditing && (
+                                    <button
+                                        type="button"
+                                        className={styles.btnEditInfo}
+                                        onClick={handleStartEdit}
+                                    >
+                                        ✏️ Edit Information
+                                    </button>
+                                )}
+                            </div>
+
                             <form onSubmit={handleProfileSubmit}>
+                                {/* Name row */}
                                 <div className={styles.formRow}>
                                     <div className={styles.formGroup}>
                                         <label className={styles.formLabel}>First Name</label>
                                         <input
-                                            className={`${styles.formInput} ${form.firstName ? styles.inputActive : ''}`}
+                                            className={`${styles.formInput} ${isEditing ? styles.inputEditable : styles.inputReadonly}`}
                                             type="text"
                                             value={form.firstName}
                                             onChange={e => setForm({ ...form, firstName: e.target.value })}
                                             placeholder="First name"
                                             required
                                             maxLength={50}
+                                            readOnly={!isEditing}
                                         />
                                     </div>
                                     <div className={styles.formGroup}>
                                         <label className={styles.formLabel}>Last Name</label>
                                         <input
-                                            className={`${styles.formInput} ${form.lastName ? styles.inputActive : ''}`}
+                                            className={`${styles.formInput} ${isEditing ? styles.inputEditable : styles.inputReadonly}`}
                                             type="text"
                                             value={form.lastName}
                                             onChange={e => setForm({ ...form, lastName: e.target.value })}
                                             placeholder="Last name"
                                             required
                                             maxLength={50}
+                                            readOnly={!isEditing}
                                         />
                                     </div>
                                 </div>
 
+                                {/* Email — always read-only */}
                                 <div className={styles.formGroup}>
                                     <label className={styles.formLabel}>
                                         Email{' '}
                                         <span className={styles.verifiedBadge}>✓ Verified</span>
                                     </label>
                                     <input
-                                        className={styles.formInput}
+                                        className={`${styles.formInput} ${styles.inputReadonly}`}
                                         type="email"
                                         value={form.email}
                                         disabled
@@ -291,96 +337,62 @@ const Profile = () => {
                                     />
                                 </div>
 
+                                {/* Date of Birth */}
                                 <div className={styles.formGroup}>
-                                    <label className={styles.formLabel}>Cooking Skill Level</label>
-                                    <select
-                                        className={styles.selectInput}
-                                        value={form.cookingLevel}
-                                        onChange={e => setForm({ ...form, cookingLevel: e.target.value })}
-                                    >
-                                        <option value="beginner">👶 Beginner</option>
-                                        <option value="intermediate">🧑‍🍳 Intermediate</option>
-                                        <option value="advanced">⭐ Advanced</option>
-                                    </select>
-                                </div>
-
-                                <div className={styles.formGroup}>
-                                    <label className={styles.formLabel}>Dietary Preferences</label>
-                                    <div className={styles.tagsInput}>
-                                        {form.dietaryPrefs.map(tag => (
-                                            <span key={tag} className={styles.dietTag}>
-                                                {tag}
-                                                <span className={styles.remove} onClick={() => removeTag(tag)}>×</span>
-                                            </span>
-                                        ))}
-                                        <span className={styles.addTag}>+ add</span>
-                                    </div>
-                                </div>
-
-                                <div className={styles.formActions}>
-                                    <button type="submit" className={styles.btnPrimary} disabled={savingProfile}>
-                                        {savingProfile ? 'Saving…' : 'Save Changes'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={styles.btnOutline}
-                                        onClick={() => setForm({
-                                            firstName: user?.firstName || '',
-                                            lastName: user?.lastName || '',
-                                            email: user?.email || '',
-                                            cookingLevel: 'intermediate',
-                                            dietaryPrefs: ['Gluten-Free', 'Dairy-Free'],
-                                        })}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-
-                        {/* Change Password */}
-                        <div className={styles.profileSection}>
-                            <h4 className={styles.sectionTitle}>Change Password ▸</h4>
-                            <form onSubmit={handlePasswordSubmit}>
-                                <div className={styles.formGroup}>
-                                    <label className={styles.formLabel}>Current Password</label>
+                                    <label className={styles.formLabel}>Date of Birth</label>
                                     <input
-                                        className={styles.formInput}
-                                        type="password"
-                                        placeholder="••••••••"
-                                        value={passwordForm.current}
-                                        onChange={e => setPasswordForm({ ...passwordForm, current: e.target.value })}
-                                        required
+                                        className={`${styles.formInput} ${isEditing ? styles.inputEditable : styles.inputReadonly}`}
+                                        type="date"
+                                        value={form.birthdate || ''}
+                                        onChange={e => setForm({ ...form, birthdate: e.target.value })}
+                                        max={new Date().toISOString().split('T')[0]}
+                                        readOnly={!isEditing}
                                     />
                                 </div>
-                                <div className={styles.formRow}>
-                                    <div className={styles.formGroup}>
-                                        <label className={styles.formLabel}>New Password</label>
+
+                                {/* Cooking Level */}
+                                <div className={styles.formGroup}>
+                                    <label className={styles.formLabel}>Cooking Skill Level</label>
+                                    {isEditing ? (
+                                        <select
+                                            className={styles.selectInput}
+                                            value={form.cookingLevel}
+                                            onChange={e => setForm({ ...form, cookingLevel: e.target.value })}
+                                        >
+                                            {COOKING_LEVELS.map(l => (
+                                                <option key={l.value} value={l.value}>{l.label}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
                                         <input
-                                            className={styles.formInput}
-                                            type="password"
-                                            placeholder="Min. 8 characters"
-                                            value={passwordForm.newPass}
-                                            onChange={e => setPasswordForm({ ...passwordForm, newPass: e.target.value })}
-                                            required
-                                            minLength={8}
+                                            className={`${styles.formInput} ${styles.inputReadonly}`}
+                                            type="text"
+                                            value={cookingLevelLabel(form.cookingLevel)}
+                                            readOnly
                                         />
-                                    </div>
-                                    <div className={styles.formGroup}>
-                                        <label className={styles.formLabel}>Confirm</label>
-                                        <input
-                                            className={styles.formInput}
-                                            type="password"
-                                            placeholder="Repeat password"
-                                            value={passwordForm.confirm}
-                                            onChange={e => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
-                                            required
-                                        />
-                                    </div>
+                                    )}
                                 </div>
-                                <button type="submit" className={styles.btnGhost} disabled={savingPassword}>
-                                    {savingPassword ? 'Updating…' : 'Update Password'}
-                                </button>
+
+                                {/* Action buttons — only in edit mode */}
+                                {isEditing && (
+                                    <div className={styles.formActions}>
+                                        <button
+                                            type="submit"
+                                            className={styles.btnPrimary}
+                                            disabled={savingProfile}
+                                        >
+                                            {savingProfile ? 'Saving…' : '💾 Save Changes'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={styles.btnOutline}
+                                            onClick={handleCancelEdit}
+                                            disabled={savingProfile}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                )}
                             </form>
                         </div>
 
@@ -395,13 +407,6 @@ const Profile = () => {
                             </button>
                         </div>
                     </div>
-                </div>
-
-                <div className={styles.profileFooter}>
-                    <button className={styles.btnOutline} onClick={() => navigate('/dashboard')}>Cancel</button>
-                    <button className={styles.btnPrimary} onClick={handleProfileSubmit} disabled={savingProfile}>
-                        {savingProfile ? 'Saving…' : 'Save Changes'}
-                    </button>
                 </div>
             </div>
         </>

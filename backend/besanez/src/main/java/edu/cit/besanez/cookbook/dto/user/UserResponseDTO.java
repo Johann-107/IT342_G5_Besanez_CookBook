@@ -3,6 +3,7 @@ package edu.cit.besanez.cookbook.dto.user;
 import java.time.LocalDate;
 import java.time.Period;
 
+import edu.cit.besanez.cookbook.entity.CookingLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class UserResponseDTO {
     private LocalDate birthdate;
     private String email;
     private String profileImage;
+    private CookingLevel cookingLevel;
 
     public int getAge() {
         if (this.birthdate == null) {

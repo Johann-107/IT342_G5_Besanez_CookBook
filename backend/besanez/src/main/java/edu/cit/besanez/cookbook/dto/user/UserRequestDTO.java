@@ -2,6 +2,7 @@ package edu.cit.besanez.cookbook.dto.user;
 
 import java.time.LocalDate;
 
+import edu.cit.besanez.cookbook.entity.CookingLevel;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
@@ -36,7 +37,9 @@ public class UserRequestDTO {
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
-    // Optional — URL to profile image (Google picture, uploaded URL, etc.)
-    @Size(max = 1000, message = "Profile image URL must not exceed 1000 characters")
+    // Optional — URL or base64 data URL for profile image
     private String profileImage;
+
+    // Optional — defaults to BEGINNER if null
+    private CookingLevel cookingLevel;
 }
