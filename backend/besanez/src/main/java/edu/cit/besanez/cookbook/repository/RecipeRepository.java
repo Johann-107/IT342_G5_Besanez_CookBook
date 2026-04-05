@@ -28,6 +28,9 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
 
         Page<RecipeEntity> findByIsPublicTrueAndNameContainingIgnoreCase(String name, Pageable pageable);
 
+        // ─── Find by share token ─────────────────────────────────────────────────
+        Optional<RecipeEntity> findByShareToken(String shareToken);
+
         // ─── Public recipes ───────────────────────────────────────────────────────
 
         Page<RecipeEntity> findByIsPublicTrue(Pageable pageable);

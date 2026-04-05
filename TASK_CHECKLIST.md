@@ -17,7 +17,6 @@ WEB
         Settings page
 
 BACKEND
-    Implement share collection functionality
 
 Mobile 
     Create:
@@ -49,6 +48,7 @@ BACKEND
     Allow users to login using google auth - e725c4272df0c0426cb825c4a53fe3b44750f6e0
     Transfer to Supabase - 497090c2f840c4d75e3cf042cee3badc6ca364f3
     Updated user entity to include profile image - 9865d3d915cf4abe5e96e715e493333b4c35007a
+    Implement share functionality - 
 
 WEB
     Create:

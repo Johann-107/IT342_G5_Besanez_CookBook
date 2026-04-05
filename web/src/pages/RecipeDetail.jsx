@@ -5,6 +5,7 @@ import DefaultHeader from '../components/layout/DefaultHeader';
 import recipeAPI from '../services/recipe';
 import ingredientAPI from '../services/ingredient';
 import instructionAPI from '../services/instruction';
+import SharePanel from '../components/SharePanel';
 import styles from '../styles/RecipeDetail.module.css';
 
 const RecipeDetail = () => {
@@ -104,6 +105,7 @@ const RecipeDetail = () => {
                     <div className={styles.titleRow}>
                         <h1 className={styles.recipeTitle}>{recipe.name}</h1>
                         <div className={styles.recipeActions}>
+                            <SharePanel recipeId={id} initialToken={recipe.shareToken} />
                             <button
                                 className={styles.btnGhost}
                                 onClick={() => navigate(`/recipe/${id}/edit`)}

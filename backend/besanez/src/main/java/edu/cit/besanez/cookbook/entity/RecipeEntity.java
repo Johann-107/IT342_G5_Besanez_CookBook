@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,9 +49,13 @@ public class RecipeEntity {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    @JsonProperty("isPublic")
     @Column(name = "is_public", nullable = false)
     @Builder.Default
     private boolean isPublic = false;
+
+    @Column(name = "share_token", unique = true, length = 36)
+    private String shareToken;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)

@@ -10,6 +10,7 @@ import RecipeDetail from './pages/RecipeDetail';
 import CreateRecipe from './pages/CreateRecipe';
 import Collections from './pages/Collections';
 import ForgotPassword from './pages/ForgotPassword';
+import SharedRecipePage from './pages/SharedRecipePage';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 const LandingWrapper = () => {
@@ -85,6 +86,8 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route path="shared/:token" element={<SharedRecipePage />} />
           </Route>
         </Routes>
       </Router>

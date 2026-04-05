@@ -21,61 +21,64 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final OAuth2SuccessHandler oauth2SuccessHandler;
-    private final Filter jwtAuthenticationFilter;
+        private final OAuth2SuccessHandler oauth2SuccessHandler;
+        private final Filter jwtAuthenticationFilter;
 
-    public SecurityConfig(OAuth2SuccessHandler oauth2SuccessHandler,
-            @Qualifier("jwtAuthenticationFilter") Filter jwtAuthenticationFilter) {
-        this.oauth2SuccessHandler = oauth2SuccessHandler;
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
+        public SecurityConfig(OAuth2SuccessHandler oauth2SuccessHandler,
+                        @Qualifier("jwtAuthenticationFilter") Filter jwtAuthenticationFilter) {
+                this.oauth2SuccessHandler = oauth2SuccessHandler;
+                this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .csrf(csrf -> csrf.disable())
 
-                // JWT is stateless — no session should ever be created
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                // JWT is stateless — no session should ever be created
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                .authorizeHttpRequests(auth -> auth
-                        // Auth endpoints — always public
-                        .requestMatchers("/api/auth/**").permitAll()
+                                .authorizeHttpRequests(auth -> auth
+                                                // Auth endpoints — always public
+                                                .requestMatchers("/api/auth/**").permitAll()
 
-                        // OAuth2 flow — must be public
-                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                                                // OAuth2 flow — must be public
+                                                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
 
-                        // Public recipe browsing — no login required
-                        .requestMatchers(HttpMethod.GET, "/api/recipe/public").permitAll()
+                                                // Public recipe browsing — no login required
+                                                .requestMatchers(HttpMethod.GET, "/api/recipe/public").permitAll()
 
-                        // Everything else requires a valid JWT
-                        .anyRequest().authenticated())
+                                                // Shared recipe access via token — no login required
+                                                .requestMatchers(HttpMethod.GET, "/api/share/*").permitAll()
 
-                // Wire the JWT filter before Spring's default username/password filter
-                .addFilterBefore(jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class)
+                                                // Everything else requires a valid JWT
+                                                .anyRequest().authenticated())
 
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oauth2SuccessHandler)
-                        .failureUrl("http://localhost:3000/?error=true"));
+                                // Wire the JWT filter before Spring's default username/password filter
+                                .addFilterBefore(jwtAuthenticationFilter,
+                                                UsernamePasswordAuthenticationFilter.class)
 
-        return http.build();
-    }
+                                .oauth2Login(oauth2 -> oauth2
+                                                .successHandler(oauth2SuccessHandler)
+                                                .failureUrl("http://localhost:3000/?error=true"));
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+                return http.build();
+        }
+
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOrigins(Arrays.asList(
+                                "http://localhost:3000",
+                                "http://localhost:5173"));
+                configuration.setAllowedMethods(Arrays.asList(
+                                "GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                configuration.setAllowedHeaders(Arrays.asList("*"));
+                configuration.setAllowCredentials(true);
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 }

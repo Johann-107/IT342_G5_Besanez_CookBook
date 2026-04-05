@@ -1,0 +1,213 @@
+.wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Trigger button — matches existing btnGhost style */
+.triggerBtn {
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta-dark, #A05E33);
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s ease, transform 0.15s ease;
+    white-space: nowrap;
+}
+
+.triggerBtn:hover:not(:disabled) {
+    background: var(--peach, #F5C9A0);
+    transform: translateY(-1px);
+}
+
+.triggerBtn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.triggerBtn.active {
+    background: var(--terracotta, #C97D4E);
+    color: white;
+}
+
+.triggerBtn.active:hover:not(:disabled) {
+    background: var(--terracotta-dark, #A05E33);
+}
+
+.icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* "View link ↓" secondary trigger */
+.viewLinkBtn {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--terracotta, #C97D4E);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    transition: color 0.15s ease;
+}
+
+.viewLinkBtn:hover {
+    color: var(--terracotta-dark, #A05E33);
+}
+
+/* Dropdown panel */
+.panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 340px;
+    background: var(--cream, #FDF8F2);
+    border: 1px solid var(--border, #EDD8C4);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(92, 61, 46, 0.18);
+    padding: 18px 20px;
+    z-index: 300;
+    animation: panelIn 0.2s ease;
+}
+
+@keyframes panelIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.panelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.panelTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-dark, #3A2A1E);
+}
+
+.closePanel {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--text-light, #B09080);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.closePanel:hover {
+    color: var(--text-dark, #3A2A1E);
+}
+
+.panelDesc {
+    font-size: 0.8rem;
+    color: var(--text-mid, #7A5C46);
+    line-height: 1.5;
+    margin-bottom: 14px;
+}
+
+/* URL row */
+.urlRow {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.urlInput {
+    flex: 1;
+    background: var(--warm-white, #FFF9F2);
+    border: 1.5px solid var(--border, #EDD8C4);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    color: var(--text-mid, #7A5C46);
+    outline: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.copyBtn {
+    background: var(--terracotta, #C97D4E);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.825rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, transform 0.15s ease;
+    min-width: 80px;
+}
+
+.copyBtn:hover {
+    background: var(--terracotta-dark, #A05E33);
+    transform: translateY(-1px);
+}
+
+.copyBtn.copied {
+    background: #4A8B4E;
+}
+
+/* Panel footer */
+.panelActions {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid var(--border, #EDD8C4);
+    padding-top: 10px;
+    margin-top: 4px;
+}
+
+.revokeBtn {
+    background: none;
+    border: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #C44;
+    cursor: pointer;
+    padding: 4px 0;
+    font-family: 'DM Sans', sans-serif;
+    transition: color 0.15s ease;
+}
+
+.revokeBtn:hover:not(:disabled) {
+    color: #a03;
+    text-decoration: underline;
+}
+
+.revokeBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .panel {
+        min-width: 280px;
+        right: auto;
+        left: 0;
+    }
+}

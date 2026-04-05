@@ -2,6 +2,8 @@ package edu.cit.besanez.cookbook.dto.recipe;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +33,7 @@ public class RecipeResponseDTO {
 
     private String imageUrl;
 
+    @JsonProperty("isPublic")
     private boolean isPublic;
 
     private long userId;

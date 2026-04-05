@@ -1,5 +1,7 @@
 package edu.cit.besanez.cookbook.dto.recipe;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -34,5 +36,6 @@ public class RecipeRequestDTO {
     @Size(max = 500, message = "Image URL must not exceed 500 characters")
     private String imageUrl;
 
+    @JsonProperty("isPublic")
     private boolean isPublic;
 }
