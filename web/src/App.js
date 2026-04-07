@@ -21,8 +21,8 @@ const LandingWrapper = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<LandingWrapper />} />
@@ -90,8 +90,8 @@ function App() {
             <Route path="shared/:token" element={<SharedRecipePage />} />
           </Route>
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

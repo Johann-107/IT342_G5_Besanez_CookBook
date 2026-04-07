@@ -1,14 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
-import recipeAPI from '../services/recipe';
-import ingredientAPI from '../services/ingredient';
-import instructionAPI from '../services/instruction';
 import collectionAPI from '../services/collection';
+
+// ── Design Patterns ────────────────────────────────────────────────────────────
+import RecipeBuilder, { emptyIngredient, emptyStep } from '../patterns/RecipeBuilder';
+import { ImageUploadContext, IMAGE_STRATEGIES } from '../patterns/ImageUploadStrategy';
+import CookbookFacade from '../patterns/CookbookFacade';
+
 import styles from '../styles/CreateRecipe.module.css';
 
-// Must match IngredientUnit enum on the backend
 const UNITS = [
     { value: '', label: 'Unit' },
     { value: 'G', label: 'g' },
@@ -28,148 +30,96 @@ const UNITS = [
     { value: 'OTHER', label: 'other' },
 ];
 
-const emptyIngredient = () => ({ _key: Date.now() + Math.random(), name: '', quantity: '', unit: '', notes: '' });
-const emptyStep = () => ({ _key: Date.now() + Math.random(), description: '' });
-
 const CreateRecipe = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const { id } = useParams(); // present when editing
+    const { id } = useParams();
+    const isEditing = Boolean(id);
     const fileInputRef = useRef(null);
 
-    const isEditing = Boolean(id);
+    // ── State seeded by Builder ─────────────────────────────────────────────────
+    const [form, setForm] = useState(RecipeBuilder.blank().build().form);
+    const [ingredients, setIngredients] = useState([emptyIngredient()]);
+    const [steps, setSteps] = useState([emptyStep()]);
 
-    const [form, setForm] = useState({
-        name: '',
-        description: '',
-        prepTimeMinutes: '',
-        cookTimeMinutes: '',
-        totalTimeMinutes: '',
-        imageUrl: '',
-        isPublic: false,
-        notes: '',
-    });
-
-    // Local image state: preview URL shown to user, base64/url sent to backend
+    // ── Strategy: image upload ─────────────────────────────────────────────────
+    // ImageUploadContext holds whichever strategy is active
+    const imageContext = useRef(new ImageUploadContext(IMAGE_STRATEGIES.file));
+    const [imageMode, setImageMode] = useState('file');
     const [imagePreview, setImagePreview] = useState(null);
-    const [imageFile, setImageFile] = useState(null); // the raw File object
-    const [imageInputMode, setImageInputMode] = useState('file'); // 'file' | 'url'
+    const [imageFile, setImageFile] = useState(null);
     const [urlInput, setUrlInput] = useState('');
     const [dragOver, setDragOver] = useState(false);
 
-    const [ingredients, setIngredients] = useState([emptyIngredient()]);
-    const [steps, setSteps] = useState([emptyStep()]);
+    // ── Other state ───────────────────────────────────────────────────────────
     const [collections, setCollections] = useState([]);
     const [selectedCollections, setSelectedCollections] = useState([]);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
-    // ─── Load existing recipe when editing ────────────────────────────────────
+    // ── Load existing recipe using Facade (edit mode) ─────────────────────────
     useEffect(() => {
         if (!isEditing) return;
-
         const loadRecipe = async () => {
             try {
-                const [recipeRes, ingRes, instRes] = await Promise.all([
-                    recipeAPI.getRecipeById(id),
-                    ingredientAPI.getIngredients(id),
-                    instructionAPI.getInstructions(id),
-                ]);
-
-                const r = recipeRes.data;
-                setForm({
-                    name: r.name || '',
-                    description: r.description || '',
-                    prepTimeMinutes: r.prepTimeMinutes || '',
-                    cookTimeMinutes: r.cookTimeMinutes || '',
-                    totalTimeMinutes: r.totalTimeMinutes || '',
-                    imageUrl: r.imageUrl || '',
-                    isPublic: r.isPublic || false,
-                    notes: r.notes || '',
-                });
-
-                // Show existing image as preview
-                if (r.imageUrl) {
-                    setImagePreview(r.imageUrl);
-                    setUrlInput(r.imageUrl);
+                // Facade + Builder: one call returns a pre-populated builder
+                const { builder } = await CookbookFacade.getRecipeForEdit(id);
+                const { form: loadedForm, ingredients: loadedIng, steps: loadedSteps } = builder.build();
+                setForm(loadedForm);
+                setIngredients(loadedIng);
+                setSteps(loadedSteps);
+                if (loadedForm.imageUrl) {
+                    setImagePreview(loadedForm.imageUrl);
+                    setUrlInput(loadedForm.imageUrl);
                 }
-
-                setIngredients(
-                    ingRes.data.length > 0
-                        ? ingRes.data.map(i => ({ ...i, _key: i.id }))
-                        : [emptyIngredient()]
-                );
-
-                setSteps(
-                    instRes.data.length > 0
-                        ? instRes.data.map(s => ({ ...s, _key: s.id }))
-                        : [emptyStep()]
-                );
             } catch {
                 setError('Failed to load recipe for editing.');
             }
         };
-
         loadRecipe();
     }, [id, isEditing]);
 
-    // ─── Load user's collections ──────────────────────────────────────────────
+    // ── Load collections ──────────────────────────────────────────────────────
     useEffect(() => {
-        const loadCollections = async () => {
-            try {
-                const res = await collectionAPI.getCollections({ size: 100 });
-                setCollections(res.data.content || []);
-            } catch {
-                // Non-fatal
-            }
-        };
-        loadCollections();
+        collectionAPI.getCollections({ size: 100 })
+            .then(res => setCollections(res.data.content || []))
+            .catch(() => { });
     }, []);
 
-    // ─── Image helpers ────────────────────────────────────────────────────────
-    const handleFileChange = (file) => {
+    // ── Strategy: switch mode ─────────────────────────────────────────────────
+    const switchImageMode = (mode) => {
+        imageContext.current.setStrategy(IMAGE_STRATEGIES[mode]);
+        setImageMode(mode);
+    };
+
+    // ── Strategy: handle file input ───────────────────────────────────────────
+    const handleFileChange = useCallback((file) => {
         if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            setError('Please select a valid image file (JPEG, PNG, GIF, WEBP).');
-            return;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-            setError('Image must be smaller than 5 MB.');
-            return;
-        }
-
+        const validationError = imageContext.current.validate(file);
+        if (validationError) { setError(validationError); return; }
         setImageFile(file);
         setImagePreview(URL.createObjectURL(file));
         setError('');
-    };
+    }, []);
 
     const handleFileInputChange = (e) => {
         handleFileChange(e.target.files?.[0]);
-        // Allow re-selecting same file
         e.target.value = '';
     };
 
     const handleDrop = (e) => {
         e.preventDefault();
         setDragOver(false);
-        const file = e.dataTransfer.files?.[0];
-        handleFileChange(file);
+        handleFileChange(e.dataTransfer.files?.[0]);
     };
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        setDragOver(true);
-    };
-
-    const handleDragLeave = () => setDragOver(false);
-
+    // ── Strategy: apply URL ────────────────────────────────────────────────────
     const handleUrlApply = () => {
-        if (urlInput.trim()) {
-            setImagePreview(urlInput.trim());
-            setForm(f => ({ ...f, imageUrl: urlInput.trim() }));
-            setImageFile(null);
-        }
+        const validationError = imageContext.current.validate(urlInput.trim());
+        if (validationError) { setError(validationError); return; }
+        setImagePreview(urlInput.trim());
+        setForm(f => ({ ...f, imageUrl: urlInput.trim() }));
+        setImageFile(null);
     };
 
     const handleRemoveImage = () => {
@@ -180,131 +130,76 @@ const CreateRecipe = () => {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    // Convert File → base64 data URL for sending to backend
-    const fileToBase64 = (file) =>
-        new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-
-    // ─── Ingredient helpers ───────────────────────────────────────────────────
+    // ── Ingredient helpers ─────────────────────────────────────────────────────
     const addIngredient = () => setIngredients(prev => [...prev, emptyIngredient()]);
     const updateIngredient = (key, field, value) =>
         setIngredients(prev => prev.map(i => i._key === key ? { ...i, [field]: value } : i));
     const removeIngredient = (key) =>
         setIngredients(prev => prev.filter(i => i._key !== key));
 
-    // ─── Step helpers ─────────────────────────────────────────────────────────
+    // ── Step helpers ───────────────────────────────────────────────────────────
     const addStep = () => setSteps(prev => [...prev, emptyStep()]);
     const updateStep = (key, value) =>
         setSteps(prev => prev.map(s => s._key === key ? { ...s, description: value } : s));
     const removeStep = (key) =>
         setSteps(prev => prev.filter(s => s._key !== key));
 
-    // ─── Collection toggle ────────────────────────────────────────────────────
     const toggleCollection = (colId) =>
         setSelectedCollections(prev =>
             prev.includes(colId) ? prev.filter(c => c !== colId) : [...prev, colId]
         );
 
-    // ─── Submit ───────────────────────────────────────────────────────────────
+    // ── Submit: uses Builder for payload + Strategy for image + Facade for save ─
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSaving(true);
 
         try {
-            // Resolve imageUrl: if a file was picked, convert to base64
-            let resolvedImageUrl = form.imageUrl;
-            if (imageFile) {
-                resolvedImageUrl = await fileToBase64(imageFile);
-            }
+            // Strategy resolves the image to a URL or base64 string
+            const resolvedImageUrl = await imageContext.current.resolve({
+                file: imageFile,
+                url: urlInput,
+            });
 
-            // 1. Create or update the recipe
-            const recipePayload = {
-                ...form,
-                imageUrl: resolvedImageUrl || null,
-                prepTimeMinutes: form.prepTimeMinutes ? Number(form.prepTimeMinutes) : null,
-                cookTimeMinutes: form.cookTimeMinutes ? Number(form.cookTimeMinutes) : null,
-                totalTimeMinutes: form.totalTimeMinutes ? Number(form.totalTimeMinutes) : null,
-            };
+            // Builder builds the clean request payload
+            const recipePayload = RecipeBuilder.toRequestPayload(form, resolvedImageUrl);
+
+            const validIngredients = ingredients
+                .filter(i => i.name.trim())
+                .map(ing => ({
+                    name: ing.name.trim(),
+                    quantity: ing.quantity ? Number(ing.quantity) : 0,
+                    unit: ing.unit || null,
+                    notes: ing.notes || null,
+                }));
+
+            const validSteps = steps.filter(s => s.description.trim());
 
             let recipeId;
+
             if (isEditing) {
-                await recipeAPI.updateRecipe(id, recipePayload);
+                // Facade: update recipe + its sub-resources
+                await CookbookFacade.updateRecipeWithDetails(
+                    id, recipePayload,
+                    ingredients.filter(i => i.name.trim()),
+                    steps.filter(s => s.description.trim())
+                );
                 recipeId = id;
             } else {
-                const res = await recipeAPI.createRecipe(recipePayload);
-                recipeId = res.data.id;
-            }
-
-            // 2. Save ingredients
-            const validIngredients = ingredients.filter(i => i.name.trim());
-            if (!isEditing) {
-                await Promise.all(
-                    validIngredients.map((ing) =>
-                        ingredientAPI.addIngredient(recipeId, {
-                            name: ing.name.trim(),
-                            quantity: ing.quantity ? Number(ing.quantity) : 0,
-                            unit: ing.unit || null,
-                            notes: ing.notes || null,
-                        })
-                    )
+                // Facade: create recipe + sub-resources + collection memberships
+                const result = await CookbookFacade.createRecipeWithDetails(
+                    recipePayload,
+                    validIngredients,
+                    validSteps,
+                    selectedCollections
                 );
-            } else {
-                await Promise.all(
-                    validIngredients
-                        .filter(i => i.id)
-                        .map(ing =>
-                            ingredientAPI.updateIngredient(recipeId, ing.id, {
-                                name: ing.name.trim(),
-                                quantity: ing.quantity ? Number(ing.quantity) : 0,
-                                unit: ing.unit || null,
-                                notes: ing.notes || null,
-                            })
-                        )
-                );
-            }
-
-            // 3. Save instructions
-            const validSteps = steps.filter(s => s.description.trim());
-            if (!isEditing) {
-                await Promise.all(
-                    validSteps.map((step, idx) =>
-                        instructionAPI.addInstruction(recipeId, {
-                            stepNumber: idx + 1,
-                            description: step.description.trim(),
-                        })
-                    )
-                );
-            } else {
-                await Promise.all(
-                    validSteps
-                        .filter(s => s.id)
-                        .map((step, idx) =>
-                            instructionAPI.updateInstruction(recipeId, step.id, {
-                                stepNumber: step.stepNumber || idx + 1,
-                                description: step.description.trim(),
-                            })
-                        )
-                );
-            }
-
-            // 4. Add to selected collections (only on create)
-            if (!isEditing && selectedCollections.length > 0) {
-                await Promise.all(
-                    selectedCollections.map(colId =>
-                        collectionAPI.addRecipeToCollection(colId, recipeId)
-                    )
-                );
+                recipeId = result.recipeId;
             }
 
             navigate(`/recipe/${recipeId}`);
         } catch (err) {
-            const msg = err.response?.data?.message || 'Failed to save recipe. Please try again.';
-            setError(msg);
+            setError(err.response?.data?.message || 'Failed to save recipe. Please try again.');
         } finally {
             setSaving(false);
         }
@@ -360,106 +255,60 @@ const CreateRecipe = () => {
                         <div className={styles.formRow3}>
                             <div className={styles.formGroup}>
                                 <label className={styles.formLabel}>Prep Time (min)</label>
-                                <input
-                                    className={styles.formInput}
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    value={form.prepTimeMinutes}
-                                    onChange={e => setForm({ ...form, prepTimeMinutes: e.target.value })}
-                                />
+                                <input className={styles.formInput} type="number" min="0" placeholder="0"
+                                    value={form.prepTimeMinutes} onChange={e => setForm({ ...form, prepTimeMinutes: e.target.value })} />
                             </div>
                             <div className={styles.formGroup}>
                                 <label className={styles.formLabel}>Cook Time (min)</label>
-                                <input
-                                    className={styles.formInput}
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    value={form.cookTimeMinutes}
-                                    onChange={e => setForm({ ...form, cookTimeMinutes: e.target.value })}
-                                />
+                                <input className={styles.formInput} type="number" min="0" placeholder="0"
+                                    value={form.cookTimeMinutes} onChange={e => setForm({ ...form, cookTimeMinutes: e.target.value })} />
                             </div>
                             <div className={styles.formGroup}>
                                 <label className={styles.formLabel}>Total Time (min)</label>
-                                <input
-                                    className={styles.formInput}
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    value={form.totalTimeMinutes}
-                                    onChange={e => setForm({ ...form, totalTimeMinutes: e.target.value })}
-                                />
+                                <input className={styles.formInput} type="number" min="0" placeholder="0"
+                                    value={form.totalTimeMinutes} onChange={e => setForm({ ...form, totalTimeMinutes: e.target.value })} />
                             </div>
                         </div>
 
-                        {/* ── Image Upload ── */}
+                        {/* ── Image Upload — Strategy pattern drives mode switching ── */}
                         <div className={styles.formGroup}>
                             <label className={styles.formLabel}>Recipe Photo</label>
 
-                            {/* Mode tabs */}
                             <div className={styles.imageModeTabs}>
-                                <button
-                                    type="button"
-                                    className={`${styles.imageModeTab} ${imageInputMode === 'file' ? styles.imageModeTabActive : ''}`}
-                                    onClick={() => setImageInputMode('file')}
-                                >
-                                    📁 Upload File
-                                </button>
-                                <button
-                                    type="button"
-                                    className={`${styles.imageModeTab} ${imageInputMode === 'url' ? styles.imageModeTabActive : ''}`}
-                                    onClick={() => setImageInputMode('url')}
-                                >
-                                    🔗 Paste URL
-                                </button>
+                                {Object.entries(IMAGE_STRATEGIES).map(([key, strategy]) => (
+                                    <button key={key} type="button"
+                                        className={`${styles.imageModeTab} ${imageMode === key ? styles.imageModeTabActive : ''}`}
+                                        onClick={() => switchImageMode(key)}
+                                    >
+                                        {strategy.icon} {strategy.label}
+                                    </button>
+                                ))}
                             </div>
 
-                            {imageInputMode === 'file' ? (
+                            {imageMode === 'file' ? (
                                 <>
-                                    {/* Hidden file input */}
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
+                                    <input ref={fileInputRef} type="file"
                                         accept="image/jpeg,image/png,image/gif,image/webp"
                                         className={styles.hiddenFileInput}
-                                        onChange={handleFileInputChange}
-                                    />
-
+                                        onChange={handleFileInputChange} />
                                     {imagePreview ? (
-                                        /* Preview */
                                         <div className={styles.imagePreviewWrap}>
-                                            <img
-                                                src={imagePreview}
-                                                alt="Recipe preview"
-                                                className={styles.imagePreview}
-                                                onError={() => setImagePreview(null)}
-                                            />
+                                            <img src={imagePreview} alt="Recipe preview" className={styles.imagePreview}
+                                                onError={() => setImagePreview(null)} />
                                             <div className={styles.imagePreviewOverlay}>
-                                                <button
-                                                    type="button"
-                                                    className={styles.imagePreviewChange}
-                                                    onClick={() => fileInputRef.current?.click()}
-                                                >
-                                                    📷 Change Photo
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className={styles.imagePreviewRemove}
-                                                    onClick={handleRemoveImage}
-                                                >
-                                                    🗑 Remove
-                                                </button>
+                                                <button type="button" className={styles.imagePreviewChange}
+                                                    onClick={() => fileInputRef.current?.click()}>📷 Change Photo</button>
+                                                <button type="button" className={styles.imagePreviewRemove}
+                                                    onClick={handleRemoveImage}>🗑 Remove</button>
                                             </div>
                                         </div>
                                     ) : (
-                                        /* Drop zone */
                                         <div
                                             className={`${styles.dropZone} ${dragOver ? styles.dropZoneActive : ''}`}
                                             onClick={() => fileInputRef.current?.click()}
                                             onDrop={handleDrop}
-                                            onDragOver={handleDragOver}
-                                            onDragLeave={handleDragLeave}
+                                            onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                                            onDragLeave={() => setDragOver(false)}
                                         >
                                             <div className={styles.dropZoneIcon}>🖼️</div>
                                             <div className={styles.dropZoneText}>
@@ -467,52 +316,30 @@ const CreateRecipe = () => {
                                                     Drop an image here or{' '}
                                                     <span className={styles.dropZoneLink}>browse files</span>
                                                 </span>
-                                                <span className={styles.dropZoneHint}>
-                                                    JPEG, PNG, GIF, WEBP · max 5 MB
-                                                </span>
+                                                <span className={styles.dropZoneHint}>JPEG, PNG, GIF, WEBP · max 5 MB</span>
                                             </div>
                                         </div>
                                     )}
                                 </>
                             ) : (
-                                /* URL mode */
                                 <div className={styles.urlInputRow}>
-                                    <input
-                                        className={styles.formInput}
-                                        type="url"
+                                    <input className={styles.formInput} type="url"
                                         placeholder="https://example.com/photo.jpg"
                                         value={urlInput}
                                         onChange={e => setUrlInput(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleUrlApply())}
-                                    />
-                                    <button
-                                        type="button"
-                                        className={styles.urlApplyBtn}
-                                        onClick={handleUrlApply}
-                                        disabled={!urlInput.trim()}
-                                    >
-                                        Preview
-                                    </button>
+                                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleUrlApply())} />
+                                    <button type="button" className={styles.urlApplyBtn}
+                                        onClick={handleUrlApply} disabled={!urlInput.trim()}>Preview</button>
                                 </div>
                             )}
 
-                            {/* Show URL preview when in URL mode */}
-                            {imageInputMode === 'url' && imagePreview && (
+                            {imageMode === 'url' && imagePreview && (
                                 <div className={styles.imagePreviewWrap} style={{ marginTop: '10px' }}>
-                                    <img
-                                        src={imagePreview}
-                                        alt="Recipe preview"
-                                        className={styles.imagePreview}
-                                        onError={() => setImagePreview(null)}
-                                    />
+                                    <img src={imagePreview} alt="Recipe preview" className={styles.imagePreview}
+                                        onError={() => setImagePreview(null)} />
                                     <div className={styles.imagePreviewOverlay}>
-                                        <button
-                                            type="button"
-                                            className={styles.imagePreviewRemove}
-                                            onClick={handleRemoveImage}
-                                        >
-                                            🗑 Remove
-                                        </button>
+                                        <button type="button" className={styles.imagePreviewRemove}
+                                            onClick={handleRemoveImage}>🗑 Remove</button>
                                     </div>
                                 </div>
                             )}
@@ -523,51 +350,24 @@ const CreateRecipe = () => {
                     <section className={styles.formSection}>
                         <div className={styles.sectionTitleRow}>
                             <h3 className={styles.sectionTitle}>🧅 Ingredients</h3>
-                            <button type="button" className={styles.btnGhost} onClick={addIngredient}>
-                                + Add Ingredient
-                            </button>
+                            <button type="button" className={styles.btnGhost} onClick={addIngredient}>+ Add Ingredient</button>
                         </div>
-                        {ingredients.map((ing) => (
+                        {ingredients.map(ing => (
                             <div key={ing._key} className={styles.ingredientRow}>
-                                <input
-                                    className={styles.formInput}
-                                    type="number"
-                                    placeholder="Qty"
-                                    value={ing.quantity}
-                                    onChange={e => updateIngredient(ing._key, 'quantity', e.target.value)}
-                                    min="0"
-                                    style={{ maxWidth: '80px' }}
-                                />
-                                <select
-                                    className={styles.formSelect}
-                                    value={ing.unit}
-                                    onChange={e => updateIngredient(ing._key, 'unit', e.target.value)}
-                                    style={{ maxWidth: '90px' }}
-                                >
-                                    {UNITS.map(u => (
-                                        <option key={u.value} value={u.value}>{u.label}</option>
-                                    ))}
+                                <input className={styles.formInput} type="number" placeholder="Qty"
+                                    value={ing.quantity} min="0" style={{ maxWidth: '80px' }}
+                                    onChange={e => updateIngredient(ing._key, 'quantity', e.target.value)} />
+                                <select className={styles.formSelect} value={ing.unit} style={{ maxWidth: '90px' }}
+                                    onChange={e => updateIngredient(ing._key, 'unit', e.target.value)}>
+                                    {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
                                 </select>
-                                <input
-                                    className={styles.formInput}
-                                    type="text"
-                                    placeholder="Ingredient name *"
-                                    value={ing.name}
-                                    onChange={e => updateIngredient(ing._key, 'name', e.target.value)}
-                                />
-                                <input
-                                    className={styles.formInput}
-                                    type="text"
-                                    placeholder="Notes (optional)"
-                                    value={ing.notes}
-                                    onChange={e => updateIngredient(ing._key, 'notes', e.target.value)}
-                                />
+                                <input className={styles.formInput} type="text" placeholder="Ingredient name *"
+                                    value={ing.name} onChange={e => updateIngredient(ing._key, 'name', e.target.value)} />
+                                <input className={styles.formInput} type="text" placeholder="Notes (optional)"
+                                    value={ing.notes} onChange={e => updateIngredient(ing._key, 'notes', e.target.value)} />
                                 {ingredients.length > 1 && (
-                                    <button
-                                        type="button"
-                                        className={styles.removeBtn}
-                                        onClick={() => removeIngredient(ing._key)}
-                                    >−</button>
+                                    <button type="button" className={styles.removeBtn}
+                                        onClick={() => removeIngredient(ing._key)}>−</button>
                                 )}
                             </div>
                         ))}
@@ -577,26 +377,17 @@ const CreateRecipe = () => {
                     <section className={styles.formSection}>
                         <div className={styles.sectionTitleRow}>
                             <h3 className={styles.sectionTitle}>📋 Instructions</h3>
-                            <button type="button" className={styles.btnGhost} onClick={addStep}>
-                                + Add Step
-                            </button>
+                            <button type="button" className={styles.btnGhost} onClick={addStep}>+ Add Step</button>
                         </div>
                         {steps.map((step, index) => (
                             <div key={step._key} className={styles.stepRow}>
                                 <div className={styles.stepNum}>{index + 1}</div>
-                                <textarea
-                                    className={styles.stepTextarea}
-                                    placeholder={`Step ${index + 1}…`}
-                                    value={step.description}
-                                    onChange={e => updateStep(step._key, e.target.value)}
-                                    rows={2}
-                                />
+                                <textarea className={styles.stepTextarea} placeholder={`Step ${index + 1}…`}
+                                    value={step.description} rows={2}
+                                    onChange={e => updateStep(step._key, e.target.value)} />
                                 {steps.length > 1 && (
-                                    <button
-                                        type="button"
-                                        className={styles.removeBtn}
-                                        onClick={() => removeStep(step._key)}
-                                    >−</button>
+                                    <button type="button" className={styles.removeBtn}
+                                        onClick={() => removeStep(step._key)}>−</button>
                                 )}
                             </div>
                         ))}
@@ -605,38 +396,27 @@ const CreateRecipe = () => {
                     {/* Notes */}
                     <section className={styles.formSection}>
                         <h3 className={styles.sectionTitle}>🗒️ Additional Notes</h3>
-                        <textarea
-                            className={styles.formTextarea}
+                        <textarea className={styles.formTextarea} rows={4}
                             placeholder="Tips, variations, serving suggestions…"
-                            value={form.notes}
-                            onChange={e => setForm({ ...form, notes: e.target.value })}
-                            rows={4}
-                        />
+                            value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
                     </section>
 
                     {/* Organization */}
                     <section className={styles.formSection}>
                         <h3 className={styles.sectionTitle}>📂 Organization</h3>
                         <label className={styles.checkboxRow}>
-                            <input
-                                type="checkbox"
-                                checked={form.isPublic}
-                                onChange={e => setForm({ ...form, isPublic: e.target.checked })}
-                            />
+                            <input type="checkbox" checked={form.isPublic}
+                                onChange={e => setForm({ ...form, isPublic: e.target.checked })} />
                             <span>Make this recipe public</span>
                         </label>
-
                         {!isEditing && collections.length > 0 && (
                             <div className={styles.formGroup} style={{ marginTop: '14px' }}>
                                 <label className={styles.formLabel}>Add to Collections</label>
                                 <div className={styles.collectionsList}>
                                     {collections.map(col => (
                                         <label key={col.id} className={styles.checkboxRow}>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedCollections.includes(col.id)}
-                                                onChange={() => toggleCollection(col.id)}
-                                            />
+                                            <input type="checkbox" checked={selectedCollections.includes(col.id)}
+                                                onChange={() => toggleCollection(col.id)} />
                                             <span>📂 {col.name}</span>
                                         </label>
                                     ))}
@@ -647,18 +427,9 @@ const CreateRecipe = () => {
 
                     {/* Sticky Save Bar */}
                     <div className={styles.stickyBar}>
-                        <button
-                            type="button"
-                            className={styles.btnOutline}
-                            onClick={() => navigate(isEditing ? `/recipe/${id}` : '/recipes')}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className={styles.btnPrimary}
-                            disabled={saving}
-                        >
+                        <button type="button" className={styles.btnOutline}
+                            onClick={() => navigate(isEditing ? `/recipe/${id}` : '/recipes')}>Cancel</button>
+                        <button type="submit" className={styles.btnPrimary} disabled={saving}>
                             {saving ? 'Saving…' : `💾 ${isEditing ? 'Update Recipe' : 'Save Recipe'}`}
                         </button>
                     </div>
