@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
@@ -35,6 +35,7 @@ const CreateRecipe = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { id } = useParams(); // present when editing
+    const fileInputRef = useRef(null);
 
     const isEditing = Boolean(id);
 
@@ -48,6 +49,13 @@ const CreateRecipe = () => {
         isPublic: false,
         notes: '',
     });
+
+    // Local image state: preview URL shown to user, base64/url sent to backend
+    const [imagePreview, setImagePreview] = useState(null);
+    const [imageFile, setImageFile] = useState(null); // the raw File object
+    const [imageInputMode, setImageInputMode] = useState('file'); // 'file' | 'url'
+    const [urlInput, setUrlInput] = useState('');
+    const [dragOver, setDragOver] = useState(false);
 
     const [ingredients, setIngredients] = useState([emptyIngredient()]);
     const [steps, setSteps] = useState([emptyStep()]);
@@ -80,6 +88,12 @@ const CreateRecipe = () => {
                     notes: r.notes || '',
                 });
 
+                // Show existing image as preview
+                if (r.imageUrl) {
+                    setImagePreview(r.imageUrl);
+                    setUrlInput(r.imageUrl);
+                }
+
                 setIngredients(
                     ingRes.data.length > 0
                         ? ingRes.data.map(i => ({ ...i, _key: i.id }))
@@ -106,11 +120,74 @@ const CreateRecipe = () => {
                 const res = await collectionAPI.getCollections({ size: 100 });
                 setCollections(res.data.content || []);
             } catch {
-                // Non-fatal — collections section just stays empty
+                // Non-fatal
             }
         };
         loadCollections();
     }, []);
+
+    // ─── Image helpers ────────────────────────────────────────────────────────
+    const handleFileChange = (file) => {
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            setError('Please select a valid image file (JPEG, PNG, GIF, WEBP).');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Image must be smaller than 5 MB.');
+            return;
+        }
+
+        setImageFile(file);
+        setImagePreview(URL.createObjectURL(file));
+        setError('');
+    };
+
+    const handleFileInputChange = (e) => {
+        handleFileChange(e.target.files?.[0]);
+        // Allow re-selecting same file
+        e.target.value = '';
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setDragOver(false);
+        const file = e.dataTransfer.files?.[0];
+        handleFileChange(file);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setDragOver(true);
+    };
+
+    const handleDragLeave = () => setDragOver(false);
+
+    const handleUrlApply = () => {
+        if (urlInput.trim()) {
+            setImagePreview(urlInput.trim());
+            setForm(f => ({ ...f, imageUrl: urlInput.trim() }));
+            setImageFile(null);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setImagePreview(null);
+        setImageFile(null);
+        setUrlInput('');
+        setForm(f => ({ ...f, imageUrl: '' }));
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    // Convert File → base64 data URL for sending to backend
+    const fileToBase64 = (file) =>
+        new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
 
     // ─── Ingredient helpers ───────────────────────────────────────────────────
     const addIngredient = () => setIngredients(prev => [...prev, emptyIngredient()]);
@@ -139,9 +216,16 @@ const CreateRecipe = () => {
         setSaving(true);
 
         try {
+            // Resolve imageUrl: if a file was picked, convert to base64
+            let resolvedImageUrl = form.imageUrl;
+            if (imageFile) {
+                resolvedImageUrl = await fileToBase64(imageFile);
+            }
+
             // 1. Create or update the recipe
             const recipePayload = {
                 ...form,
+                imageUrl: resolvedImageUrl || null,
                 prepTimeMinutes: form.prepTimeMinutes ? Number(form.prepTimeMinutes) : null,
                 cookTimeMinutes: form.cookTimeMinutes ? Number(form.cookTimeMinutes) : null,
                 totalTimeMinutes: form.totalTimeMinutes ? Number(form.totalTimeMinutes) : null,
@@ -156,11 +240,11 @@ const CreateRecipe = () => {
                 recipeId = res.data.id;
             }
 
-            // 2. Save ingredients (post each one)
+            // 2. Save ingredients
             const validIngredients = ingredients.filter(i => i.name.trim());
             if (!isEditing) {
                 await Promise.all(
-                    validIngredients.map((ing, idx) =>
+                    validIngredients.map((ing) =>
                         ingredientAPI.addIngredient(recipeId, {
                             name: ing.name.trim(),
                             quantity: ing.quantity ? Number(ing.quantity) : 0,
@@ -170,7 +254,6 @@ const CreateRecipe = () => {
                     )
                 );
             } else {
-                // On edit — update existing, skip new (simplified: update all by id)
                 await Promise.all(
                     validIngredients
                         .filter(i => i.id)
@@ -309,15 +392,130 @@ const CreateRecipe = () => {
                                 />
                             </div>
                         </div>
+
+                        {/* ── Image Upload ── */}
                         <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>Image URL</label>
-                            <input
-                                className={styles.formInput}
-                                type="url"
-                                placeholder="https://…"
-                                value={form.imageUrl}
-                                onChange={e => setForm({ ...form, imageUrl: e.target.value })}
-                            />
+                            <label className={styles.formLabel}>Recipe Photo</label>
+
+                            {/* Mode tabs */}
+                            <div className={styles.imageModeTabs}>
+                                <button
+                                    type="button"
+                                    className={`${styles.imageModeTab} ${imageInputMode === 'file' ? styles.imageModeTabActive : ''}`}
+                                    onClick={() => setImageInputMode('file')}
+                                >
+                                    📁 Upload File
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`${styles.imageModeTab} ${imageInputMode === 'url' ? styles.imageModeTabActive : ''}`}
+                                    onClick={() => setImageInputMode('url')}
+                                >
+                                    🔗 Paste URL
+                                </button>
+                            </div>
+
+                            {imageInputMode === 'file' ? (
+                                <>
+                                    {/* Hidden file input */}
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/gif,image/webp"
+                                        className={styles.hiddenFileInput}
+                                        onChange={handleFileInputChange}
+                                    />
+
+                                    {imagePreview ? (
+                                        /* Preview */
+                                        <div className={styles.imagePreviewWrap}>
+                                            <img
+                                                src={imagePreview}
+                                                alt="Recipe preview"
+                                                className={styles.imagePreview}
+                                                onError={() => setImagePreview(null)}
+                                            />
+                                            <div className={styles.imagePreviewOverlay}>
+                                                <button
+                                                    type="button"
+                                                    className={styles.imagePreviewChange}
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                >
+                                                    📷 Change Photo
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={styles.imagePreviewRemove}
+                                                    onClick={handleRemoveImage}
+                                                >
+                                                    🗑 Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        /* Drop zone */
+                                        <div
+                                            className={`${styles.dropZone} ${dragOver ? styles.dropZoneActive : ''}`}
+                                            onClick={() => fileInputRef.current?.click()}
+                                            onDrop={handleDrop}
+                                            onDragOver={handleDragOver}
+                                            onDragLeave={handleDragLeave}
+                                        >
+                                            <div className={styles.dropZoneIcon}>🖼️</div>
+                                            <div className={styles.dropZoneText}>
+                                                <span className={styles.dropZonePrimary}>
+                                                    Drop an image here or{' '}
+                                                    <span className={styles.dropZoneLink}>browse files</span>
+                                                </span>
+                                                <span className={styles.dropZoneHint}>
+                                                    JPEG, PNG, GIF, WEBP · max 5 MB
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                /* URL mode */
+                                <div className={styles.urlInputRow}>
+                                    <input
+                                        className={styles.formInput}
+                                        type="url"
+                                        placeholder="https://example.com/photo.jpg"
+                                        value={urlInput}
+                                        onChange={e => setUrlInput(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleUrlApply())}
+                                    />
+                                    <button
+                                        type="button"
+                                        className={styles.urlApplyBtn}
+                                        onClick={handleUrlApply}
+                                        disabled={!urlInput.trim()}
+                                    >
+                                        Preview
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Show URL preview when in URL mode */}
+                            {imageInputMode === 'url' && imagePreview && (
+                                <div className={styles.imagePreviewWrap} style={{ marginTop: '10px' }}>
+                                    <img
+                                        src={imagePreview}
+                                        alt="Recipe preview"
+                                        className={styles.imagePreview}
+                                        onError={() => setImagePreview(null)}
+                                    />
+                                    <div className={styles.imagePreviewOverlay}>
+                                        <button
+                                            type="button"
+                                            className={styles.imagePreviewRemove}
+                                            onClick={handleRemoveImage}
+                                        >
+                                            🗑 Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </section>
 
