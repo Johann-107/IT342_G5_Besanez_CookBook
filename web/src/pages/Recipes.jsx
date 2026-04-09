@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
+import AddToCollectionModal from '../components/AddToCollectionModal';
 import recipeAPI from '../services/recipe';
 import styles from '../styles/Recipes.module.css';
 
@@ -20,7 +21,9 @@ const Recipes = () => {
     const [filterPublic, setFilterPublic] = useState('all');
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [deleteId, setDeleteId] = useState(null);
+
+    // Add to collection modal state
+    const [addToCollectionRecipe, setAddToCollectionRecipe] = useState(null);
 
     const fetchRecipes = useCallback(async () => {
         setLoading(true);
@@ -47,7 +50,6 @@ const Recipes = () => {
         return () => clearTimeout(debounce);
     }, [fetchRecipes]);
 
-    // Reset to page 0 when search changes
     useEffect(() => {
         setPage(0);
     }, [search, sortBy, filterPublic]);
@@ -63,7 +65,11 @@ const Recipes = () => {
         }
     };
 
-    // Client-side public/private filter (API doesn't expose this filter param)
+    const handleAddToCollection = (e, recipe) => {
+        e.stopPropagation();
+        setAddToCollectionRecipe(recipe);
+    };
+
     const filtered = filterPublic === 'all'
         ? recipes
         : recipes.filter(r => filterPublic === 'public' ? r.isPublic : !r.isPublic);
@@ -177,6 +183,12 @@ const Recipes = () => {
                                                     : ''}
                                             </span>
                                             <div className={styles.cardActions} onClick={e => e.stopPropagation()}>
+                                                {/* Add to Collection button */}
+                                                <button
+                                                    className={styles.iconBtn}
+                                                    onClick={(e) => handleAddToCollection(e, recipe)}
+                                                    title="Add to collection"
+                                                >📂</button>
                                                 <button
                                                     className={styles.iconBtn}
                                                     onClick={() => navigate(`/recipe/${recipe.id}/edit`)}
@@ -194,7 +206,6 @@ const Recipes = () => {
                             ))}
                         </div>
 
-                        {/* Pagination */}
                         {totalPages > 1 && (
                             <div className={styles.pagination}>
                                 <button
@@ -215,6 +226,14 @@ const Recipes = () => {
                     </>
                 )}
             </div>
+
+            {addToCollectionRecipe && (
+                <AddToCollectionModal
+                    recipe={addToCollectionRecipe}
+                    onClose={() => setAddToCollectionRecipe(null)}
+                    onSaved={() => setAddToCollectionRecipe(null)}
+                />
+            )}
         </>
     );
 };

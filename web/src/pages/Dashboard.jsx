@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import DefaultHeader from '../components/layout/DefaultHeader';
+import AddToCollectionModal from '../components/AddToCollectionModal';
 import CookbookFacade from '../patterns/CookbookFacade';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import styles from '../styles/Dashboard.module.css';
@@ -24,12 +25,14 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    // Add to collection modal state
+    const [addToCollectionRecipe, setAddToCollectionRecipe] = useState(null);
+
     useEffect(() => {
         const fetchDashboard = async () => {
             setLoading(true);
             setError('');
             try {
-                // Facade: one call replaces three manual Promise.all fetches
                 const data = await CookbookFacade.getDashboardData();
 
                 const oneWeekAgo = new Date();
@@ -77,7 +80,6 @@ const Dashboard = () => {
             <div className={styles.dashboard}>
                 <div className={styles.dashContent}>
 
-                    {/* Welcome Banner */}
                     <div className={styles.welcomeBanner}>
                         <div>
                             <h2 className={styles.welcomeTitle}>
@@ -90,7 +92,6 @@ const Dashboard = () => {
                         <div className={styles.welcomeEmoji}>🥗</div>
                     </div>
 
-                    {/* Stats Row */}
                     {loading ? (
                         <div className={styles.statsRow}>
                             {[1, 2, 3].map((i) => (
@@ -117,7 +118,6 @@ const Dashboard = () => {
                         </div>
                     )}
 
-                    {/* Quick Actions */}
                     <div className={styles.quickActions}>
                         <button className={styles.btnPrimary} onClick={() => navigate('/create-recipe')}>
                             + Add New Recipe
@@ -129,7 +129,6 @@ const Dashboard = () => {
 
                     {error && <div className={styles.errorBanner}>{error}</div>}
 
-                    {/* Recently Added */}
                     <div className={styles.sectionHeader}>
                         <h3 className={styles.sectionTitle}>Recently Added</h3>
                         <span className={styles.viewAll} onClick={() => navigate('/recipes')}>
@@ -178,13 +177,28 @@ const Dashboard = () => {
                                                 ? <span className={styles.metaPillGreen}>🌐 Public</span>
                                                 : <span className={styles.metaPill}>🔒 Private</span>}
                                         </div>
+                                        {/* Add to Collection button on card */}
+                                        <div
+                                            className={styles.cardQuickAction}
+                                            onClick={e => e.stopPropagation()}
+                                        >
+                                            <button
+                                                className={styles.addToCollBtn}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setAddToCollectionRecipe(recipe);
+                                                }}
+                                                title="Add to collection"
+                                            >
+                                                📂 Add to Collection
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     )}
 
-                    {/* Your Collections */}
                     <div className={styles.sectionHeader}>
                         <h3 className={styles.sectionTitle}>Your Collections</h3>
                         <span className={styles.viewAll} onClick={() => navigate('/collections')}>
@@ -232,6 +246,14 @@ const Dashboard = () => {
 
                 </div>
             </div>
+
+            {addToCollectionRecipe && (
+                <AddToCollectionModal
+                    recipe={addToCollectionRecipe}
+                    onClose={() => setAddToCollectionRecipe(null)}
+                    onSaved={() => setAddToCollectionRecipe(null)}
+                />
+            )}
         </>
     );
 };

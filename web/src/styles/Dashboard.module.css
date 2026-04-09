@@ -386,6 +386,32 @@
     justify-content: center;
 }
 
+.cardQuickAction {
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border, #EDD8C4);
+}
+
+.addToCollBtn {
+    width: 100%;
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta-dark, #A05E33);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.775rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-align: center;
+}
+
+.addToCollBtn:hover {
+    background: var(--peach, #F5C9A0);
+}
+
+
 /* ─── Skeleton Loader ────────────────────────────────────────────────────── */
 @keyframes shimmer {
     0% {

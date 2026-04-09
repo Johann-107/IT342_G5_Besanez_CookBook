@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import SharePanel from '../components/SharePanel';
+import AddToCollectionModal from '../components/AddToCollectionModal';
 import CookbookFacade from '../patterns/CookbookFacade';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import styles from '../styles/RecipeDetail.module.css';
@@ -17,6 +18,7 @@ const RecipeDetail = () => {
     const [instructions, setInstructions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [showAddToCollection, setShowAddToCollection] = useState(false);
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -88,7 +90,6 @@ const RecipeDetail = () => {
         );
     }
 
-    // Build hero bar style: use recipe image as background when available
     const heroStyle = recipe.imageUrl
         ? {
             backgroundImage: `linear-gradient(to bottom, rgba(92,61,46,0.55) 0%, rgba(58,42,30,0.72) 100%), url(${recipe.imageUrl})`,
@@ -103,7 +104,6 @@ const RecipeDetail = () => {
         <>
             <DefaultHeader user={user} />
             <div className={styles.page}>
-                {/* Hero Bar — shows image as background when available */}
                 <div
                     className={`${styles.heroBar} ${hasImage ? styles.heroBarWithImage : ''}`}
                     style={heroStyle}
@@ -120,6 +120,14 @@ const RecipeDetail = () => {
                         </h1>
                         <div className={styles.recipeActions}>
                             <SharePanel recipeId={id} initialToken={recipe.shareToken} />
+                            {/* Add to Collection button */}
+                            <button
+                                className={hasImage ? styles.btnGhostOnImage : styles.btnGhost}
+                                onClick={() => setShowAddToCollection(true)}
+                                title="Add to collection"
+                            >
+                                📂 Add to Collection
+                            </button>
                             <button className={hasImage ? styles.btnGhostOnImage : styles.btnGhost}
                                 onClick={() => navigate(`/recipe/${id}/edit`)}>
                                 ✏️ Edit
@@ -157,7 +165,6 @@ const RecipeDetail = () => {
                 </div>
 
                 <div className={styles.body}>
-                    {/* Left column */}
                     <div className={styles.left}>
                         {ingredients.length > 0 && (
                             <div className={styles.detailCard}>
@@ -206,7 +213,6 @@ const RecipeDetail = () => {
                         </div>
                     </div>
 
-                    {/* Right column */}
                     <div className={styles.right}>
                         {recipe.description && (
                             <div className={styles.detailCard}>
@@ -235,6 +241,14 @@ const RecipeDetail = () => {
                     <button className={styles.btnGhost} onClick={() => navigate(-1)}>← Back</button>
                 </div>
             </div>
+
+            {showAddToCollection && (
+                <AddToCollectionModal
+                    recipe={recipe}
+                    onClose={() => setShowAddToCollection(false)}
+                    onSaved={() => setShowAddToCollection(false)}
+                />
+            )}
         </>
     );
 };

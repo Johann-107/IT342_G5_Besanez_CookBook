@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import collectionAPI from '../services/collection';
 import recipeAPI from '../services/recipe';
+import AddRecipesModal from '../components/AddRecipesModal';
 import {
     ImageUploadContext,
     IMAGE_STRATEGIES,
@@ -35,12 +36,13 @@ const CollectionDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // ── Edit modal state ──────────────────────────────────────────────────────
     const [showEditModal, setShowEditModal] = useState(false);
     const [editForm, setEditForm] = useState({ name: '', description: '' });
     const [saving, setSaving] = useState(false);
 
-    // ── Image upload state (Strategy pattern) ─────────────────────────────────
+    // Add Recipes modal
+    const [showAddRecipesModal, setShowAddRecipesModal] = useState(false);
+
     const [imageMode, setImageMode] = useState('cloudinary');
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
@@ -53,33 +55,30 @@ const CollectionDetail = () => {
         imageContext.setStrategy(IMAGE_STRATEGIES[imageMode]);
     }, [imageMode, imageContext]);
 
-    // ── Load collection + its recipes ─────────────────────────────────────────
+    const loadData = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const [colRes, recipesRes] = await Promise.all([
+                collectionAPI.getCollectionById(id),
+                recipeAPI.getRecipes({ collection: id, size: 200, sort: 'createdAt,desc' }),
+            ]);
+            setCollection(colRes.data);
+            setRecipes(recipesRes.data.content || []);
+        } catch {
+            setError('Failed to load collection. It may not exist or you may not have access.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const load = async () => {
-            setLoading(true);
-            setError('');
-            try {
-                const [colRes, recipesRes] = await Promise.all([
-                    collectionAPI.getCollectionById(id),
-                    recipeAPI.getRecipes({ collection: id, size: 50, sort: 'createdAt,desc' }),
-                ]);
-                setCollection(colRes.data);
-                setRecipes(recipesRes.data.content || []);
-            } catch {
-                setError('Failed to load collection. It may not exist or you may not have access.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        load();
+        loadData();
     }, [id]);
 
-    // ── Determine which color slot this collection occupies ───────────────────
-    // We use a simple hash of the id so the color is stable
     const colorClass = COLOR_CLASSES[Number(id) % COLOR_CLASSES.length];
     const colorGradient = COLOR_GRADIENTS[colorClass];
 
-    // ── Image helpers ─────────────────────────────────────────────────────────
     const handleFileSelected = (file) => {
         if (!file) return;
         const validationError = imageContext.validate(file);
@@ -110,7 +109,6 @@ const CollectionDetail = () => {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    // ── Open edit modal ───────────────────────────────────────────────────────
     const openEditModal = () => {
         setEditForm({ name: collection.name, description: collection.description || '' });
         setImagePreview(collection.coverImage || null);
@@ -120,7 +118,6 @@ const CollectionDetail = () => {
         setShowEditModal(true);
     };
 
-    // ── Save edits ────────────────────────────────────────────────────────────
     const handleSave = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -155,7 +152,6 @@ const CollectionDetail = () => {
         }
     };
 
-    // ── Delete collection ─────────────────────────────────────────────────────
     const handleDelete = async () => {
         if (!window.confirm(`Delete "${collection.name}"? This cannot be undone.`)) return;
         try {
@@ -166,7 +162,6 @@ const CollectionDetail = () => {
         }
     };
 
-    // ── Remove recipe from collection ─────────────────────────────────────────
     const handleRemoveRecipe = async (e, recipeId) => {
         e.stopPropagation();
         if (!window.confirm('Remove this recipe from the collection?')) return;
@@ -177,6 +172,13 @@ const CollectionDetail = () => {
         } catch {
             setError('Failed to remove recipe.');
         }
+    };
+
+    // Called when AddRecipesModal successfully adds recipes
+    const handleRecipesAdded = async (count) => {
+        // Reload the collection and recipes to show updated state
+        await loadData();
+        setShowAddRecipesModal(false);
     };
 
     const formatTime = (minutes) => {
@@ -194,7 +196,6 @@ const CollectionDetail = () => {
         });
     };
 
-    // ── States ────────────────────────────────────────────────────────────────
     if (loading) {
         return (
             <>
@@ -231,17 +232,15 @@ const CollectionDetail = () => {
         }
         : { background: colorGradient };
 
+    const existingRecipeIds = recipes.map(r => r.id);
+
     return (
         <>
             <DefaultHeader user={user} />
             <div className={styles.page}>
 
-                {/* ── Hero ── */}
                 <div className={`${styles.hero} ${hasCover ? styles.heroWithImage : ''}`} style={heroStyle}>
-                    <button
-                        className={styles.backBtn}
-                        onClick={() => navigate('/collections')}
-                    >
+                    <button className={styles.backBtn} onClick={() => navigate('/collections')}>
                         ← Collections
                     </button>
                     <div className={styles.heroContent}>
@@ -275,18 +274,17 @@ const CollectionDetail = () => {
                     </div>
                 </div>
 
-                {/* ── Error banner ── */}
                 {error && (
                     <div className={styles.errorBanner}>{error}</div>
                 )}
 
-                {/* ── Recipes grid ── */}
                 <div className={styles.body}>
                     <div className={styles.sectionHeader}>
                         <h2 className={styles.sectionTitle}>Recipes in this Collection</h2>
+                        {/* Changed from navigate to open modal */}
                         <button
                             className={styles.btnAddRecipes}
-                            onClick={() => navigate('/recipes')}
+                            onClick={() => setShowAddRecipesModal(true)}
                         >
                             + Add Recipes
                         </button>
@@ -299,9 +297,10 @@ const CollectionDetail = () => {
                             <p className={styles.emptyText}>
                                 Add recipes to this collection from your recipe library.
                             </p>
+                            {/* Changed from navigate to open modal */}
                             <button
                                 className={styles.btnPrimary}
-                                onClick={() => navigate('/recipes')}
+                                onClick={() => setShowAddRecipesModal(true)}
                             >
                                 Browse My Recipes
                             </button>
@@ -364,7 +363,6 @@ const CollectionDetail = () => {
                     )}
                 </div>
 
-                {/* ── Footer ── */}
                 <div className={styles.footer}>
                     <button className={styles.btnGhost} onClick={() => navigate('/collections')}>
                         ← Back to Collections
@@ -372,7 +370,17 @@ const CollectionDetail = () => {
                 </div>
             </div>
 
-            {/* ── Edit Modal ── */}
+            {/* Add Recipes Modal */}
+            {showAddRecipesModal && (
+                <AddRecipesModal
+                    collectionId={Number(id)}
+                    existingIds={existingRecipeIds}
+                    onClose={() => setShowAddRecipesModal(false)}
+                    onSaved={handleRecipesAdded}
+                />
+            )}
+
+            {/* Edit Collection Modal */}
             {showEditModal && (
                 <div className={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
                     <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -384,7 +392,6 @@ const CollectionDetail = () => {
                         </div>
 
                         <form onSubmit={handleSave} className={styles.modalForm}>
-                            {/* Name */}
                             <div className={styles.formGroup}>
                                 <label className={styles.formLabel}>Collection Name *</label>
                                 <input
@@ -398,7 +405,6 @@ const CollectionDetail = () => {
                                 />
                             </div>
 
-                            {/* Description */}
                             <div className={styles.formGroup}>
                                 <label className={styles.formLabel}>Description</label>
                                 <textarea
@@ -411,7 +417,6 @@ const CollectionDetail = () => {
                                 />
                             </div>
 
-                            {/* Cover Image */}
                             <div className={styles.formGroup}>
                                 <label className={styles.formLabel}>Cover Image</label>
 
@@ -443,21 +448,10 @@ const CollectionDetail = () => {
                                         />
                                         {imagePreview ? (
                                             <div className={styles.imagePreviewWrap}>
-                                                <img
-                                                    src={imagePreview}
-                                                    alt="Cover preview"
-                                                    className={styles.imagePreview}
-                                                    onError={() => setImagePreview(null)}
-                                                />
+                                                <img src={imagePreview} alt="Cover preview" className={styles.imagePreview} onError={() => setImagePreview(null)} />
                                                 <div className={styles.imagePreviewOverlay}>
-                                                    <button type="button" className={styles.imagePreviewChange}
-                                                        onClick={() => fileInputRef.current?.click()}>
-                                                        📷 Change
-                                                    </button>
-                                                    <button type="button" className={styles.imagePreviewRemove}
-                                                        onClick={handleRemoveImage}>
-                                                        🗑 Remove
-                                                    </button>
+                                                    <button type="button" className={styles.imagePreviewChange} onClick={() => fileInputRef.current?.click()}>📷 Change</button>
+                                                    <button type="button" className={styles.imagePreviewRemove} onClick={handleRemoveImage}>🗑 Remove</button>
                                                 </div>
                                             </div>
                                         ) : (
@@ -470,16 +464,12 @@ const CollectionDetail = () => {
                                             >
                                                 <div className={styles.dropZoneIcon}>🖼️</div>
                                                 <div className={styles.dropZoneText}>
-                                                    <span className={styles.dropZonePrimary}>
-                                                        Drop an image here or <span className={styles.dropZoneLink}>browse</span>
-                                                    </span>
+                                                    <span className={styles.dropZonePrimary}>Drop an image here or <span className={styles.dropZoneLink}>browse</span></span>
                                                     <span className={styles.dropZoneHint}>JPEG, PNG, GIF, WEBP · max 5 MB</span>
                                                 </div>
                                             </div>
                                         )}
-                                        {uploading && (
-                                            <p className={styles.uploadingHint}>⏳ Uploading…</p>
-                                        )}
+                                        {uploading && <p className={styles.uploadingHint}>⏳ Uploading…</p>}
                                     </>
                                 )}
 
@@ -494,23 +484,13 @@ const CollectionDetail = () => {
                                                 onChange={(e) => setUrlInput(e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleUrlApply())}
                                             />
-                                            <button
-                                                type="button"
-                                                className={styles.urlApplyBtn}
-                                                onClick={handleUrlApply}
-                                                disabled={!urlInput.trim()}
-                                            >
-                                                Preview
-                                            </button>
+                                            <button type="button" className={styles.urlApplyBtn} onClick={handleUrlApply} disabled={!urlInput.trim()}>Preview</button>
                                         </div>
                                         {imagePreview && (
                                             <div className={styles.imagePreviewWrap} style={{ marginTop: '10px' }}>
-                                                <img src={imagePreview} alt="Cover preview"
-                                                    className={styles.imagePreview}
-                                                    onError={() => setImagePreview(null)} />
+                                                <img src={imagePreview} alt="Cover preview" className={styles.imagePreview} onError={() => setImagePreview(null)} />
                                                 <div className={styles.imagePreviewOverlay}>
-                                                    <button type="button" className={styles.imagePreviewRemove}
-                                                        onClick={handleRemoveImage}>🗑 Remove</button>
+                                                    <button type="button" className={styles.imagePreviewRemove} onClick={handleRemoveImage}>🗑 Remove</button>
                                                 </div>
                                             </div>
                                         )}
@@ -519,18 +499,8 @@ const CollectionDetail = () => {
                             </div>
 
                             <div className={styles.modalActions}>
-                                <button
-                                    type="button"
-                                    className={styles.btnOutline}
-                                    onClick={() => setShowEditModal(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className={styles.btnPrimary}
-                                    disabled={saving || uploading}
-                                >
+                                <button type="button" className={styles.btnOutline} onClick={() => setShowEditModal(false)}>Cancel</button>
+                                <button type="submit" className={styles.btnPrimary} disabled={saving || uploading}>
                                     {uploading ? '⏳ Uploading…' : saving ? 'Saving…' : '💾 Save Changes'}
                                 </button>
                             </div>
