@@ -29,13 +29,13 @@ const Dashboard = () => {
             setLoading(true);
             setError('');
             try {
-                // Facade: one call, no manual Promise.all wiring
+                // Facade: one call replaces three manual Promise.all fetches
                 const data = await CookbookFacade.getDashboardData();
 
                 const oneWeekAgo = new Date();
                 oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
                 const addedThisWeek = data.recentRecipes.filter(
-                    r => r.createdAt && new Date(r.createdAt) >= oneWeekAgo
+                    (r) => r.createdAt && new Date(r.createdAt) >= oneWeekAgo
                 ).length;
 
                 setRecentRecipes(data.recentRecipes);
@@ -76,17 +76,26 @@ const Dashboard = () => {
             <DefaultHeader user={user} />
             <div className={styles.dashboard}>
                 <div className={styles.dashContent}>
+
+                    {/* Welcome Banner */}
                     <div className={styles.welcomeBanner}>
                         <div>
-                            <h2 className={styles.welcomeTitle}>{getGreeting()}, {displayName}! 👋</h2>
-                            <p className={styles.welcomeQuote}>"Cooking is an art, but all art requires knowing something about technique."</p>
+                            <h2 className={styles.welcomeTitle}>
+                                {getGreeting()}, {displayName}! 👋
+                            </h2>
+                            <p className={styles.welcomeQuote}>
+                                "Cooking is an art, but all art requires knowing something about technique."
+                            </p>
                         </div>
                         <div className={styles.welcomeEmoji}>🥗</div>
                     </div>
 
+                    {/* Stats Row */}
                     {loading ? (
                         <div className={styles.statsRow}>
-                            {[1, 2, 3].map(i => <div key={i} className={`${styles.statCard} ${styles.skeleton}`} />)}
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className={`${styles.statCard} ${styles.skeleton}`} />
+                            ))}
                         </div>
                     ) : (
                         <div className={styles.statsRow}>
@@ -108,33 +117,50 @@ const Dashboard = () => {
                         </div>
                     )}
 
+                    {/* Quick Actions */}
                     <div className={styles.quickActions}>
-                        <button className={styles.btnPrimary} onClick={() => navigate('/create-recipe')}>+ Add New Recipe</button>
-                        <button className={styles.btnOutline} onClick={() => navigate('/collections')}>📁 Create Collection</button>
+                        <button className={styles.btnPrimary} onClick={() => navigate('/create-recipe')}>
+                            + Add New Recipe
+                        </button>
+                        <button className={styles.btnOutline} onClick={() => navigate('/collections')}>
+                            📁 Create Collection
+                        </button>
                     </div>
 
                     {error && <div className={styles.errorBanner}>{error}</div>}
 
+                    {/* Recently Added */}
                     <div className={styles.sectionHeader}>
                         <h3 className={styles.sectionTitle}>Recently Added</h3>
-                        <span className={styles.viewAll} onClick={() => navigate('/recipes')}>View All →</span>
+                        <span className={styles.viewAll} onClick={() => navigate('/recipes')}>
+                            View All →
+                        </span>
                     </div>
 
                     {loading ? (
                         <div className={styles.recipeGrid}>
-                            {[1, 2, 3].map(i => (
+                            {[1, 2, 3].map((i) => (
                                 <div key={i} className={`${styles.recipeCard} ${styles.skeleton}`} style={{ height: '200px' }} />
                             ))}
                         </div>
                     ) : recentRecipes.length === 0 ? (
                         <div className={styles.emptySection}>
                             <span>🍳</span>
-                            <p>No recipes yet. <button className={styles.inlineLink} onClick={() => navigate('/create-recipe')}>Add your first one!</button></p>
+                            <p>
+                                No recipes yet.{' '}
+                                <button className={styles.inlineLink} onClick={() => navigate('/create-recipe')}>
+                                    Add your first one!
+                                </button>
+                            </p>
                         </div>
                     ) : (
                         <div className={styles.recipeGrid}>
                             {recentRecipes.map((recipe, index) => (
-                                <div key={recipe.id} className={styles.recipeCard} onClick={() => navigate(`/recipe/${recipe.id}`)}>
+                                <div
+                                    key={recipe.id}
+                                    className={styles.recipeCard}
+                                    onClick={() => navigate(`/recipe/${recipe.id}`)}
+                                >
                                     <div className={`${styles.recipeCardImg} ${styles[BG_CLASSES[index % BG_CLASSES.length]]}`}>
                                         {recipe.imageUrl
                                             ? <img src={recipe.imageUrl} alt={recipe.name} className={styles.recipeImg} />
@@ -144,7 +170,9 @@ const Dashboard = () => {
                                         <div className={styles.recipeCardTitle}>{recipe.name}</div>
                                         <div className={styles.recipeCardMeta}>
                                             {recipe.totalTimeMinutes && (
-                                                <span className={styles.metaPill}>⏱ {formatTime(recipe.totalTimeMinutes)}</span>
+                                                <span className={styles.metaPill}>
+                                                    ⏱ {formatTime(recipe.totalTimeMinutes)}
+                                                </span>
                                             )}
                                             {recipe.isPublic
                                                 ? <span className={styles.metaPillGreen}>🌐 Public</span>
@@ -156,26 +184,35 @@ const Dashboard = () => {
                         </div>
                     )}
 
+                    {/* Your Collections */}
                     <div className={styles.sectionHeader}>
                         <h3 className={styles.sectionTitle}>Your Collections</h3>
-                        <span className={styles.viewAll} onClick={() => navigate('/collections')}>View All →</span>
+                        <span className={styles.viewAll} onClick={() => navigate('/collections')}>
+                            View All →
+                        </span>
                     </div>
 
                     {loading ? (
                         <div className={styles.collectionsRow}>
-                            {[1, 2, 3].map(i => (
+                            {[1, 2, 3].map((i) => (
                                 <div key={i} className={`${styles.collectionCard} ${styles.skeleton}`} style={{ height: '140px' }} />
                             ))}
                         </div>
                     ) : collections.length === 0 ? (
                         <div className={styles.emptySection}>
                             <span>📂</span>
-                            <p>No collections yet. <button className={styles.inlineLink} onClick={() => navigate('/collections')}>Create one!</button></p>
+                            <p>
+                                No collections yet.{' '}
+                                <button className={styles.inlineLink} onClick={() => navigate('/collections')}>
+                                    Create one!
+                                </button>
+                            </p>
                         </div>
                     ) : (
                         <div className={styles.collectionsRow}>
                             {collections.map((col, index) => (
-                                <div key={col.id}
+                                <div
+                                    key={col.id}
                                     className={`${styles.collectionCard} ${styles[COLLECTION_COLORS[index % COLLECTION_COLORS.length]]}`}
                                     onClick={() => navigate('/collections')}
                                 >
@@ -192,6 +229,7 @@ const Dashboard = () => {
                             ))}
                         </div>
                     )}
+
                 </div>
             </div>
         </>

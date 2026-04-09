@@ -222,10 +222,17 @@
 }
 
 .detailCard {
+    position: relative;
     background: var(--warm-white, #FFF9F2);
     border: 1px solid var(--border, #EDD8C4);
     border-radius: 14px;
     padding: 20px;
+}
+
+.blurredContent {
+    filter: blur(4px);
+    user-select: none;
+    pointer-events: none;
 }
 
 .cardTitle {

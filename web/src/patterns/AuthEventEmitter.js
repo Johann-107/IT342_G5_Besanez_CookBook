@@ -5,6 +5,9 @@ class AuthEventEmitter {
     }
 
     /**
+     * Subscribe to an event. Returns an unsubscribe function for use in
+     * useEffect cleanup.
+     *
      * @param {string}   event
      * @param {Function} listener
      * @returns {Function} unsubscribe
@@ -14,10 +17,10 @@ class AuthEventEmitter {
             this._listeners.set(event, new Set());
         }
         this._listeners.get(event).add(listener);
-
         return () => this.off(event, listener);
     }
 
+    /** Subscribe to an event exactly once. */
     once(event, listener) {
         const wrapper = (...args) => {
             listener(...args);
@@ -26,10 +29,12 @@ class AuthEventEmitter {
         return this.on(event, wrapper);
     }
 
+    /** Unsubscribe a listener. */
     off(event, listener) {
         this._listeners.get(event)?.delete(listener);
     }
 
+    /** Emit an event, calling all registered listeners with the payload. */
     emit(event, payload) {
         this._listeners.get(event)?.forEach((listener) => {
             try {
@@ -41,6 +46,7 @@ class AuthEventEmitter {
     }
 }
 
+// Singleton — shared across the entire application
 const AuthEvents = new AuthEventEmitter();
 
 export default AuthEvents;

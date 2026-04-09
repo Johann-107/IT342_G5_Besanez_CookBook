@@ -1,7 +1,9 @@
 import axios from 'axios';
-import AuthEvents, { AUTH_EVENTS } from '../patterns/AuthEventEmitter';
+import AuthEvents, { AUTH_EVENTS } from './AuthEventEmitter';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
+// ─── Reusable interceptor helpers ─────────────────────────────────────────────
 
 function applyAuthInterceptor(instance) {
     instance.interceptors.request.use(
@@ -23,6 +25,7 @@ function applyErrorInterceptor(instance) {
         (error) => {
             if (error.response?.status === 401) {
                 localStorage.removeItem('token');
+                // Observer: emit instead of hard redirect — AuthContext handles navigation
                 AuthEvents.emit(AUTH_EVENTS.TOKEN_EXPIRED);
             }
             return Promise.reject(error);
@@ -31,8 +34,11 @@ function applyErrorInterceptor(instance) {
     return instance;
 }
 
+// ─── Factory ──────────────────────────────────────────────────────────────────
+
 class APIClientFactory {
     /**
+     * Creates an Axios instance of the requested type.
      *
      * @param {'authenticated' | 'public' | 'multipart'} type
      * @returns {import('axios').AxiosInstance}
@@ -50,14 +56,15 @@ class APIClientFactory {
             }
 
             case 'public': {
-                const instance = axios.create({
+                // No auth or error interceptors needed for public client
+                return axios.create({
                     baseURL: API_BASE_URL,
                     headers: { 'Content-Type': 'application/json' },
                 });
-                return instance;
             }
 
             case 'multipart': {
+                // Omit Content-Type so Axios sets the correct multipart boundary
                 const instance = axios.create({ baseURL: API_BASE_URL });
                 applyAuthInterceptor(instance);
                 applyErrorInterceptor(instance);
@@ -70,9 +77,9 @@ class APIClientFactory {
     }
 }
 
-const authenticatedClient = APIClientFactory.create('authenticated');
-const publicClient = APIClientFactory.create('public');
-const multipartClient = APIClientFactory.create('multipart');
+// Singleton instances — created once, reused across the app
+export const authenticatedClient = APIClientFactory.create('authenticated');
+export const publicClient = APIClientFactory.create('public');
+export const multipartClient = APIClientFactory.create('multipart');
 
-export { authenticatedClient, publicClient, multipartClient };
 export default APIClientFactory;
