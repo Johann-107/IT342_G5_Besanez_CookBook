@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
-import recipeAPI from '../services/recipe';
-import ingredientAPI from '../services/ingredient';
-import instructionAPI from '../services/instruction';
 import SharePanel from '../components/SharePanel';
+import CookbookFacade from '../patterns/CookbookFacade';
+import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import styles from '../styles/RecipeDetail.module.css';
 
 const RecipeDetail = () => {
@@ -24,28 +23,24 @@ const RecipeDetail = () => {
             setLoading(true);
             setError('');
             try {
-                const [recipeRes, ingRes, instRes] = await Promise.all([
-                    recipeAPI.getRecipeById(id),
-                    ingredientAPI.getIngredients(id),
-                    instructionAPI.getInstructions(id),
-                ]);
-                setRecipe(recipeRes.data);
-                setIngredients(ingRes.data);
-                setInstructions(instRes.data);
-            } catch (err) {
+                // Facade: one call instead of three scattered Promise.all calls
+                const detail = await CookbookFacade.getRecipeDetail(id);
+                setRecipe(detail.recipe);
+                setIngredients(detail.ingredients);
+                setInstructions(detail.instructions);
+            } catch {
                 setError('Failed to load recipe. It may not exist or you may not have access.');
             } finally {
                 setLoading(false);
             }
         };
-
         fetchAll();
     }, [id]);
 
     const handleDelete = async () => {
         if (!window.confirm('Delete this recipe? This cannot be undone.')) return;
         try {
-            await recipeAPI.deleteRecipe(id);
+            await CookbookFacade.deleteRecipe(id);
             navigate('/recipes');
         } catch {
             alert('Failed to delete recipe.');
@@ -63,7 +58,7 @@ const RecipeDetail = () => {
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
         return new Date(dateStr).toLocaleDateString('en-US', {
-            month: 'short', day: 'numeric', year: 'numeric'
+            month: 'short', day: 'numeric', year: 'numeric',
         });
     };
 
@@ -106,19 +101,13 @@ const RecipeDetail = () => {
                         <h1 className={styles.recipeTitle}>{recipe.name}</h1>
                         <div className={styles.recipeActions}>
                             <SharePanel recipeId={id} initialToken={recipe.shareToken} />
-                            <button
-                                className={styles.btnGhost}
-                                onClick={() => navigate(`/recipe/${id}/edit`)}
-                            >
+                            <button className={styles.btnGhost} onClick={() => navigate(`/recipe/${id}/edit`)}>
                                 ✏️ Edit
                             </button>
                             <button className={styles.btnGhost} onClick={() => window.print()}>
                                 🖨 Print
                             </button>
-                            <button
-                                className={styles.btnDanger}
-                                onClick={handleDelete}
-                            >
+                            <button className={styles.btnDanger} onClick={handleDelete}>
                                 🗑 Delete
                             </button>
                         </div>
@@ -140,7 +129,8 @@ const RecipeDetail = () => {
                             </div>
                         )}
                         <div className={styles.timeBadge}>
-                            {recipe.isPublic ? '🌐' : '🔒'} <span>{recipe.isPublic ? 'Public' : 'Private'}</span>
+                            {recipe.isPublic ? '🌐' : '🔒'}{' '}
+                            <span>{recipe.isPublic ? 'Public' : 'Private'}</span>
                         </div>
                     </div>
                 </div>
@@ -228,4 +218,5 @@ const RecipeDetail = () => {
     );
 };
 
-export default RecipeDetail;
+// Decorator: wrap with error boundary so render errors degrade gracefully
+export default withErrorBoundary(RecipeDetail);

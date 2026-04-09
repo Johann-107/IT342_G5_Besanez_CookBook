@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import shareAPI from '../services/share';
-import ingredientAPI from '../services/ingredient';
-import instructionAPI from '../services/instruction';
+import CookbookFacade from '../patterns/CookbookFacade';
+import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import SaveRecipeModal from '../components/SaveRecipeModal';
 import styles from '../styles/SharedRecipePage.module.css';
 
@@ -19,27 +18,20 @@ const SharedRecipePage = () => {
     const [error, setError] = useState('');
 
     const [showSaveModal, setShowSaveModal] = useState(false);
-    const [savedRecipe, setSavedRecipe] = useState(null); // holds result after saving
+    const [savedRecipe, setSavedRecipe] = useState(null);
 
     useEffect(() => {
         const load = async () => {
             setLoading(true);
             setError('');
             try {
-                const recipeRes = await shareAPI.getSharedRecipe(token);
-                const r = recipeRes.data;
-                setRecipe(r);
-
-                // Load ingredients + instructions using the recipe id
-                // These endpoints are authenticated, so only fetch if user is logged in
-                if (user) {
-                    const [ingRes, instRes] = await Promise.all([
-                        ingredientAPI.getIngredients(r.id).catch(() => ({ data: [] })),
-                        instructionAPI.getInstructions(r.id).catch(() => ({ data: [] })),
-                    ]);
-                    setIngredients(ingRes.data || []);
-                    setInstructions(instRes.data || []);
-                }
+                // Facade + Factory: one call using publicClient — no auth token needed.
+                // All three resources are always fetched so the blur overlay for guests
+                // has real data to render beneath it.
+                const detail = await CookbookFacade.getSharedRecipeDetail(token);
+                setRecipe(detail.recipe);
+                setIngredients(detail.ingredients);
+                setInstructions(detail.instructions);
             } catch (err) {
                 setError(
                     err.response?.data?.message ||
@@ -49,9 +41,8 @@ const SharedRecipePage = () => {
                 setLoading(false);
             }
         };
-
         load();
-    }, [token, user]);
+    }, [token]);
 
     const formatTime = (minutes) => {
         if (!minutes) return null;
@@ -63,6 +54,7 @@ const SharedRecipePage = () => {
 
     const isOwnRecipe = user && recipe && user.userId === recipe.userId;
 
+    // ─── Loading ───────────────────────────────────────────────────────────────
     if (loading) {
         return (
             <div className={styles.pageWrap}>
@@ -74,6 +66,7 @@ const SharedRecipePage = () => {
         );
     }
 
+    // ─── Error ─────────────────────────────────────────────────────────────────
     if (error) {
         return (
             <div className={styles.pageWrap}>
@@ -87,8 +80,10 @@ const SharedRecipePage = () => {
         );
     }
 
+    // ─── Main render ───────────────────────────────────────────────────────────
     return (
         <div className={styles.pageWrap}>
+
             {/* Top bar */}
             <nav className={styles.topBar}>
                 <Link to={user ? '/dashboard' : '/'} className={styles.brand}>
@@ -97,31 +92,22 @@ const SharedRecipePage = () => {
                 </Link>
 
                 <div className={styles.topBarRight}>
-                    {/* Saved confirmation */}
                     {savedRecipe && (
-                        <span className={styles.savedBadge}>
-                            ✓ Saved to your cookbook!
-                        </span>
+                        <span className={styles.savedBadge}>✓ Saved to your cookbook!</span>
                     )}
 
-                    {/* Save button — only for authenticated users who don't own this recipe */}
                     {user && !isOwnRecipe && !savedRecipe && (
-                        <button
-                            className={styles.saveBtn}
-                            onClick={() => setShowSaveModal(true)}
-                        >
+                        <button className={styles.saveBtn} onClick={() => setShowSaveModal(true)}>
                             📥 Save Recipe
                         </button>
                     )}
 
-                    {/* Prompt unauthenticated users to log in */}
                     {!user && (
                         <Link to="/" className={styles.loginPromptBtn}>
                             Sign in to Save
                         </Link>
                     )}
 
-                    {/* Already-owner indicator */}
                     {isOwnRecipe && (
                         <button
                             className={styles.viewOwnBtn}
@@ -139,7 +125,7 @@ const SharedRecipePage = () => {
                 <span>You're viewing a shared recipe</span>
             </div>
 
-            {/* Recipe hero */}
+            {/* Hero */}
             <div className={styles.hero}>
                 <h1 className={styles.recipeTitle}>{recipe.name}</h1>
                 {recipe.description && (
@@ -164,23 +150,24 @@ const SharedRecipePage = () => {
                 </div>
             </div>
 
-            {/* Body */}
-            {user ? (
-                /* Full detail for logged-in users */
-                <div className={styles.body}>
-                    <div className={styles.left}>
-                        {ingredients.length > 0 && (
-                            <div className={styles.detailCard}>
-                                <h4 className={styles.cardTitle}>
-                                    Ingredients
-                                    <span className={styles.countBadge}>{ingredients.length}</span>
-                                </h4>
+            {/* Body — always rendered; guest content is blurred via CSS */}
+            <div className={styles.body}>
+                <div className={styles.left}>
+                    {ingredients.length > 0 && (
+                        <div className={styles.detailCard}>
+                            <h4 className={styles.cardTitle}>
+                                Ingredients
+                                <span className={styles.countBadge}>{ingredients.length}</span>
+                            </h4>
+                            {/* Blur wrapper for guests */}
+                            <div className={!user ? styles.blurredContent : undefined}>
                                 <ul className={styles.ingredientList}>
-                                    {ingredients.map(ing => (
+                                    {ingredients.map((ing) => (
                                         <li key={ing.id} className={styles.ingredientItem}>
                                             <strong>
                                                 {ing.quantity}{ing.unit ? ` ${ing.unit.toLowerCase()}` : ''}
-                                            </strong>{' '}{ing.name}
+                                            </strong>{' '}
+                                            {ing.name}
                                             {ing.notes && (
                                                 <span className={styles.ingNotes}> — {ing.notes}</span>
                                             )}
@@ -188,22 +175,28 @@ const SharedRecipePage = () => {
                                     ))}
                                 </ul>
                             </div>
-                        )}
+                            {!user && <GuestOverlay />}
+                        </div>
+                    )}
 
-                        {recipe.notes && (
-                            <div className={styles.detailCard}>
-                                <h4 className={styles.cardTitle}>Notes</h4>
+                    {recipe.notes && (
+                        <div className={styles.detailCard}>
+                            <h4 className={styles.cardTitle}>Notes</h4>
+                            <div className={!user ? styles.blurredContent : undefined}>
                                 <p className={styles.notesText}>{recipe.notes}</p>
                             </div>
-                        )}
-                    </div>
+                            {!user && <GuestOverlay />}
+                        </div>
+                    )}
+                </div>
 
-                    <div className={styles.right}>
-                        {instructions.length > 0 && (
-                            <div className={styles.detailCard}>
-                                <h4 className={styles.cardTitle}>Instructions</h4>
+                <div className={styles.right}>
+                    {instructions.length > 0 && (
+                        <div className={styles.detailCard}>
+                            <h4 className={styles.cardTitle}>Instructions</h4>
+                            <div className={!user ? styles.blurredContent : undefined}>
                                 <ol className={styles.stepsList}>
-                                    {instructions.map(step => (
+                                    {instructions.map((step) => (
                                         <li key={step.id} className={styles.stepItem}>
                                             <div className={styles.stepNum}>{step.stepNumber}</div>
                                             <p className={styles.stepText}>{step.description}</p>
@@ -211,25 +204,11 @@ const SharedRecipePage = () => {
                                     ))}
                                 </ol>
                             </div>
-                        )}
-                    </div>
+                            {!user && <GuestOverlay />}
+                        </div>
+                    )}
                 </div>
-            ) : (
-                /* Teaser for guests */
-                <div className={styles.guestTeaser}>
-                    <div className={styles.teaserCard}>
-                        <div className={styles.teaserEmoji}>🔒</div>
-                        <h3 className={styles.teaserTitle}>Sign in to see the full recipe</h3>
-                        <p className={styles.teaserDesc}>
-                            Create a free CookBook account to view ingredients, instructions,
-                            and save this recipe to your personal cookbook.
-                        </p>
-                        <Link to="/" className={styles.teaserBtn}>
-                            Sign In / Create Account
-                        </Link>
-                    </div>
-                </div>
-            )}
+            </div>
 
             {/* Floating save CTA for mobile */}
             {user && !isOwnRecipe && !savedRecipe && (
@@ -259,4 +238,43 @@ const SharedRecipePage = () => {
     );
 };
 
-export default SharedRecipePage;
+// ─── Guest blur overlay ────────────────────────────────────────────────────────
+// Shown on top of blurred content sections when the user is not logged in.
+
+const GuestOverlay = () => (
+    <div style={guestOverlayStyles.wrap}>
+        <div style={guestOverlayStyles.card}>
+            <div style={guestOverlayStyles.lock}>🔒</div>
+            <p style={guestOverlayStyles.text}>
+                <Link to="/" style={guestOverlayStyles.link}>Sign in</Link>
+                {' '}to see the full recipe
+            </p>
+        </div>
+    </div>
+);
+
+const guestOverlayStyles = {
+    wrap: {
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '14px',
+        background: 'rgba(253, 248, 242, 0.6)',
+        backdropFilter: 'blur(2px)',
+    },
+    card: {
+        background: 'white',
+        borderRadius: '12px',
+        padding: '16px 24px',
+        textAlign: 'center',
+        boxShadow: '0 4px 20px rgba(92, 61, 46, 0.12)',
+        border: '1px solid #EDD8C4',
+    },
+    lock: { fontSize: '1.5rem', marginBottom: '8px' },
+    text: { fontSize: '0.875rem', color: '#7A5C46', margin: 0 },
+    link: { color: '#C97D4E', fontWeight: 600, textDecoration: 'none' },
+};
+
+export default withErrorBoundary(SharedRecipePage);

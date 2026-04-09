@@ -17,6 +17,7 @@ WEB
         Settings page
 
 BACKEND
+    Apply software design patterns
 
 Mobile 
     Create:

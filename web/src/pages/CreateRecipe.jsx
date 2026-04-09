@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
@@ -6,9 +6,15 @@ import recipeAPI from '../services/recipe';
 import ingredientAPI from '../services/ingredient';
 import instructionAPI from '../services/instruction';
 import collectionAPI from '../services/collection';
+import {
+    ImageUploadContext,
+    CloudinaryStrategy,
+    URLStrategy,
+    IMAGE_STRATEGIES,
+} from '../patterns/ImageUploadStrategy';
+import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import styles from '../styles/CreateRecipe.module.css';
 
-// Must match IngredientUnit enum on the backend
 const UNITS = [
     { value: '', label: 'Unit' },
     { value: 'G', label: 'g' },
@@ -28,35 +34,42 @@ const UNITS = [
     { value: 'OTHER', label: 'other' },
 ];
 
-const emptyIngredient = () => ({ _key: Date.now() + Math.random(), name: '', quantity: '', unit: '', notes: '' });
-const emptyStep = () => ({ _key: Date.now() + Math.random(), description: '' });
+const emptyIngredient = () => ({
+    _key: Date.now() + Math.random(), name: '', quantity: '', unit: '', notes: '',
+});
+const emptyStep = () => ({
+    _key: Date.now() + Math.random(), description: '',
+});
 
 const CreateRecipe = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const { id } = useParams(); // present when editing
+    const { id } = useParams();
     const fileInputRef = useRef(null);
-
     const isEditing = Boolean(id);
 
+    // ─── Form state ─────────────────────────────────────────────────────────────
     const [form, setForm] = useState({
-        name: '',
-        description: '',
-        prepTimeMinutes: '',
-        cookTimeMinutes: '',
-        totalTimeMinutes: '',
-        imageUrl: '',
-        isPublic: false,
-        notes: '',
+        name: '', description: '', prepTimeMinutes: '', cookTimeMinutes: '',
+        totalTimeMinutes: '', imageUrl: '', isPublic: false, notes: '',
     });
 
-    // Local image state: preview URL shown to user, base64/url sent to backend
-    const [imagePreview, setImagePreview] = useState(null);
-    const [imageFile, setImageFile] = useState(null); // the raw File object
-    const [imageInputMode, setImageInputMode] = useState('file'); // 'file' | 'url'
+    // ─── Image state ─────────────────────────────────────────────────────────────
+    // imageMode: 'cloudinary' | 'url'
+    const [imageMode, setImageMode] = useState('cloudinary');
+    const [imageFile, setImageFile] = useState(null);   // raw File from input
+    const [imagePreview, setImagePreview] = useState(null);   // local object URL for preview
     const [urlInput, setUrlInput] = useState('');
     const [dragOver, setDragOver] = useState(false);
+    const [uploading, setUploading] = useState(false);  // true while Cloudinary upload runs
 
+    // Strategy context — swapped when imageMode changes
+    const imageContext = useMemo(() => new ImageUploadContext(IMAGE_STRATEGIES[imageMode]), []);
+    useEffect(() => {
+        imageContext.setStrategy(IMAGE_STRATEGIES[imageMode]);
+    }, [imageMode, imageContext]);
+
+    // ─── Other form state ────────────────────────────────────────────────────────
     const [ingredients, setIngredients] = useState([emptyIngredient()]);
     const [steps, setSteps] = useState([emptyStep()]);
     const [collections, setCollections] = useState([]);
@@ -64,165 +77,124 @@ const CreateRecipe = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
-    // ─── Load existing recipe when editing ────────────────────────────────────
+    // ─── Load existing recipe (edit mode) ────────────────────────────────────────
     useEffect(() => {
         if (!isEditing) return;
-
-        const loadRecipe = async () => {
+        const load = async () => {
             try {
                 const [recipeRes, ingRes, instRes] = await Promise.all([
                     recipeAPI.getRecipeById(id),
                     ingredientAPI.getIngredients(id),
                     instructionAPI.getInstructions(id),
                 ]);
-
                 const r = recipeRes.data;
                 setForm({
-                    name: r.name || '',
-                    description: r.description || '',
-                    prepTimeMinutes: r.prepTimeMinutes || '',
-                    cookTimeMinutes: r.cookTimeMinutes || '',
-                    totalTimeMinutes: r.totalTimeMinutes || '',
-                    imageUrl: r.imageUrl || '',
-                    isPublic: r.isPublic || false,
-                    notes: r.notes || '',
+                    name: r.name || '', description: r.description || '',
+                    prepTimeMinutes: r.prepTimeMinutes || '', cookTimeMinutes: r.cookTimeMinutes || '',
+                    totalTimeMinutes: r.totalTimeMinutes || '', imageUrl: r.imageUrl || '',
+                    isPublic: r.isPublic || false, notes: r.notes || '',
                 });
-
-                // Show existing image as preview
-                if (r.imageUrl) {
-                    setImagePreview(r.imageUrl);
-                    setUrlInput(r.imageUrl);
-                }
-
-                setIngredients(
-                    ingRes.data.length > 0
-                        ? ingRes.data.map(i => ({ ...i, _key: i.id }))
-                        : [emptyIngredient()]
+                if (r.imageUrl) { setImagePreview(r.imageUrl); setUrlInput(r.imageUrl); }
+                setIngredients(ingRes.data.length > 0
+                    ? ingRes.data.map((i) => ({ ...i, _key: i.id }))
+                    : [emptyIngredient()]
                 );
-
-                setSteps(
-                    instRes.data.length > 0
-                        ? instRes.data.map(s => ({ ...s, _key: s.id }))
-                        : [emptyStep()]
+                setSteps(instRes.data.length > 0
+                    ? instRes.data.map((s) => ({ ...s, _key: s.id }))
+                    : [emptyStep()]
                 );
             } catch {
                 setError('Failed to load recipe for editing.');
             }
         };
-
-        loadRecipe();
+        load();
     }, [id, isEditing]);
 
-    // ─── Load user's collections ──────────────────────────────────────────────
+    // ─── Load collections ────────────────────────────────────────────────────────
     useEffect(() => {
-        const loadCollections = async () => {
-            try {
-                const res = await collectionAPI.getCollections({ size: 100 });
-                setCollections(res.data.content || []);
-            } catch {
-                // Non-fatal
-            }
-        };
-        loadCollections();
+        collectionAPI.getCollections({ size: 100 })
+            .then((res) => setCollections(res.data.content || []))
+            .catch(() => { });
     }, []);
 
-    // ─── Image helpers ────────────────────────────────────────────────────────
-    const handleFileChange = (file) => {
+    // ─── Image helpers ────────────────────────────────────────────────────────────
+    const handleFileSelected = (file) => {
         if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            setError('Please select a valid image file (JPEG, PNG, GIF, WEBP).');
-            return;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-            setError('Image must be smaller than 5 MB.');
-            return;
-        }
-
+        const validationError = imageContext.validate(file);
+        if (validationError) { setError(validationError); return; }
         setImageFile(file);
         setImagePreview(URL.createObjectURL(file));
         setError('');
     };
 
     const handleFileInputChange = (e) => {
-        handleFileChange(e.target.files?.[0]);
-        // Allow re-selecting same file
+        handleFileSelected(e.target.files?.[0]);
         e.target.value = '';
     };
 
     const handleDrop = (e) => {
         e.preventDefault();
         setDragOver(false);
-        const file = e.dataTransfer.files?.[0];
-        handleFileChange(file);
+        handleFileSelected(e.dataTransfer.files?.[0]);
     };
-
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        setDragOver(true);
-    };
-
-    const handleDragLeave = () => setDragOver(false);
 
     const handleUrlApply = () => {
-        if (urlInput.trim()) {
-            setImagePreview(urlInput.trim());
-            setForm(f => ({ ...f, imageUrl: urlInput.trim() }));
-            setImageFile(null);
-        }
+        const validationError = imageContext.validate(urlInput.trim());
+        if (validationError) { setError(validationError); return; }
+        setImagePreview(urlInput.trim());
+        setForm((f) => ({ ...f, imageUrl: urlInput.trim() }));
+        setImageFile(null);
+        setError('');
     };
 
     const handleRemoveImage = () => {
         setImagePreview(null);
         setImageFile(null);
         setUrlInput('');
-        setForm(f => ({ ...f, imageUrl: '' }));
+        setForm((f) => ({ ...f, imageUrl: '' }));
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    // Convert File → base64 data URL for sending to backend
-    const fileToBase64 = (file) =>
-        new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-
-    // ─── Ingredient helpers ───────────────────────────────────────────────────
-    const addIngredient = () => setIngredients(prev => [...prev, emptyIngredient()]);
-    const updateIngredient = (key, field, value) =>
-        setIngredients(prev => prev.map(i => i._key === key ? { ...i, [field]: value } : i));
+    // ─── Ingredient helpers ───────────────────────────────────────────────────────
+    const addIngredient = () => setIngredients((p) => [...p, emptyIngredient()]);
+    const updateIngredient = (key, field, val) =>
+        setIngredients((p) => p.map((i) => i._key === key ? { ...i, [field]: val } : i));
     const removeIngredient = (key) =>
-        setIngredients(prev => prev.filter(i => i._key !== key));
+        setIngredients((p) => p.filter((i) => i._key !== key));
 
-    // ─── Step helpers ─────────────────────────────────────────────────────────
-    const addStep = () => setSteps(prev => [...prev, emptyStep()]);
-    const updateStep = (key, value) =>
-        setSteps(prev => prev.map(s => s._key === key ? { ...s, description: value } : s));
+    // ─── Step helpers ─────────────────────────────────────────────────────────────
+    const addStep = () => setSteps((p) => [...p, emptyStep()]);
+    const updateStep = (key, val) =>
+        setSteps((p) => p.map((s) => s._key === key ? { ...s, description: val } : s));
     const removeStep = (key) =>
-        setSteps(prev => prev.filter(s => s._key !== key));
+        setSteps((p) => p.filter((s) => s._key !== key));
 
-    // ─── Collection toggle ────────────────────────────────────────────────────
     const toggleCollection = (colId) =>
-        setSelectedCollections(prev =>
-            prev.includes(colId) ? prev.filter(c => c !== colId) : [...prev, colId]
+        setSelectedCollections((p) =>
+            p.includes(colId) ? p.filter((c) => c !== colId) : [...p, colId]
         );
 
-    // ─── Submit ───────────────────────────────────────────────────────────────
+    // ─── Submit ───────────────────────────────────────────────────────────────────
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSaving(true);
 
         try {
-            // Resolve imageUrl: if a file was picked, convert to base64
+            // Strategy: delegate resolution to the active strategy.
+            // CloudinaryStrategy uploads to Cloudinary and returns a CDN URL.
+            // URLStrategy simply returns the trimmed URL string.
+            // The submit handler never inspects which strategy is active.
             let resolvedImageUrl = form.imageUrl;
-            if (imageFile) {
-                resolvedImageUrl = await fileToBase64(imageFile);
+
+            if (imageFile || (imageMode === 'cloudinary' && imageFile)) {
+                setUploading(true);
+                resolvedImageUrl = await imageContext.resolve({ file: imageFile, url: urlInput });
+                setUploading(false);
+            } else if (imageMode === 'url' && urlInput.trim()) {
+                resolvedImageUrl = await imageContext.resolve({ file: null, url: urlInput });
             }
 
-            // 1. Create or update the recipe
             const recipePayload = {
                 ...form,
                 imageUrl: resolvedImageUrl || null,
@@ -240,76 +212,62 @@ const CreateRecipe = () => {
                 recipeId = res.data.id;
             }
 
-            // 2. Save ingredients
-            const validIngredients = ingredients.filter(i => i.name.trim());
+            const validIngredients = ingredients.filter((i) => i.name.trim());
+            const validSteps = steps.filter((s) => s.description.trim());
+
             if (!isEditing) {
-                await Promise.all(
-                    validIngredients.map((ing) =>
+                await Promise.all([
+                    ...validIngredients.map((ing) =>
                         ingredientAPI.addIngredient(recipeId, {
                             name: ing.name.trim(),
                             quantity: ing.quantity ? Number(ing.quantity) : 0,
                             unit: ing.unit || null,
                             notes: ing.notes || null,
                         })
-                    )
-                );
-            } else {
-                await Promise.all(
-                    validIngredients
-                        .filter(i => i.id)
-                        .map(ing =>
-                            ingredientAPI.updateIngredient(recipeId, ing.id, {
-                                name: ing.name.trim(),
-                                quantity: ing.quantity ? Number(ing.quantity) : 0,
-                                unit: ing.unit || null,
-                                notes: ing.notes || null,
-                            })
-                        )
-                );
-            }
-
-            // 3. Save instructions
-            const validSteps = steps.filter(s => s.description.trim());
-            if (!isEditing) {
-                await Promise.all(
-                    validSteps.map((step, idx) =>
+                    ),
+                    ...validSteps.map((step, idx) =>
                         instructionAPI.addInstruction(recipeId, {
                             stepNumber: idx + 1,
                             description: step.description.trim(),
                         })
-                    )
-                );
-            } else {
-                await Promise.all(
-                    validSteps
-                        .filter(s => s.id)
-                        .map((step, idx) =>
-                            instructionAPI.updateInstruction(recipeId, step.id, {
-                                stepNumber: step.stepNumber || idx + 1,
-                                description: step.description.trim(),
-                            })
+                    ),
+                ]);
+                if (selectedCollections.length > 0) {
+                    await Promise.all(
+                        selectedCollections.map((colId) =>
+                            collectionAPI.addRecipeToCollection(colId, recipeId)
                         )
-                );
-            }
-
-            // 4. Add to selected collections (only on create)
-            if (!isEditing && selectedCollections.length > 0) {
-                await Promise.all(
-                    selectedCollections.map(colId =>
-                        collectionAPI.addRecipeToCollection(colId, recipeId)
-                    )
-                );
+                    );
+                }
+            } else {
+                await Promise.all([
+                    ...validIngredients.filter((i) => i.id).map((ing) =>
+                        ingredientAPI.updateIngredient(recipeId, ing.id, {
+                            name: ing.name.trim(),
+                            quantity: ing.quantity ? Number(ing.quantity) : 0,
+                            unit: ing.unit || null,
+                            notes: ing.notes || null,
+                        })
+                    ),
+                    ...validSteps.filter((s) => s.id).map((step, idx) =>
+                        instructionAPI.updateInstruction(recipeId, step.id, {
+                            stepNumber: step.stepNumber || idx + 1,
+                            description: step.description.trim(),
+                        })
+                    ),
+                ]);
             }
 
             navigate(`/recipe/${recipeId}`);
         } catch (err) {
-            const msg = err.response?.data?.message || 'Failed to save recipe. Please try again.';
-            setError(msg);
+            setUploading(false);
+            setError(err.message || err.response?.data?.message || 'Failed to save recipe. Please try again.');
         } finally {
             setSaving(false);
         }
     };
 
+    // ─── Render ───────────────────────────────────────────────────────────────────
     return (
         <>
             <DefaultHeader user={user} />
@@ -343,7 +301,7 @@ const CreateRecipe = () => {
                                 type="text"
                                 placeholder="What's the recipe called?"
                                 value={form.name}
-                                onChange={e => setForm({ ...form, name: e.target.value })}
+                                onChange={(e) => setForm({ ...form, name: e.target.value })}
                                 required
                             />
                         </div>
@@ -353,71 +311,53 @@ const CreateRecipe = () => {
                                 className={styles.formTextarea}
                                 placeholder="Briefly describe your recipe…"
                                 value={form.description}
-                                onChange={e => setForm({ ...form, description: e.target.value })}
+                                onChange={(e) => setForm({ ...form, description: e.target.value })}
                                 rows={3}
                             />
                         </div>
                         <div className={styles.formRow3}>
-                            <div className={styles.formGroup}>
-                                <label className={styles.formLabel}>Prep Time (min)</label>
-                                <input
-                                    className={styles.formInput}
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    value={form.prepTimeMinutes}
-                                    onChange={e => setForm({ ...form, prepTimeMinutes: e.target.value })}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.formLabel}>Cook Time (min)</label>
-                                <input
-                                    className={styles.formInput}
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    value={form.cookTimeMinutes}
-                                    onChange={e => setForm({ ...form, cookTimeMinutes: e.target.value })}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.formLabel}>Total Time (min)</label>
-                                <input
-                                    className={styles.formInput}
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    value={form.totalTimeMinutes}
-                                    onChange={e => setForm({ ...form, totalTimeMinutes: e.target.value })}
-                                />
-                            </div>
+                            {[
+                                { label: 'Prep Time (min)', field: 'prepTimeMinutes' },
+                                { label: 'Cook Time (min)', field: 'cookTimeMinutes' },
+                                { label: 'Total Time (min)', field: 'totalTimeMinutes' },
+                            ].map(({ label, field }) => (
+                                <div className={styles.formGroup} key={field}>
+                                    <label className={styles.formLabel}>{label}</label>
+                                    <input
+                                        className={styles.formInput}
+                                        type="number" min="0" placeholder="0"
+                                        value={form[field]}
+                                        onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+                                    />
+                                </div>
+                            ))}
                         </div>
 
-                        {/* ── Image Upload ── */}
+                        {/* ── Image Upload (Strategy pattern) ── */}
                         <div className={styles.formGroup}>
                             <label className={styles.formLabel}>Recipe Photo</label>
 
-                            {/* Mode tabs */}
+                            {/* Mode tabs — switching tabs swaps the active strategy */}
                             <div className={styles.imageModeTabs}>
                                 <button
                                     type="button"
-                                    className={`${styles.imageModeTab} ${imageInputMode === 'file' ? styles.imageModeTabActive : ''}`}
-                                    onClick={() => setImageInputMode('file')}
+                                    className={`${styles.imageModeTab} ${imageMode === 'cloudinary' ? styles.imageModeTabActive : ''}`}
+                                    onClick={() => { setImageMode('cloudinary'); handleRemoveImage(); }}
                                 >
-                                    📁 Upload File
+                                    📷 Upload Photo
                                 </button>
                                 <button
                                     type="button"
-                                    className={`${styles.imageModeTab} ${imageInputMode === 'url' ? styles.imageModeTabActive : ''}`}
-                                    onClick={() => setImageInputMode('url')}
+                                    className={`${styles.imageModeTab} ${imageMode === 'url' ? styles.imageModeTabActive : ''}`}
+                                    onClick={() => { setImageMode('url'); handleRemoveImage(); }}
                                 >
                                     🔗 Paste URL
                                 </button>
                             </div>
 
-                            {imageInputMode === 'file' ? (
+                            {/* Cloudinary upload mode */}
+                            {imageMode === 'cloudinary' && (
                                 <>
-                                    {/* Hidden file input */}
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -427,7 +367,6 @@ const CreateRecipe = () => {
                                     />
 
                                     {imagePreview ? (
-                                        /* Preview */
                                         <div className={styles.imagePreviewWrap}>
                                             <img
                                                 src={imagePreview}
@@ -453,13 +392,12 @@ const CreateRecipe = () => {
                                             </div>
                                         </div>
                                     ) : (
-                                        /* Drop zone */
                                         <div
                                             className={`${styles.dropZone} ${dragOver ? styles.dropZoneActive : ''}`}
                                             onClick={() => fileInputRef.current?.click()}
                                             onDrop={handleDrop}
-                                            onDragOver={handleDragOver}
-                                            onDragLeave={handleDragLeave}
+                                            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                                            onDragLeave={() => setDragOver(false)}
                                         >
                                             <div className={styles.dropZoneIcon}>🖼️</div>
                                             <div className={styles.dropZoneText}>
@@ -468,53 +406,61 @@ const CreateRecipe = () => {
                                                     <span className={styles.dropZoneLink}>browse files</span>
                                                 </span>
                                                 <span className={styles.dropZoneHint}>
-                                                    JPEG, PNG, GIF, WEBP · max 5 MB
+                                                    JPEG, PNG, GIF, WEBP · max 10 MB · uploaded to Cloudinary
                                                 </span>
                                             </div>
                                         </div>
                                     )}
+
+                                    {uploading && (
+                                        <p style={{ fontSize: '0.8rem', color: '#7A5C46', marginTop: '6px' }}>
+                                            ⏳ Uploading to Cloudinary…
+                                        </p>
+                                    )}
                                 </>
-                            ) : (
-                                /* URL mode */
-                                <div className={styles.urlInputRow}>
-                                    <input
-                                        className={styles.formInput}
-                                        type="url"
-                                        placeholder="https://example.com/photo.jpg"
-                                        value={urlInput}
-                                        onChange={e => setUrlInput(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleUrlApply())}
-                                    />
-                                    <button
-                                        type="button"
-                                        className={styles.urlApplyBtn}
-                                        onClick={handleUrlApply}
-                                        disabled={!urlInput.trim()}
-                                    >
-                                        Preview
-                                    </button>
-                                </div>
                             )}
 
-                            {/* Show URL preview when in URL mode */}
-                            {imageInputMode === 'url' && imagePreview && (
-                                <div className={styles.imagePreviewWrap} style={{ marginTop: '10px' }}>
-                                    <img
-                                        src={imagePreview}
-                                        alt="Recipe preview"
-                                        className={styles.imagePreview}
-                                        onError={() => setImagePreview(null)}
-                                    />
-                                    <div className={styles.imagePreviewOverlay}>
+                            {/* URL paste mode */}
+                            {imageMode === 'url' && (
+                                <>
+                                    <div className={styles.urlInputRow}>
+                                        <input
+                                            className={styles.formInput}
+                                            type="url"
+                                            placeholder="https://example.com/photo.jpg"
+                                            value={urlInput}
+                                            onChange={(e) => setUrlInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleUrlApply())}
+                                        />
                                         <button
                                             type="button"
-                                            className={styles.imagePreviewRemove}
-                                            onClick={handleRemoveImage}
+                                            className={styles.urlApplyBtn}
+                                            onClick={handleUrlApply}
+                                            disabled={!urlInput.trim()}
                                         >
-                                            🗑 Remove
+                                            Preview
                                         </button>
                                     </div>
-                                </div>
+                                    {imagePreview && (
+                                        <div className={styles.imagePreviewWrap} style={{ marginTop: '10px' }}>
+                                            <img
+                                                src={imagePreview}
+                                                alt="Recipe preview"
+                                                className={styles.imagePreview}
+                                                onError={() => setImagePreview(null)}
+                                            />
+                                            <div className={styles.imagePreviewOverlay}>
+                                                <button
+                                                    type="button"
+                                                    className={styles.imagePreviewRemove}
+                                                    onClick={handleRemoveImage}
+                                                >
+                                                    🗑 Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     </section>
@@ -530,44 +476,29 @@ const CreateRecipe = () => {
                         {ingredients.map((ing) => (
                             <div key={ing._key} className={styles.ingredientRow}>
                                 <input
-                                    className={styles.formInput}
-                                    type="number"
-                                    placeholder="Qty"
-                                    value={ing.quantity}
-                                    onChange={e => updateIngredient(ing._key, 'quantity', e.target.value)}
-                                    min="0"
-                                    style={{ maxWidth: '80px' }}
+                                    className={styles.formInput} type="number" placeholder="Qty"
+                                    value={ing.quantity} min="0" style={{ maxWidth: '80px' }}
+                                    onChange={(e) => updateIngredient(ing._key, 'quantity', e.target.value)}
                                 />
                                 <select
-                                    className={styles.formSelect}
-                                    value={ing.unit}
-                                    onChange={e => updateIngredient(ing._key, 'unit', e.target.value)}
-                                    style={{ maxWidth: '90px' }}
+                                    className={styles.formSelect} value={ing.unit} style={{ maxWidth: '90px' }}
+                                    onChange={(e) => updateIngredient(ing._key, 'unit', e.target.value)}
                                 >
-                                    {UNITS.map(u => (
-                                        <option key={u.value} value={u.value}>{u.label}</option>
-                                    ))}
+                                    {UNITS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
                                 </select>
                                 <input
-                                    className={styles.formInput}
-                                    type="text"
-                                    placeholder="Ingredient name *"
+                                    className={styles.formInput} type="text" placeholder="Ingredient name *"
                                     value={ing.name}
-                                    onChange={e => updateIngredient(ing._key, 'name', e.target.value)}
+                                    onChange={(e) => updateIngredient(ing._key, 'name', e.target.value)}
                                 />
                                 <input
-                                    className={styles.formInput}
-                                    type="text"
-                                    placeholder="Notes (optional)"
+                                    className={styles.formInput} type="text" placeholder="Notes (optional)"
                                     value={ing.notes}
-                                    onChange={e => updateIngredient(ing._key, 'notes', e.target.value)}
+                                    onChange={(e) => updateIngredient(ing._key, 'notes', e.target.value)}
                                 />
                                 {ingredients.length > 1 && (
-                                    <button
-                                        type="button"
-                                        className={styles.removeBtn}
-                                        onClick={() => removeIngredient(ing._key)}
-                                    >−</button>
+                                    <button type="button" className={styles.removeBtn}
+                                        onClick={() => removeIngredient(ing._key)}>−</button>
                                 )}
                             </div>
                         ))}
@@ -587,16 +518,12 @@ const CreateRecipe = () => {
                                 <textarea
                                     className={styles.stepTextarea}
                                     placeholder={`Step ${index + 1}…`}
-                                    value={step.description}
-                                    onChange={e => updateStep(step._key, e.target.value)}
-                                    rows={2}
+                                    value={step.description} rows={2}
+                                    onChange={(e) => updateStep(step._key, e.target.value)}
                                 />
                                 {steps.length > 1 && (
-                                    <button
-                                        type="button"
-                                        className={styles.removeBtn}
-                                        onClick={() => removeStep(step._key)}
-                                    >−</button>
+                                    <button type="button" className={styles.removeBtn}
+                                        onClick={() => removeStep(step._key)}>−</button>
                                 )}
                             </div>
                         ))}
@@ -608,9 +535,8 @@ const CreateRecipe = () => {
                         <textarea
                             className={styles.formTextarea}
                             placeholder="Tips, variations, serving suggestions…"
-                            value={form.notes}
-                            onChange={e => setForm({ ...form, notes: e.target.value })}
-                            rows={4}
+                            value={form.notes} rows={4}
+                            onChange={(e) => setForm({ ...form, notes: e.target.value })}
                         />
                     </section>
 
@@ -621,16 +547,15 @@ const CreateRecipe = () => {
                             <input
                                 type="checkbox"
                                 checked={form.isPublic}
-                                onChange={e => setForm({ ...form, isPublic: e.target.checked })}
+                                onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
                             />
                             <span>Make this recipe public</span>
                         </label>
-
                         {!isEditing && collections.length > 0 && (
                             <div className={styles.formGroup} style={{ marginTop: '14px' }}>
                                 <label className={styles.formLabel}>Add to Collections</label>
                                 <div className={styles.collectionsList}>
-                                    {collections.map(col => (
+                                    {collections.map((col) => (
                                         <label key={col.id} className={styles.checkboxRow}>
                                             <input
                                                 type="checkbox"
@@ -648,18 +573,17 @@ const CreateRecipe = () => {
                     {/* Sticky Save Bar */}
                     <div className={styles.stickyBar}>
                         <button
-                            type="button"
-                            className={styles.btnOutline}
+                            type="button" className={styles.btnOutline}
                             onClick={() => navigate(isEditing ? `/recipe/${id}` : '/recipes')}
                         >
                             Cancel
                         </button>
-                        <button
-                            type="submit"
-                            className={styles.btnPrimary}
-                            disabled={saving}
-                        >
-                            {saving ? 'Saving…' : `💾 ${isEditing ? 'Update Recipe' : 'Save Recipe'}`}
+                        <button type="submit" className={styles.btnPrimary} disabled={saving || uploading}>
+                            {uploading
+                                ? '⏳ Uploading image…'
+                                : saving
+                                    ? 'Saving…'
+                                    : `💾 ${isEditing ? 'Update Recipe' : 'Save Recipe'}`}
                         </button>
                     </div>
                 </form>
@@ -668,4 +592,4 @@ const CreateRecipe = () => {
     );
 };
 
-export default CreateRecipe;
+export default withErrorBoundary(CreateRecipe);
