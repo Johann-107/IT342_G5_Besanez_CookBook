@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
+import { uploadImage } from '../services/image';
 import userAPI from '../services/user';
 import styles from '../styles/Profile.module.css';
 
@@ -27,10 +28,8 @@ const Profile = () => {
         cookingLevel: user?.cookingLevel || 'BEGINNER',
     });
 
-    // Snapshot so Cancel can revert without a network call
     const [formSnapshot, setFormSnapshot] = useState({ ...form });
 
-    // Local profileImage — starts from AuthContext value
     const [profileImage, setProfileImage] = useState(user?.profileImage || null);
     const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -42,7 +41,7 @@ const Profile = () => {
         setTimeout(() => setMessage({ text: '', type: '' }), 3500);
     };
 
-    // ─── Edit mode helpers ────────────────────────────────────────────────────
+    // ─── Edit mode helpers ─────────────────────────────────────────────────────
     const handleStartEdit = () => {
         setFormSnapshot({ ...form });
         setIsEditing(true);
@@ -53,7 +52,7 @@ const Profile = () => {
         setIsEditing(false);
     };
 
-    // ─── Profile image — multipart file upload ────────────────────────────────
+    // ─── Profile image — Cloudinary upload ────────────────────────────────────
     const handleFileChange = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -67,28 +66,31 @@ const Profile = () => {
             return;
         }
 
-        // Instant local preview via object URL
+        // Instant local preview while uploading
         const previewUrl = URL.createObjectURL(file);
         setProfileImage(previewUrl);
         setUploadingImage(true);
 
         try {
-            // Multipart upload → backend encodes to base64 data URL and saves
-            const res = await userAPI.uploadProfileImageFile(file);
-            // Replace object URL with the persisted value from the server
-            setProfileImage(res.data.profileImage);
+            // Upload to Cloudinary using the user-scoped profile folder
+            const folder = `users/${user.userId}/profiles`;
+            const uploadRes = await uploadImage(file, folder);
+            const cloudinaryUrl = uploadRes.data.url;
+
+            // Persist the Cloudinary URL to the backend
+            await userAPI.updateProfileImage(cloudinaryUrl);
+
+            setProfileImage(cloudinaryUrl);
             showMessage('Profile photo updated!');
-            // Keep AuthContext in sync so the header avatar updates immediately
             await refreshUser();
         } catch (err) {
-            setProfileImage(user?.profileImage || null); // revert preview on failure
+            setProfileImage(user?.profileImage || null);
             showMessage(
                 err.response?.data?.message || 'Failed to upload photo.',
                 'error'
             );
         } finally {
             setUploadingImage(false);
-            // Allow the same file to be re-selected
             e.target.value = '';
         }
     };
@@ -107,7 +109,7 @@ const Profile = () => {
         }
     };
 
-    // ─── Update Profile ───────────────────────────────────────────────────────
+    // ─── Update Profile ────────────────────────────────────────────────────────
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
         setSavingProfile(true);
@@ -118,13 +120,11 @@ const Profile = () => {
                 email: form.email,
                 birthdate: form.birthdate || null,
                 cookingLevel: form.cookingLevel,
-                // password is required by the DTO validator but ignored by the service
                 password: 'placeholder-not-updated',
             });
             setFormSnapshot({ ...form });
             setIsEditing(false);
             showMessage('Profile updated successfully!');
-            // Sync name/cookingLevel changes into AuthContext so header reflects them
             await refreshUser();
         } catch (err) {
             showMessage(err.response?.data?.message || 'Failed to update profile.', 'error');
@@ -133,7 +133,7 @@ const Profile = () => {
         }
     };
 
-    // ─── Delete Account ───────────────────────────────────────────────────────
+    // ─── Delete Account ────────────────────────────────────────────────────────
     const handleDeleteAccount = async () => {
         if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
         try {
@@ -168,10 +168,6 @@ const Profile = () => {
 
     return (
         <>
-            {/*
-              Pass the local profileImage so the header avatar reflects photo
-              changes immediately without waiting for a full page reload.
-            */}
             <DefaultHeader user={{ ...user, profileImage }} />
             <div className={styles.page}>
 
@@ -195,7 +191,6 @@ const Profile = () => {
                     <div className={styles.left}>
                         <div className={styles.avatarSection}>
 
-                            {/* Avatar with camera overlay */}
                             <div
                                 className={styles.avatarWrapper}
                                 onClick={() => !uploadingImage && fileInputRef.current?.click()}
@@ -217,7 +212,6 @@ const Profile = () => {
                                 </div>
                             </div>
 
-                            {/* Hidden native file input */}
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -247,7 +241,6 @@ const Profile = () => {
                             <p className={styles.uploadHint}>JPEG, PNG, GIF or WEBP · max 5 MB</p>
                         </div>
 
-                        {/* Account meta */}
                         <div className={styles.accountInfo}>
                             <span className={styles.aiLabel}>Email</span>
                             <span className={styles.aiValue}>{user?.email || '—'}</span>
@@ -276,7 +269,6 @@ const Profile = () => {
                     {/* ── Right Content ── */}
                     <div className={styles.right}>
 
-                        {/* Personal Info */}
                         <div className={styles.profileSection}>
                             <div className={styles.sectionHeader}>
                                 <h4 className={styles.sectionTitle}>Personal Information</h4>
@@ -292,7 +284,6 @@ const Profile = () => {
                             </div>
 
                             <form onSubmit={handleProfileSubmit}>
-                                {/* Name row */}
                                 <div className={styles.formRow}>
                                     <div className={styles.formGroup}>
                                         <label className={styles.formLabel}>First Name</label>
@@ -322,7 +313,6 @@ const Profile = () => {
                                     </div>
                                 </div>
 
-                                {/* Email — always read-only */}
                                 <div className={styles.formGroup}>
                                     <label className={styles.formLabel}>
                                         Email{' '}
@@ -337,7 +327,6 @@ const Profile = () => {
                                     />
                                 </div>
 
-                                {/* Date of Birth */}
                                 <div className={styles.formGroup}>
                                     <label className={styles.formLabel}>Date of Birth</label>
                                     <input
@@ -350,7 +339,6 @@ const Profile = () => {
                                     />
                                 </div>
 
-                                {/* Cooking Level */}
                                 <div className={styles.formGroup}>
                                     <label className={styles.formLabel}>Cooking Skill Level</label>
                                     {isEditing ? (
@@ -373,7 +361,6 @@ const Profile = () => {
                                     )}
                                 </div>
 
-                                {/* Action buttons — only in edit mode */}
                                 {isEditing && (
                                     <div className={styles.formActions}>
                                         <button
@@ -396,7 +383,6 @@ const Profile = () => {
                             </form>
                         </div>
 
-                        {/* Danger Zone */}
                         <div className={styles.dangerZone}>
                             <h4 className={styles.dangerTitle}>⚠️ Danger Zone</h4>
                             <p className={styles.dangerText}>

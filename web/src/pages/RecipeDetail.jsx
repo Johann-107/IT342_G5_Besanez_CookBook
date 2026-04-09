@@ -23,7 +23,6 @@ const RecipeDetail = () => {
             setLoading(true);
             setError('');
             try {
-                // Facade: one call instead of three scattered Promise.all calls
                 const detail = await CookbookFacade.getRecipeDetail(id);
                 setRecipe(detail.recipe);
                 setIngredients(detail.ingredients);
@@ -89,22 +88,44 @@ const RecipeDetail = () => {
         );
     }
 
+    // Build hero bar style: use recipe image as background when available
+    const heroStyle = recipe.imageUrl
+        ? {
+            backgroundImage: `linear-gradient(to bottom, rgba(92,61,46,0.55) 0%, rgba(58,42,30,0.72) 100%), url(${recipe.imageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+        }
+        : {};
+
+    const hasImage = Boolean(recipe.imageUrl);
+
     return (
         <>
             <DefaultHeader user={user} />
             <div className={styles.page}>
-                <div className={styles.heroBar}>
-                    <button className={styles.backBtn} onClick={() => navigate('/recipes')}>
+                {/* Hero Bar — shows image as background when available */}
+                <div
+                    className={`${styles.heroBar} ${hasImage ? styles.heroBarWithImage : ''}`}
+                    style={heroStyle}
+                >
+                    <button
+                        className={hasImage ? styles.backBtnOnImage : styles.backBtn}
+                        onClick={() => navigate('/recipes')}
+                    >
                         ← My Recipes
                     </button>
                     <div className={styles.titleRow}>
-                        <h1 className={styles.recipeTitle}>{recipe.name}</h1>
+                        <h1 className={`${styles.recipeTitle} ${hasImage ? styles.recipeTitleOnImage : ''}`}>
+                            {recipe.name}
+                        </h1>
                         <div className={styles.recipeActions}>
                             <SharePanel recipeId={id} initialToken={recipe.shareToken} />
-                            <button className={styles.btnGhost} onClick={() => navigate(`/recipe/${id}/edit`)}>
+                            <button className={hasImage ? styles.btnGhostOnImage : styles.btnGhost}
+                                onClick={() => navigate(`/recipe/${id}/edit`)}>
                                 ✏️ Edit
                             </button>
-                            <button className={styles.btnGhost} onClick={() => window.print()}>
+                            <button className={hasImage ? styles.btnGhostOnImage : styles.btnGhost}
+                                onClick={() => window.print()}>
                                 🖨 Print
                             </button>
                             <button className={styles.btnDanger} onClick={handleDelete}>
@@ -114,21 +135,21 @@ const RecipeDetail = () => {
                     </div>
                     <div className={styles.timeBadges}>
                         {recipe.prepTimeMinutes && (
-                            <div className={styles.timeBadge}>
+                            <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
                                 ⏱ Prep <span>{formatTime(recipe.prepTimeMinutes)}</span>
                             </div>
                         )}
                         {recipe.cookTimeMinutes && (
-                            <div className={styles.timeBadge}>
+                            <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
                                 🔥 Cook <span>{formatTime(recipe.cookTimeMinutes)}</span>
                             </div>
                         )}
                         {recipe.totalTimeMinutes && (
-                            <div className={styles.timeBadge}>
+                            <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
                                 ⏰ Total <span>{formatTime(recipe.totalTimeMinutes)}</span>
                             </div>
                         )}
-                        <div className={styles.timeBadge}>
+                        <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
                             {recipe.isPublic ? '🌐' : '🔒'}{' '}
                             <span>{recipe.isPublic ? 'Public' : 'Private'}</span>
                         </div>
@@ -218,5 +239,4 @@ const RecipeDetail = () => {
     );
 };
 
-// Decorator: wrap with error boundary so render errors degrade gracefully
 export default withErrorBoundary(RecipeDetail);

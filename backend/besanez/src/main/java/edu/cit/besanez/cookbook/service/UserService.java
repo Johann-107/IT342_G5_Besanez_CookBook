@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import edu.cit.besanez.cookbook.dto.user.UserRequestDTO;
 import edu.cit.besanez.cookbook.dto.user.UserResponseDTO;
-import edu.cit.besanez.cookbook.entity.CookingLevel;
 import edu.cit.besanez.cookbook.entity.UserEntity;
 import edu.cit.besanez.cookbook.exception.ResourceNotFoundException;
 import edu.cit.besanez.cookbook.repository.UserRepository;
@@ -41,7 +40,6 @@ public class UserService {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-        // Check if email is being changed and if new email already exists
         if (!userEntity.getEmail().equals(userRequestDTO.getEmail()) &&
                 userRepository.existsByEmail(userRequestDTO.getEmail())) {
             throw new IllegalArgumentException("Email already exists: " + userRequestDTO.getEmail());
@@ -52,17 +50,13 @@ public class UserService {
         userEntity.setBirthdate(userRequestDTO.getBirthdate());
         userEntity.setEmail(userRequestDTO.getEmail());
 
-        // Update cookingLevel when provided
         if (userRequestDTO.getCookingLevel() != null) {
             userEntity.setCookingLevel(userRequestDTO.getCookingLevel());
         }
 
-        // Update profileImage only when the field is explicitly provided
         if (userRequestDTO.getProfileImage() != null) {
             userEntity.setProfileImage(userRequestDTO.getProfileImage());
         }
-
-        // Password is NOT updated here — use AuthService.changePassword instead
 
         UserEntity updatedUser = userRepository.save(userEntity);
         return convertToResponseDTO(updatedUser);
@@ -83,47 +77,16 @@ public class UserService {
         return convertToResponseDTO(userEntity);
     }
 
-    // ─── Profile image ────────────────────────────────────────────────────────
-
-    /**
-     * Updates (or clears) the profile image via a URL / base64 data URL string.
-     * Pass null or blank to clear.
-     */
     @Transactional
     public UserResponseDTO updateProfileImage(long userId, String profileImageUrl) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         userEntity.setProfileImage(
-                (profileImageUrl != null && profileImageUrl.isBlank()) ? null : profileImageUrl);
+                (profileImageUrl == null || profileImageUrl.isBlank()) ? null : profileImageUrl);
 
         UserEntity updated = userRepository.save(userEntity);
         return convertToResponseDTO(updated);
-    }
-
-    /**
-     * Accepts a raw file as a byte array (from multipart upload), encodes it to a
-     * base64 data URL, and persists it.
-     *
-     * NOTE: For production, replace this with an S3 / Cloudinary upload and store
-     * only the returned CDN URL. The base64 approach is intentionally simple for
-     * development and small images (≤ 5 MB).
-     */
-    @Transactional
-    public UserResponseDTO uploadProfileImage(long userId, byte[] imageBytes, String contentType) {
-        if (imageBytes == null || imageBytes.length == 0) {
-            throw new IllegalArgumentException("Image file is empty.");
-        }
-
-        // 5 MB hard limit
-        if (imageBytes.length > 5 * 1024 * 1024) {
-            throw new IllegalArgumentException("Image must be smaller than 5 MB.");
-        }
-
-        String base64 = java.util.Base64.getEncoder().encodeToString(imageBytes);
-        String dataUrl = "data:" + contentType + ";base64," + base64;
-
-        return updateProfileImage(userId, dataUrl);
     }
 
     // ─── Mapping ──────────────────────────────────────────────────────────────

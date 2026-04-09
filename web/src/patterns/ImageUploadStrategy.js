@@ -5,11 +5,17 @@ export class CloudinaryStrategy {
     label = 'Upload Photo';
     icon = '📷';
 
-    async resolve({ file }) {
+    /**
+     * @param {{ file: File, userId?: number|string }} state
+     *   userId is used to build the user-scoped Cloudinary folder:
+     *     users/{userId}/recipes
+     *   Falls back to the flat "recipes" folder if userId is not provided.
+     */
+    async resolve({ file, userId }) {
         if (!file) return null;
-        // Call backend → backend uploads to Cloudinary → returns CDN URL
-        const response = await uploadImage(file, 'recipes');
-        return response.data.url; // ImageController returns { url: "https://res.cloudinary.com/..." }
+        const folder = userId ? `users/${userId}/recipes` : 'recipes';
+        const response = await uploadImage(file, folder);
+        return response.data.url;
     }
 
     validate(file) {
@@ -18,24 +24,17 @@ export class CloudinaryStrategy {
             return 'Please select a valid image file (JPEG, PNG, GIF, WEBP).';
         }
         if (file.size > 5 * 1024 * 1024) {
-            return 'Image must be smaller than 5 MB.'; // matches backend 5MB check
+            return 'Image must be smaller than 5 MB.';
         }
         return null;
     }
 }
 
 // ─── Concrete Strategy 2: URL paste ───────────────────────────────────────────
-
 export class URLStrategy {
     label = 'Paste URL';
     icon = '🔗';
 
-    /**
-     * Returns the trimmed URL as-is — no upload needed.
-     *
-     * @param {{ url: string }} state
-     * @returns {Promise<string | null>}
-     */
     async resolve({ url }) {
         return url?.trim() || null;
     }
@@ -52,11 +51,6 @@ export class URLStrategy {
 }
 
 // ─── Strategy Context ─────────────────────────────────────────────────────────
-
-/**
- * ImageUploadContext holds the active strategy and provides a unified API
- * so CreateRecipe.jsx never needs to inspect which strategy is active.
- */
 export class ImageUploadContext {
     constructor(strategy = new CloudinaryStrategy()) {
         this._strategy = strategy;
@@ -79,7 +73,6 @@ export class ImageUploadContext {
 }
 
 // ─── Available strategies registry ────────────────────────────────────────────
-
 export const IMAGE_STRATEGIES = {
     cloudinary: new CloudinaryStrategy(),
     url: new URLStrategy(),

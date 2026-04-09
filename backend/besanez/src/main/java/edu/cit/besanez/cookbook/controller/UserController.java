@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import edu.cit.besanez.cookbook.dto.user.ProfileImageRequestDTO;
 import edu.cit.besanez.cookbook.dto.user.UserRequestDTO;
 import edu.cit.besanez.cookbook.dto.user.UserResponseDTO;
+import edu.cit.besanez.cookbook.service.CloudinaryService;
 import edu.cit.besanez.cookbook.service.UserService;
 import edu.cit.besanez.cookbook.util.JwtUtil;
 
@@ -26,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
+    private final CloudinaryService cloudinaryService;
     private final JwtUtil jwtUtil;
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -40,13 +42,6 @@ public class UserController {
         return jwtUtil.extractEmail(token);
     }
 
-    // ─── Current user ─────────────────────────────────────────────────────────
-
-    /**
-     * GET /api/user/me
-     * Returns the full user profile including profileImage, birthdate, and
-     * cookingLevel.
-     */
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         try {
@@ -64,9 +59,9 @@ public class UserController {
             response.put("email", user.getEmail());
             response.put("firstName", user.getFirstName());
             response.put("lastName", user.getLastName());
-            response.put("birthdate", user.getBirthdate()); // ← now included
+            response.put("birthdate", user.getBirthdate());
             response.put("profileImage", user.getProfileImage());
-            response.put("cookingLevel", user.getCookingLevel()); // ← now included
+            response.put("cookingLevel", user.getCookingLevel());
 
             return ResponseEntity.ok(response);
 
@@ -75,11 +70,6 @@ public class UserController {
         }
     }
 
-    /**
-     * PATCH /api/user/me/profile-image
-     * Updates (or clears) the current user's profile image via a URL string.
-     * Body: { "profileImage": "https://..." } — send null or "" to clear.
-     */
     @PatchMapping("/me/profile-image")
     public ResponseEntity<UserResponseDTO> updateProfileImage(
             HttpServletRequest request,
@@ -89,18 +79,6 @@ public class UserController {
         return ResponseEntity.ok(updated);
     }
 
-    /**
-     * POST /api/user/me/profile-image/upload
-     * Accepts a multipart image file, encodes it to a base64 data URL, and persists
-     * it.
-     *
-     * Form field name: "file"
-     * Accepted types: image/jpeg, image/png, image/gif, image/webp
-     * Max size: 5 MB (also enforced in UserService)
-     *
-     * NOTE: For production, replace the base64 approach in UserService with an
-     * upload to S3 / Cloudinary and store the returned CDN URL instead.
-     */
     @PostMapping(value = "/me/profile-image/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadProfileImage(
             HttpServletRequest request,
@@ -116,8 +94,19 @@ public class UserController {
                         .body(Map.of("message", "Only image files are accepted (JPEG, PNG, GIF, WEBP)."));
             }
 
+            if (file.getSize() > 5 * 1024 * 1024) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Image must be smaller than 5 MB."));
+            }
+
             long userId = extractUserId(request);
-            UserResponseDTO updated = userService.uploadProfileImage(userId, file.getBytes(), contentType);
+
+            // Upload to Cloudinary under user-scoped profile folder
+            String folder = "users/" + userId + "/profiles";
+            String cloudinaryUrl = cloudinaryService.uploadImage(file, folder);
+
+            // Persist the CDN URL
+            UserResponseDTO updated = userService.updateProfileImage(userId, cloudinaryUrl);
             return ResponseEntity.ok(updated);
 
         } catch (IllegalArgumentException e) {

@@ -53,13 +53,12 @@ const CreateRecipe = () => {
     });
 
     // ─── Image state ─────────────────────────────────────────────────────────────
-    // imageMode: 'cloudinary' | 'url'
     const [imageMode, setImageMode] = useState('cloudinary');
-    const [imageFile, setImageFile] = useState(null);   // raw File from input
-    const [imagePreview, setImagePreview] = useState(null);   // local object URL for preview
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [urlInput, setUrlInput] = useState('');
     const [dragOver, setDragOver] = useState(false);
-    const [uploading, setUploading] = useState(false);  // true while Cloudinary upload runs
+    const [uploading, setUploading] = useState(false);
 
     // Strategy context — swapped when imageMode changes
     const imageContext = useMemo(() => new ImageUploadContext(IMAGE_STRATEGIES[imageMode]), []);
@@ -92,7 +91,10 @@ const CreateRecipe = () => {
                     totalTimeMinutes: r.totalTimeMinutes || '', imageUrl: r.imageUrl || '',
                     isPublic: r.isPublic || false, notes: r.notes || '',
                 });
-                if (r.imageUrl) { setImagePreview(r.imageUrl); setUrlInput(r.imageUrl); }
+                if (r.imageUrl) {
+                    setImagePreview(r.imageUrl);
+                    setUrlInput(r.imageUrl);
+                }
                 setIngredients(ingRes.data.length > 0
                     ? ingRes.data.map((i) => ({ ...i, _key: i.id }))
                     : [emptyIngredient()]
@@ -181,11 +183,13 @@ const CreateRecipe = () => {
         try {
             let resolvedImageUrl = form.imageUrl;
 
-            if (imageFile || (imageMode === 'cloudinary' && imageFile)) {
+            // Upload file to Cloudinary if a new file was selected
+            if (imageFile) {
                 setUploading(true);
-                resolvedImageUrl = await imageContext.resolve({ file: imageFile, url: urlInput });
+                resolvedImageUrl = await imageContext.resolve({ file: imageFile, url: urlInput, userId: user?.userId });
                 setUploading(false);
             } else if (imageMode === 'url' && urlInput.trim()) {
+                // URL mode — just use the pasted URL directly (no upload needed)
                 resolvedImageUrl = await imageContext.resolve({ file: null, url: urlInput });
             }
 
@@ -331,7 +335,7 @@ const CreateRecipe = () => {
                         <div className={styles.formGroup}>
                             <label className={styles.formLabel}>Recipe Photo</label>
 
-                            {/* Mode tabs — switching tabs swaps the active strategy */}
+                            {/* Mode tabs */}
                             <div className={styles.imageModeTabs}>
                                 <button
                                     type="button"
@@ -400,7 +404,7 @@ const CreateRecipe = () => {
                                                     <span className={styles.dropZoneLink}>browse files</span>
                                                 </span>
                                                 <span className={styles.dropZoneHint}>
-                                                    JPEG, PNG, GIF, WEBP · max 10 MB · uploaded to Cloudinary
+                                                    JPEG, PNG, GIF, WEBP · max 5 MB · uploaded to Cloudinary
                                                 </span>
                                             </div>
                                         </div>
