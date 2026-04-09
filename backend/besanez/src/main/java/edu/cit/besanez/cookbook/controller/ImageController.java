@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/image")
@@ -18,6 +19,7 @@ public class ImageController {
 
     private final CloudinaryService cloudinaryService;
     private final JwtUtil jwtUtil;
+    private static final Set<String> ALLOWED_FOLDERS = Set.of("recipes", "profiles");
 
     /**
      * POST /api/image/upload
@@ -34,6 +36,11 @@ public class ImageController {
             if (file == null || file.isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("message", "No file provided."));
+            }
+
+            if (!ALLOWED_FOLDERS.contains(folder)) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Invalid folder."));
             }
 
             String contentType = file.getContentType();

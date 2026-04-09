@@ -4,8 +4,6 @@ import instructionAPI from '../services/instruction';
 import collectionAPI from '../services/collection';
 import { publicClient } from './APIClientFactory';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-
 class CookbookFacade {
 
     // ─── Read operations ────────────────────────────────────────────────────────

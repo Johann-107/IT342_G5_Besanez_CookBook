@@ -1,49 +1,15 @@
-const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || '';
-const CLOUDINARY_UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET || '';
-const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+import { uploadImage } from '../services/image';
 
 // ─── Concrete Strategy 1: Cloudinary file upload ─────────────────────────────
-
 export class CloudinaryStrategy {
     label = 'Upload Photo';
     icon = '📷';
 
-    /**
-     * Uploads the selected file directly to Cloudinary from the browser and
-     * returns the secure CDN URL. Only the URL is stored in your database —
-     * no base64 blobs, no backend file handling needed.
-     *
-     * @param {{ file: File | null }} state
-     * @returns {Promise<string | null>} Cloudinary secure_url or null
-     */
     async resolve({ file }) {
         if (!file) return null;
-
-        if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
-            throw new Error(
-                'Cloudinary is not configured. ' +
-                'Set REACT_APP_CLOUDINARY_CLOUD_NAME and REACT_APP_CLOUDINARY_UPLOAD_PRESET in your .env file.'
-            );
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        // Optional: organise uploads into a folder
-        formData.append('folder', 'cookbook/recipes');
-
-        const response = await fetch(CLOUDINARY_UPLOAD_URL, {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.error?.message || 'Cloudinary upload failed.');
-        }
-
-        const data = await response.json();
-        return data.secure_url; // e.g. https://res.cloudinary.com/your_cloud/image/upload/v.../photo.jpg
+        // Call backend → backend uploads to Cloudinary → returns CDN URL
+        const response = await uploadImage(file, 'recipes');
+        return response.data.url; // ImageController returns { url: "https://res.cloudinary.com/..." }
     }
 
     validate(file) {
@@ -51,8 +17,8 @@ export class CloudinaryStrategy {
         if (!file.type?.startsWith('image/')) {
             return 'Please select a valid image file (JPEG, PNG, GIF, WEBP).';
         }
-        if (file.size > 10 * 1024 * 1024) {
-            return 'Image must be smaller than 10 MB.';
+        if (file.size > 5 * 1024 * 1024) {
+            return 'Image must be smaller than 5 MB.'; // matches backend 5MB check
         }
         return null;
     }

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from '../styles/Register.module.css';
 import GoogleLoginButton from '../components/GoogleLoginButton';
@@ -23,14 +22,13 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const { register } = useAuth();
-    const navigate = useNavigate();
 
     const handleClose = useCallback(() => {
         setIsClosing(true);
         setTimeout(() => {
             setIsClosing(false);
             onClose();
-        }, 300); 
+        }, 300);
     }, [onClose]);
 
     useEffect(() => {
@@ -103,25 +101,25 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
             const year = parseInt(formData.birthYear);
             const month = parseInt(formData.birthMonth);
             const daysInMonthCount = new Date(year, month, 0).getDate();
-            
+
             const days = [{ value: '', label: 'Day' }];
             for (let day = 1; day <= daysInMonthCount; day++) {
-                days.push({ 
-                    value: day.toString().padStart(2, '0'), 
-                    label: day.toString() 
+                days.push({
+                    value: day.toString().padStart(2, '0'),
+                    label: day.toString()
                 });
             }
             setDaysInMonth(days);
-            
+
             if (formData.birthDay && parseInt(formData.birthDay) > daysInMonthCount) {
                 setFormData(prev => ({ ...prev, birthDay: '' }));
             }
         } else {
             const days = [{ value: '', label: 'Day' }];
             for (let day = 1; day <= 31; day++) {
-                days.push({ 
-                    value: day.toString().padStart(2, '0'), 
-                    label: day.toString() 
+                days.push({
+                    value: day.toString().padStart(2, '0'),
+                    label: day.toString()
                 });
             }
             setDaysInMonth(days);
@@ -131,7 +129,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     // Password validation function
     const validatePassword = (password) => {
         const errors = [];
-        
+
         if (password.length < 8) {
             errors.push('Password must be at least 8 characters long');
         }
@@ -144,10 +142,10 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         if (!/[0-9]/.test(password)) {
             errors.push('Password must contain at least one number');
         }
-        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(password)) {
+        if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
             errors.push('Password must contain at least one special character');
         }
-        
+
         return errors;
     };
 
@@ -207,7 +205,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         }
 
         const birthdate = `${formData.birthYear}-${formData.birthMonth}-${formData.birthDay}`;
-        
+
         const result = await register({
             firstName: formData.firstName,
             lastName: formData.lastName,
@@ -217,7 +215,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         });
 
         if (result.success) {
-            handleClose();        
+            handleClose();
             setTimeout(() => {
                 onSwitchToLogin();
             }, 300);
@@ -249,20 +247,20 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     };
 
     return (
-        <div 
-            className={`${styles.modalOverlay} ${isClosing ? styles.fadeOut : ''}`} 
+        <div
+            className={`${styles.modalOverlay} ${isClosing ? styles.fadeOut : ''}`}
             onClick={handleOverlayClick}
         >
             <div className={`${styles.modalContainer} ${isClosing ? styles.slideDown : ''}`}>
                 <button className={styles.closeButton} onClick={handleClose} aria-label="Close modal">
                     ×
                 </button>
-                
+
                 <div className={styles.welcomeContainer}>
                     <h1 className={styles.welcomeTitle}>Welcome to CookBook!</h1>
                     <p className={styles.welcomeSubtitle}>Create your account to get started</p>
                 </div>
-                
+
                 <div className={styles.registerContainer}>
                     {error && (
                         <div className={styles.errorMessage}>
@@ -284,7 +282,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                     required
                                 />
                             </div>
-                            
+
                             <div className={styles.formGroup}>
                                 <label className={styles.formLabel}>Last Name</label>
                                 <input
@@ -316,14 +314,13 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                             </option>
                                         ))}
                                     </select>
-                                    
+
                                     <select
                                         name="birthDay"
                                         value={formData.birthDay}
                                         onChange={handleChange}
                                         className={`${styles.formSelect} ${formData.birthDay ? styles.selectActive : ''}`}
                                         required
-                                        disabled={!formData.birthMonth || !formData.birthYear}
                                     >
                                         {daysInMonth.map(day => (
                                             <option key={day.value} value={day.value}>
@@ -331,7 +328,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                             </option>
                                         ))}
                                     </select>
-                                    
+
                                     <select
                                         name="birthYear"
                                         value={formData.birthYear}
@@ -403,8 +400,8 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                             <li className={/[0-9]/.test(formData.password) ? styles.requirementMet : ''}>
                                                 {/[0-9]/.test(formData.password) ? '✓' : '○'} One number
                                             </li>
-                                            <li className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(formData.password) ? styles.requirementMet : ''}>
-                                                {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(formData.password) ? '✓' : '○'} One special character
+                                            <li className={/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(formData.password) ? styles.requirementMet : ''}>
+                                                {/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(formData.password) ? '✓' : '○'} One special character
                                             </li>
                                         </ul>
                                     </div>
@@ -454,7 +451,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                             Create Account
                         </button>
                     </form>
-                    
+
                     <div className={styles.divider}>
                         <hr className={styles.lineBreak}></hr>
                         <p className={styles.loginLinkContainerz}>or</p>
@@ -464,10 +461,10 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                     <div className={styles.loginLinkContainer}>
                         <GoogleLoginButton />
                     </div>
-                    
+
                     <p className={styles.loginLinkContainer}>
                         Already have an account?{' '}
-                        <button 
+                        <button
                             onClick={handleLoginClick}
                             className={styles.loginLink}
                         >

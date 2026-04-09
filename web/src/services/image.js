@@ -1,4 +1,4 @@
-import api from './api';
+import { multipartClient } from '../patterns/APIClientFactory';
 
 /**
  * POST /api/image/upload
@@ -9,9 +9,7 @@ import api from './api';
 export const uploadImage = (file, folder = 'recipes') => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post(`/api/image/upload?folder=${folder}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return multipartClient.post(`/api/image/upload?folder=${folder}`, formData);
 };
 
 const imageAPI = { uploadImage };

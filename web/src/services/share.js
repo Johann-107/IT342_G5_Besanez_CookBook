@@ -1,5 +1,5 @@
 import api from './api';
-import { publicClient } from './APIClientFactory';
+import { publicClient } from '../patterns/APIClientFactory';
 
 export const generateShareToken = (recipeId) =>
     api.post(`/api/share/recipe/${recipeId}`);

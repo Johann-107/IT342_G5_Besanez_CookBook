@@ -8,8 +8,6 @@ import instructionAPI from '../services/instruction';
 import collectionAPI from '../services/collection';
 import {
     ImageUploadContext,
-    CloudinaryStrategy,
-    URLStrategy,
     IMAGE_STRATEGIES,
 } from '../patterns/ImageUploadStrategy';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
@@ -181,10 +179,6 @@ const CreateRecipe = () => {
         setSaving(true);
 
         try {
-            // Strategy: delegate resolution to the active strategy.
-            // CloudinaryStrategy uploads to Cloudinary and returns a CDN URL.
-            // URLStrategy simply returns the trimmed URL string.
-            // The submit handler never inspects which strategy is active.
             let resolvedImageUrl = form.imageUrl;
 
             if (imageFile || (imageMode === 'cloudinary' && imageFile)) {
