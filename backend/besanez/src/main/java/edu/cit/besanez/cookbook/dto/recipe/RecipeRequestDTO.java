@@ -33,7 +33,6 @@ public class RecipeRequestDTO {
 
     private String notes;
 
-    @Size(max = 500, message = "Image URL must not exceed 500 characters")
     private String imageUrl;
 
     @JsonProperty("isPublic")

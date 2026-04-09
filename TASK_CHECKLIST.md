@@ -18,6 +18,7 @@ WEB
 
 BACKEND
     Apply software design patterns
+    Connect to cloudinary
 
 Mobile 
     Create:
