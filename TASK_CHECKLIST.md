@@ -17,8 +17,6 @@ WEB
         Settings page
 
 BACKEND
-    Apply software design patterns
-    Connect to cloudinary
 
 Mobile 
     Create:
@@ -51,7 +49,9 @@ BACKEND
     Transfer to Supabase - 497090c2f840c4d75e3cf042cee3badc6ca364f3
     Updated user entity to include profile image - 9865d3d915cf4abe5e96e715e493333b4c35007a
     Implement share functionality - 732555c7c82ce2a9c5e314deee1360ce75f2e0dd
-
+    Connect to cloudinary - a0b63437d8dcdbabb494ca89d8801fad67e10b84
+    Apply software design patterns - de60fc1228059aca3ee350a98bd5ddd31a336763
+    
 WEB
     Create:
         React App - fbe32ba458873410b86bc5b2ddc7f7731f291cc9

@@ -38,11 +38,11 @@ public class CollectionService {
         CollectionEntity collection = CollectionEntity.builder()
                 .name(requestDTO.getName())
                 .description(requestDTO.getDescription())
+                .coverImage(requestDTO.getCoverImage())
                 .user(user)
                 .build();
 
         CollectionEntity saved = collectionRepository.save(collection);
-
         return convertToResponseDTO(saved);
     }
 
@@ -51,7 +51,6 @@ public class CollectionService {
         CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Collection not found with id: " + collectionId));
-
         return convertToResponseDTO(collection);
     }
 
@@ -60,18 +59,15 @@ public class CollectionService {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
-
         return collectionRepository.findByUserId(userId, pageable)
                 .map(this::convertToResponseDTO);
     }
 
     @Transactional(readOnly = true)
-    public Page<CollectionResponseDTO> searchCollections(long userId, String name,
-            Pageable pageable) {
+    public Page<CollectionResponseDTO> searchCollections(long userId, String name, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
-
         return collectionRepository.findByUserIdAndNameContainingIgnoreCase(userId, name, pageable)
                 .map(this::convertToResponseDTO);
     }
@@ -86,8 +82,13 @@ public class CollectionService {
         collection.setName(requestDTO.getName());
         collection.setDescription(requestDTO.getDescription());
 
-        CollectionEntity updated = collectionRepository.save(collection);
+        // Allow clearing the cover image by passing null or blank
+        if (requestDTO.getCoverImage() != null) {
+            collection.setCoverImage(
+                    requestDTO.getCoverImage().isBlank() ? null : requestDTO.getCoverImage());
+        }
 
+        CollectionEntity updated = collectionRepository.save(collection);
         return convertToResponseDTO(updated);
     }
 
@@ -96,15 +97,13 @@ public class CollectionService {
         if (!collectionRepository.existsByIdAndUserId(collectionId, userId)) {
             throw new ResourceNotFoundException("Collection not found with id: " + collectionId);
         }
-
         collectionRepository.deleteById(collectionId);
     }
 
     // ─── Recipe membership ────────────────────────────────────────────────────
 
     @Transactional
-    public CollectionResponseDTO addRecipeToCollection(long userId, Long collectionId,
-            Long recipeId) {
+    public CollectionResponseDTO addRecipeToCollection(long userId, Long collectionId, Long recipeId) {
         CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Collection not found with id: " + collectionId));
@@ -114,15 +113,12 @@ public class CollectionService {
                         "Recipe not found with id: " + recipeId));
 
         collection.addRecipe(recipe);
-
         CollectionEntity updated = collectionRepository.save(collection);
-
         return convertToResponseDTO(updated);
     }
 
     @Transactional
-    public CollectionResponseDTO removeRecipeFromCollection(long userId, Long collectionId,
-            Long recipeId) {
+    public CollectionResponseDTO removeRecipeFromCollection(long userId, Long collectionId, Long recipeId) {
         CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Collection not found with id: " + collectionId));
@@ -132,9 +128,7 @@ public class CollectionService {
                         "Recipe not found with id: " + recipeId));
 
         collection.removeRecipe(recipe);
-
         CollectionEntity updated = collectionRepository.save(collection);
-
         return convertToResponseDTO(updated);
     }
 
@@ -145,6 +139,7 @@ public class CollectionService {
                 .id(collection.getId())
                 .name(collection.getName())
                 .description(collection.getDescription())
+                .coverImage(collection.getCoverImage())
                 .userId(collection.getUser().getId())
                 .recipeCount(collection.getRecipes().size())
                 .createdAt(collection.getCreatedAt())

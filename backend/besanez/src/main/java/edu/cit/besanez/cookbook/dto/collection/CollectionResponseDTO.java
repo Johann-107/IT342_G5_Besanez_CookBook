@@ -25,6 +25,8 @@ public class CollectionResponseDTO {
 
     private int recipeCount;
 
+    private String coverImage;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

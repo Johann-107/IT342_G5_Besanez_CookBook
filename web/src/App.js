@@ -9,6 +9,7 @@ import Recipes from './pages/Recipes';
 import RecipeDetail from './pages/RecipeDetail';
 import CreateRecipe from './pages/CreateRecipe';
 import Collections from './pages/Collections';
+import CollectionDetail from './pages/CollectionDetail';
 import ForgotPassword from './pages/ForgotPassword';
 import SharedRecipePage from './pages/SharedRecipePage';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -83,6 +84,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Collections />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route path="collections/:id"
+              element={
+                <ProtectedRoute>
+                  <CollectionDetail />
                 </ProtectedRoute>
               }
             />

@@ -30,6 +30,9 @@ public class CollectionEntity {
     @Column(name = "description", length = 255)
     private String description;
 
+    @Column(name = "cover_image", columnDefinition = "TEXT")
+    private String coverImage;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
