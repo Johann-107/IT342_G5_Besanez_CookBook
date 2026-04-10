@@ -29,6 +29,7 @@ public class CollectionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(name = "name", nullable = false, length = 100)
@@ -59,11 +60,9 @@ public class CollectionEntity {
 
     public void addRecipe(RecipeEntity recipe) {
         this.recipes.add(recipe);
-        recipe.getCollections().add(this);
     }
 
     public void removeRecipe(RecipeEntity recipe) {
         this.recipes.remove(recipe);
-        recipe.getCollections().remove(this);
     }
 }

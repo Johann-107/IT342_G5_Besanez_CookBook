@@ -110,6 +110,7 @@ public class CollectionService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Recipe not found with id: " + recipeId));
 
+        Hibernate.initialize(collection.getRecipes());
         collection.addRecipe(recipe);
         CollectionEntity updated = collectionRepository.save(collection);
         return convertToResponseDTO(updated);
@@ -125,6 +126,7 @@ public class CollectionService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Recipe not found with id: " + recipeId));
 
+        Hibernate.initialize(collection.getRecipes());
         collection.removeRecipe(recipe);
         CollectionEntity updated = collectionRepository.save(collection);
         return convertToResponseDTO(updated);

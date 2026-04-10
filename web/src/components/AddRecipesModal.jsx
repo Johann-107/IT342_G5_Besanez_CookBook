@@ -57,9 +57,9 @@ const AddRecipesModal = ({ collectionId, existingIds = [], onClose, onSaved }) =
         setSaving(true);
         setError('');
         try {
-            await Promise.all(
-                selected.map(recipeId => collectionAPI.addRecipeToCollection(collectionId, recipeId))
-            );
+            for (const recipeId of selected) {
+                await collectionAPI.addRecipeToCollection(collectionId, recipeId);
+            }
             setSuccess(`Added ${selected.length} recipe${selected.length > 1 ? 's' : ''}!`);
             setTimeout(() => {
                 onSaved && onSaved(selected.length);
