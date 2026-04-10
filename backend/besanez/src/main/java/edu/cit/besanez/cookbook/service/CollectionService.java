@@ -1,8 +1,6 @@
 package edu.cit.besanez.cookbook.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -135,6 +133,7 @@ public class CollectionService {
     // ─── Mapping ──────────────────────────────────────────────────────────────
 
     private CollectionResponseDTO convertToResponseDTO(CollectionEntity collection) {
+        Hibernate.initialize(collection.getRecipes());
         return CollectionResponseDTO.builder()
                 .id(collection.getId())
                 .name(collection.getName())
