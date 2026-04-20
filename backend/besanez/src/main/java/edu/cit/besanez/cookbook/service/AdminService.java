@@ -131,12 +131,11 @@ public class AdminService {
         return recipeRepository.findAll(pageable).map(this::convertRecipe);
     }
 
-    // @Transactional(readOnly = true)
-    // public Page<RecipeResponseDTO> searchRecipes(String query, Pageable pageable)
-    // {
-    // return recipeRepository.findByNameContainingIgnoreCase(query,
-    // pageable).map(this::convertRecipe);
-    // }
+    @Transactional(readOnly = true)
+    public Page<RecipeResponseDTO> searchRecipes(String query, Pageable pageable) {
+        return recipeRepository.findByNameContainingIgnoreCase(query,
+                pageable).map(this::convertRecipe);
+    }
 
     @Transactional
     public void deleteRecipeAdmin(Long recipeId) {

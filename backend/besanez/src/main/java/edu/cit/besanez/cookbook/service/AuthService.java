@@ -162,6 +162,7 @@ public class AuthService {
                 .email(userEntity.getEmail())
                 .profileImage(userEntity.getProfileImage())
                 .cookingLevel(userEntity.getCookingLevel())
+                .role(userEntity.getRole())
                 .build();
     }
 }

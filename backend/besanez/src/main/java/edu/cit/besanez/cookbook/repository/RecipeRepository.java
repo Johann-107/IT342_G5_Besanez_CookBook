@@ -58,6 +58,8 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
 
         // ─── Admin queries ────────────────────────────────────────────────────────
 
+        Page<RecipeEntity> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
         long countByIsPublicTrue();
 
         long countByCreatedAtAfter(LocalDateTime dateTime);

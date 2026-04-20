@@ -71,16 +71,15 @@ public class AdminController {
     // ─── Recipes ──────────────────────────────────────────────────────────────
 
     /** GET /api/admin/recipes?search=&page=&size= */
-    // @GetMapping("/recipes")
-    // public ResponseEntity<Page<RecipeResponseDTO>> getRecipes(
-    // @RequestParam(required = false) String search,
-    // @PageableDefault(size = 10, sort = "createdAt", direction =
-    // Sort.Direction.DESC) Pageable pageable) {
-    // Page<RecipeResponseDTO> page = (search != null && !search.isBlank())
-    // ? adminService.searchRecipes(search, pageable)
-    // : adminService.getAllRecipes(pageable);
-    // return ResponseEntity.ok(page);
-    // }
+    @GetMapping("/recipes")
+    public ResponseEntity<Page<RecipeResponseDTO>> getRecipes(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<RecipeResponseDTO> page = (search != null && !search.isBlank())
+                ? adminService.searchRecipes(search, pageable)
+                : adminService.getAllRecipes(pageable);
+        return ResponseEntity.ok(page);
+    }
 
     /** DELETE /api/admin/recipes/:id */
     @DeleteMapping("/recipes/{id}")
