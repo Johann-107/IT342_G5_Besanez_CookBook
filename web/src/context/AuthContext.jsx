@@ -104,10 +104,17 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const loginWithGoogle = useCallback((token, userData) => {
+    const loginWithGoogle = useCallback(async (token, userData) => {
         localStorage.setItem('token', token);
-        setUser(userData);
-        AuthEvents.emit(AUTH_EVENTS.USER_LOGIN, userData);
+        // Re-fetch full profile (including role) after Google login
+        try {
+            const meRes = await authAPI.getMe();
+            setUser(meRes.data);
+            AuthEvents.emit(AUTH_EVENTS.USER_LOGIN, meRes.data);
+        } catch {
+            setUser(userData);
+            AuthEvents.emit(AUTH_EVENTS.USER_LOGIN, userData);
+        }
     }, []);
 
     return (

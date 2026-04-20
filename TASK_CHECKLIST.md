@@ -16,10 +16,8 @@ WEB
     Create:
         Settings page
     
-    Connect admin api to frontend
 
 BACKEND
-    Implement Admin role functionalities
 
 Mobile 
     Create:
@@ -54,6 +52,7 @@ BACKEND
     Implement share functionality - 732555c7c82ce2a9c5e314deee1360ce75f2e0dd
     Connect to cloudinary - a0b63437d8dcdbabb494ca89d8801fad67e10b84
     Apply software design patterns - de60fc1228059aca3ee350a98bd5ddd31a336763
+    Implement Admin role functionalities - 08dfe529debc1ff2e8c754fa5e920d17774b425b
     
 WEB
     Create:
@@ -68,7 +67,13 @@ WEB
         Collections page - b56d8e76455eff2d93ba44e59cc21e3d483f6c17
         Forgot Password page - b56d8e76455eff2d93ba44e59cc21e3d483f6c17
         Updated Landing page, header, Login, and Register - 2c7883658c286e3f5e91e4fb8075e860eb7389fa
+        Admin Pages
+            Dashboard - d865d1bf9884e8728ce2bd60a70f8e4551bd4735
+            Users - d865d1bf9884e8728ce2bd60a70f8e4551bd4735
+            Recipes - d865d1bf9884e8728ce2bd60a70f8e4551bd4735
+            Collection - d865d1bf9884e8728ce2bd60a70f8e4551bd4735
 
     Connect backend api to frontend services - 378f94c7130d76156cf2624c1e3bc88076099984
+    Connect admin api to frontend - d865d1bf9884e8728ce2bd60a70f8e4551bd4735
     
     
