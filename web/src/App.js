@@ -12,7 +12,9 @@ import Collections from './pages/Collections';
 import CollectionDetail from './pages/CollectionDetail';
 import ForgotPassword from './pages/ForgotPassword';
 import SharedRecipePage from './pages/SharedRecipePage';
+import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import AdminRoute from './components/common/AdminRoute';
 
 const LandingWrapper = () => {
   const [searchParams] = useSearchParams();
@@ -97,6 +99,9 @@ function App() {
             />
 
             <Route path="shared/:token" element={<SharedRecipePage />} />
+
+            {/* Admin Routes — role-gated */}
+            <Route path="admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           </Route>
         </Routes>
       </AuthProvider>

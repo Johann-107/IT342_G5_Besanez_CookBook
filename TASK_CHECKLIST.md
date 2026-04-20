@@ -15,6 +15,8 @@ IN PROGRESS
 WEB
     Create:
         Settings page
+    
+    Connect admin api to frontend
 
 BACKEND
     Implement Admin role functionalities
@@ -68,4 +70,5 @@ WEB
         Updated Landing page, header, Login, and Register - 2c7883658c286e3f5e91e4fb8075e860eb7389fa
 
     Connect backend api to frontend services - 378f94c7130d76156cf2624c1e3bc88076099984
+    
     

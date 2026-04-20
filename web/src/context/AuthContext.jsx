@@ -41,9 +41,10 @@ export const AuthProvider = ({ children }) => {
             const { token, user: userData } = response.data;
             if (token) {
                 localStorage.setItem('token', token);
-                setUser(userData);
-                AuthEvents.emit(AUTH_EVENTS.USER_LOGIN, userData);
-                return { success: true };
+                const meRes = await authAPI.getMe();
+                setUser(meRes.data);
+                AuthEvents.emit(AUTH_EVENTS.USER_LOGIN, meRes.data);
+                return { success: true }
             }
             return { success: false, error: 'Login failed — no token received.' };
         } catch (error) {

@@ -166,6 +166,20 @@ const DefaultHeader = ({ user = null }) => {
                       👤 My Profile
                     </Link>
 
+                    {user?.role === 'ADMIN' && (
+                      <>
+                        <Link
+                          to="/admin"
+                          className={styles.dropdownItem}
+                          onClick={() => setShowProfileDropdown(false)}
+                          style={{ color: '#A05E33', fontWeight: 700 }}
+                        >
+                          ⭐ Admin Panel
+                        </Link>
+                        <hr className={styles.dropdownDivider} />
+                      </>
+                    )}
+
                     {/* Settings — intentionally left as-is (no route wired) */}
                     <Link
                       to="/settings"
