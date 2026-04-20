@@ -17,6 +17,7 @@ WEB
         Settings page
 
 BACKEND
+    Implement Admin role functionalities
 
 Mobile 
     Create:

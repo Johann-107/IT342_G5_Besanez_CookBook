@@ -21,6 +21,7 @@ public class UserResponseDTO {
     private String email;
     private String profileImage;
     private CookingLevel cookingLevel;
+    private String role;
 
     public int getAge() {
         if (this.birthdate == null) {

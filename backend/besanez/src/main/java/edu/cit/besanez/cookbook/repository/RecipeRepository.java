@@ -1,5 +1,6 @@
 package edu.cit.besanez.cookbook.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,4 +55,14 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
         // ─── Non-paginated (used internally for cascade/membership checks) ────────
 
         List<RecipeEntity> findByUserId(long userId);
+
+        // ─── Admin queries ────────────────────────────────────────────────────────
+
+        long countByIsPublicTrue();
+
+        long countByCreatedAtAfter(LocalDateTime dateTime);
+
+        List<RecipeEntity> findAllByCreatedAtAfter(LocalDateTime dateTime);
+
+        List<RecipeEntity> findTop10ByOrderByCreatedAtDesc();
 }

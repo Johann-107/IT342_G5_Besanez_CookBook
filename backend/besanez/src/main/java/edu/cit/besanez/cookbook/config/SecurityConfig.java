@@ -23,11 +23,14 @@ public class SecurityConfig {
 
         private final OAuth2SuccessHandler oauth2SuccessHandler;
         private final Filter jwtAuthenticationFilter;
+        private final AdminAuthorizationFilter adminAuthorizationFilter;
 
         public SecurityConfig(OAuth2SuccessHandler oauth2SuccessHandler,
-                        @Qualifier("jwtAuthenticationFilter") Filter jwtAuthenticationFilter) {
+                        @Qualifier("jwtAuthenticationFilter") Filter jwtAuthenticationFilter,
+                        AdminAuthorizationFilter adminAuthorizationFilter) {
                 this.oauth2SuccessHandler = oauth2SuccessHandler;
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+                this.adminAuthorizationFilter = adminAuthorizationFilter;
         }
 
         @Bean
@@ -53,6 +56,9 @@ public class SecurityConfig {
                                                 // Shared recipe access via token — no login required
                                                 .requestMatchers(HttpMethod.GET, "/api/share/*").permitAll()
 
+                                                // Admin endpoints — must be authenticated and have admin role
+                                                .requestMatchers("/api/admin/**").authenticated()
+
                                                 // Everything else requires a valid JWT
                                                 .anyRequest().authenticated())
 
@@ -74,7 +80,7 @@ public class SecurityConfig {
                                 "http://localhost:3000",
                                 "http://localhost:5173"));
                 configuration.setAllowedMethods(Arrays.asList(
-                                "GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                 configuration.setAllowedHeaders(Arrays.asList("*"));
                 configuration.setAllowCredentials(true);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

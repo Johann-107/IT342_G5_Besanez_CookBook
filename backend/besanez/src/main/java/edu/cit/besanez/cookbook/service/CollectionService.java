@@ -147,4 +147,18 @@ public class CollectionService {
                 .updatedAt(collection.getUpdatedAt())
                 .build();
     }
+
+    public CollectionResponseDTO convertToResponseDTOPublic(CollectionEntity collection) {
+        Hibernate.initialize(collection.getRecipes());
+        return CollectionResponseDTO.builder()
+                .id(collection.getId())
+                .name(collection.getName())
+                .description(collection.getDescription())
+                .coverImage(collection.getCoverImage())
+                .userId(collection.getUser().getId())
+                .recipeCount(collection.getRecipes().size())
+                .createdAt(collection.getCreatedAt())
+                .updatedAt(collection.getUpdatedAt())
+                .build();
+    }
 }
