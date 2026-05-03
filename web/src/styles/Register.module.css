@@ -22,6 +22,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -31,6 +32,7 @@
   from {
     opacity: 1;
   }
+
   to {
     opacity: 0;
   }
@@ -41,7 +43,7 @@
   border-radius: 20px;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 4px 30px rgba(92,61,46,0.2);
+  box-shadow: 0 4px 30px rgba(92, 61, 46, 0.2);
   animation: slideUp 0.3s ease forwards;
   position: relative;
   max-height: 90vh;
@@ -53,6 +55,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -64,6 +67,7 @@
     opacity: 1;
     transform: translateY(0);
   }
+
   to {
     opacity: 0;
     transform: translateY(20px);
@@ -75,6 +79,7 @@
     opacity: 1;
     transform: scale(1);
   }
+
   to {
     opacity: 0;
     transform: scale(0.95);
@@ -94,12 +99,13 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  font-size: 1.5rem;
+  font-size: inherit;
   color: var(--text-mid, #7A5C46);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
   transition: all 0.2s ease;
   z-index: 1;
   border: none;
@@ -190,71 +196,72 @@
   border-color: var(--terracotta, #C97D4E);
   background: white;
 }
+
 .formInput::placeholder {
   color: var(--text-light, #B09080);
   font-size: 13px;
 }
 
 .birthdateSelectors {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1.5rem;
-    width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 .formSelect {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    background: var(--warm-white, #FFF9F2);
-    border: 1.5px solid var(--border, #EDD8C4);
-    border-radius: 0.75rem;
-    color: var(--text-mid, #7A5C46);
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23C97D4E' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 12px;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: var(--warm-white, #FFF9F2);
+  border: 1.5px solid var(--border, #EDD8C4);
+  border-radius: 0.75rem;
+  color: var(--text-mid, #7A5C46);
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23C97D4E' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 12px;
 }
 
 .formSelect:hover {
-    border-color: var(--peach, #F5C9A0);
+  border-color: var(--peach, #F5C9A0);
 }
 
 .formSelect:focus {
-    outline: none;
-    border-color: var(--terracotta, #C97D4E);
-    box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.1);
+  outline: none;
+  border-color: var(--terracotta, #C97D4E);
+  box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.1);
 }
 
 .selectActive {
-    border-color: var(--terracotta, #C97D4E);
-    box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.1);
+  border-color: var(--terracotta, #C97D4E);
+  box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.1);
 }
 
 .formSelect:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: var(--peach-light, #FAE3CC);
-    border-color: var(--border, #EDD8C4);
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--peach-light, #FAE3CC);
+  border-color: var(--border, #EDD8C4);
 }
 
 .formSelect option {
-    background-color: var(--cream, #FDF8F2);
-    color: var(--text-dark, #3A2A1E);
-    padding: 0.5rem;
+  background-color: var(--cream, #FDF8F2);
+  color: var(--text-dark, #3A2A1E);
+  padding: 0.5rem;
 }
 
 .formSelect option:hover,
 .formSelect option:checked {
-    background-color: var(--peach-light, #FAE3CC);
-    color: var(--terracotta, #C97D4E);
+  background-color: var(--peach-light, #FAE3CC);
+  color: var(--terracotta, #C97D4E);
 }
 
 .formSelect option[value=""] {
-    color: var(--text-light, #B09080);
+  color: var(--text-light, #B09080);
 }
 
 /* Password input container */
@@ -277,7 +284,7 @@
   transition: all 0.2s ease;
 }
 
-.passwordInputActive{
+.passwordInputActive {
   border-color: var(--terracotta, #C97D4E);
   background: white;
 }
@@ -298,7 +305,7 @@
   font-size: 16px;
   color: var(--text-light, #B09080);
   cursor: pointer;
-  padding: 5px 0px 5px 5px;
+  padding: 5px 5px 5px 5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -321,56 +328,56 @@
 }
 
 .passwordRequirements {
-    margin-top: 0.5rem;
-    padding: 0.75rem;
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    font-size: 0.85rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  font-size: 0.85rem;
 }
 
 .passwordRequirementsTitle {
-    margin: 0 0 0.5rem 0;
-    color: #666;
-    font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #666;
+  font-weight: 500;
 }
 
 .passwordRequirementsList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .passwordRequirementsList li {
-    margin-bottom: 0.25rem;
-    color: #dc3545;
-    transition: color 0.2s ease;
+  margin-bottom: 0.25rem;
+  color: #dc3545;
+  transition: color 0.2s ease;
 }
 
 .passwordRequirementsList li.requirementMet {
-    color: #28a745;
+  color: #28a745;
 }
 
 .passwordMismatch {
-    margin-top: 0.5rem;
-    font-size: 0.85rem;
-    color: #dc3545;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #dc3545;
 }
 
 .passwordMatch {
-    margin-top: 0.5rem;
-    font-size: 0.85rem;
-    color: #28a745;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #28a745;
 }
 
 .submitButton:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-    opacity: 0.6;
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .submitButton:disabled:hover {
-    background-color: #ccc;
-    transform: none;
+  background-color: #ccc;
+  transform: none;
 }
 
 .formOptions {

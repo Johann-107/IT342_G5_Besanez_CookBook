@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { UtensilsCrossed, Eye, EyeOff } from 'lucide-react';
 import authAPI from '../services/auth';
 import styles from '../styles/ForgotPassword.module.css';
 
@@ -20,8 +21,6 @@ const ForgotPassword = () => {
         setError('');
         setLoading(true);
         try {
-            // We probe using forgot-password with a dummy password —
-            // backend accepts email+newPassword together, so we go straight to step 2
             setStep(2);
         } finally {
             setLoading(false);
@@ -47,7 +46,10 @@ const ForgotPassword = () => {
             await authAPI.forgotPassword({ email, newPassword });
             navigate('/', { state: { resetSuccess: true } });
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to reset password. Check your email and try again.');
+            setError(
+                err.response?.data?.message ||
+                'Failed to reset password. Check your email and try again.'
+            );
         } finally {
             setLoading(false);
         }
@@ -58,7 +60,9 @@ const ForgotPassword = () => {
             <div className={styles.card}>
                 <div className={styles.cardHeader}>
                     <div className={styles.logo}>
-                        <div className={styles.logoIcon}>🍳</div>
+                        <div className={styles.logoIcon}>
+                            <UtensilsCrossed size={20} color="white" strokeWidth={2} />
+                        </div>
                         <span className={styles.logoText}>CookBook</span>
                     </div>
                     <h2 className={styles.title}>
@@ -115,9 +119,15 @@ const ForgotPassword = () => {
                                         type="button"
                                         className={styles.eyeBtn}
                                         onClick={() => setShowNew(!showNew)}
-                                    >👁️</button>
+                                        aria-label={showNew ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showNew
+                                            ? <EyeOff size={16} strokeWidth={2} />
+                                            : <Eye size={16} strokeWidth={2} />}
+                                    </button>
                                 </div>
                             </div>
+
                             <div className={styles.formGroup}>
                                 <label className={styles.formLabel}>Confirm Password</label>
                                 <div className={styles.passwordWrap}>
@@ -133,7 +143,12 @@ const ForgotPassword = () => {
                                         type="button"
                                         className={styles.eyeBtn}
                                         onClick={() => setShowConfirm(!showConfirm)}
-                                    >👁️</button>
+                                        aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showConfirm
+                                            ? <EyeOff size={16} strokeWidth={2} />
+                                            : <Eye size={16} strokeWidth={2} />}
+                                    </button>
                                 </div>
                                 {confirmPassword && newPassword !== confirmPassword && (
                                     <p className={styles.mismatch}>Passwords do not match</p>
@@ -142,6 +157,7 @@ const ForgotPassword = () => {
                                     <p className={styles.match}>Passwords match ✓</p>
                                 )}
                             </div>
+
                             <div className={styles.btnRow}>
                                 <button type="button" className={styles.btnGhost} onClick={() => setStep(1)}>
                                     ← Back

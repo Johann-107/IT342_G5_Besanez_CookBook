@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Eye, EyeOff, X } from 'lucide-react';
 import styles from '../styles/Register.module.css';
 import GoogleLoginButton from '../components/GoogleLoginButton';
 
@@ -12,7 +13,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         confirmPassword: '',
         birthMonth: '',
         birthDay: '',
-        birthYear: ''
+        birthYear: '',
     });
 
     const [error, setError] = useState('');
@@ -41,7 +42,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                 confirmPassword: '',
                 birthMonth: '',
                 birthDay: '',
-                birthYear: ''
+                birthYear: '',
             });
             setError('');
             setPasswordErrors([]);
@@ -57,7 +58,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                 handleClose();
             }
         };
-
         document.addEventListener('keydown', handleEscKey);
         return () => document.removeEventListener('keydown', handleEscKey);
     }, [isOpen, isClosing, handleClose]);
@@ -86,7 +86,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         { value: '09', label: 'Sep' },
         { value: '10', label: 'Oct' },
         { value: '11', label: 'Nov' },
-        { value: '12', label: 'Dec' }
+        { value: '12', label: 'Dec' },
     ];
 
     const currentYear = new Date().getFullYear();
@@ -106,7 +106,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
             for (let day = 1; day <= daysInMonthCount; day++) {
                 days.push({
                     value: day.toString().padStart(2, '0'),
-                    label: day.toString()
+                    label: day.toString(),
                 });
             }
             setDaysInMonth(days);
@@ -119,41 +119,27 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
             for (let day = 1; day <= 31; day++) {
                 days.push({
                     value: day.toString().padStart(2, '0'),
-                    label: day.toString()
+                    label: day.toString(),
                 });
             }
             setDaysInMonth(days);
         }
     }, [formData.birthDay, formData.birthMonth, formData.birthYear]);
 
-    // Password validation function
     const validatePassword = (password) => {
         const errors = [];
-
-        if (password.length < 8) {
-            errors.push('Password must be at least 8 characters long');
-        }
-        if (!/[A-Z]/.test(password)) {
-            errors.push('Password must contain at least one uppercase letter');
-        }
-        if (!/[a-z]/.test(password)) {
-            errors.push('Password must contain at least one lowercase letter');
-        }
-        if (!/[0-9]/.test(password)) {
-            errors.push('Password must contain at least one number');
-        }
-        if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+        if (password.length < 8) errors.push('Password must be at least 8 characters long');
+        if (!/[A-Z]/.test(password)) errors.push('Password must contain at least one uppercase letter');
+        if (!/[a-z]/.test(password)) errors.push('Password must contain at least one lowercase letter');
+        if (!/[0-9]/.test(password)) errors.push('Password must contain at least one number');
+        if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password))
             errors.push('Password must contain at least one special character');
-        }
-
         return errors;
     };
 
-    // Update password errors when password changes
     useEffect(() => {
         if (formData.password) {
-            const errors = validatePassword(formData.password);
-            setPasswordErrors(errors);
+            setPasswordErrors(validatePassword(formData.password));
         } else {
             setPasswordErrors([]);
         }
@@ -163,10 +149,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = async (e) => {
@@ -178,7 +161,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
             return;
         }
 
-        // Validate password requirements
         const passwordValidationErrors = validatePassword(formData.password);
         if (passwordValidationErrors.length > 0) {
             setError('Password does not meet requirements: ' + passwordValidationErrors.join(', '));
@@ -209,9 +191,9 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         const result = await register({
             firstName: formData.firstName,
             lastName: formData.lastName,
-            birthdate: birthdate,
+            birthdate,
             email: formData.email,
-            password: formData.password
+            password: formData.password,
         });
 
         if (result.success) {
@@ -230,14 +212,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         }
     };
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
-    };
-
-    const toggleConfirmPasswordVisibility = () => {
-        setShowConfirmPassword(!showConfirmPassword);
-    };
-
     const handleLoginClick = (e) => {
         e.preventDefault();
         handleClose();
@@ -253,7 +227,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
         >
             <div className={`${styles.modalContainer} ${isClosing ? styles.slideDown : ''}`}>
                 <button className={styles.closeButton} onClick={handleClose} aria-label="Close modal">
-                    ×
+                    <X size={18} strokeWidth={2.5} />
                 </button>
 
                 <div className={styles.welcomeContainer}>
@@ -263,9 +237,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
 
                 <div className={styles.registerContainer}>
                     {error && (
-                        <div className={styles.errorMessage}>
-                            {error}
-                        </div>
+                        <div className={styles.errorMessage}>{error}</div>
                     )}
 
                     <form onSubmit={handleSubmit} className={styles.registerForm}>
@@ -282,7 +254,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                     required
                                 />
                             </div>
-
                             <div className={styles.formGroup}>
                                 <label className={styles.formLabel}>Last Name</label>
                                 <input
@@ -309,12 +280,9 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         required
                                     >
                                         {months.map(month => (
-                                            <option key={month.value} value={month.value}>
-                                                {month.label}
-                                            </option>
+                                            <option key={month.value} value={month.value}>{month.label}</option>
                                         ))}
                                     </select>
-
                                     <select
                                         name="birthDay"
                                         value={formData.birthDay}
@@ -323,12 +291,9 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         required
                                     >
                                         {daysInMonth.map(day => (
-                                            <option key={day.value} value={day.value}>
-                                                {day.label}
-                                            </option>
+                                            <option key={day.value} value={day.value}>{day.label}</option>
                                         ))}
                                     </select>
-
                                     <select
                                         name="birthYear"
                                         value={formData.birthYear}
@@ -337,9 +302,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         required
                                     >
                                         {years.map(year => (
-                                            <option key={year.value} value={year.value}>
-                                                {year.label}
-                                            </option>
+                                            <option key={year.value} value={year.value}>{year.label}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -366,7 +329,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                 <label className={styles.formLabel}>Password</label>
                                 <div className={styles.passwordInputContainer}>
                                     <input
-                                        type={showPassword ? "text" : "password"}
+                                        type={showPassword ? 'text' : 'password'}
                                         name="password"
                                         value={formData.password}
                                         onChange={handleChange}
@@ -377,13 +340,15 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                     <button
                                         type="button"
                                         className={styles.passwordToggle}
-                                        onClick={togglePasswordVisibility}
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                                     >
-                                        {showPassword ? "👁️" : "👁️"}
+                                        {showPassword
+                                            ? <EyeOff size={16} strokeWidth={2} />
+                                            : <Eye size={16} strokeWidth={2} />}
                                     </button>
                                 </div>
-                                {/* Password requirements checklist */}
+
                                 {formData.password && passwordErrors.length > 0 && (
                                     <div className={styles.passwordRequirements}>
                                         <p className={styles.passwordRequirementsTitle}>Password must contain:</p>
@@ -407,12 +372,14 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                     </div>
                                 )}
                             </div>
+                        </div>
 
+                        <div className={styles.formRow}>
                             <div className={styles.formGroup}>
                                 <label className={styles.formLabel}>Confirm Password</label>
                                 <div className={styles.passwordInputContainer}>
                                     <input
-                                        type={showConfirmPassword ? "text" : "password"}
+                                        type={showConfirmPassword ? 'text' : 'password'}
                                         name="confirmPassword"
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
@@ -423,22 +390,19 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                                     <button
                                         type="button"
                                         className={styles.passwordToggle}
-                                        onClick={toggleConfirmPasswordVisibility}
-                                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                                     >
-                                        {showConfirmPassword ? "👁️" : "👁️"}
+                                        {showConfirmPassword
+                                            ? <EyeOff size={16} strokeWidth={2} />
+                                            : <Eye size={16} strokeWidth={2} />}
                                     </button>
                                 </div>
-                                {/* Password match indicator */}
                                 {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                                    <div className={styles.passwordMismatch}>
-                                        Passwords do not match
-                                    </div>
+                                    <div className={styles.passwordMismatch}>Passwords do not match</div>
                                 )}
                                 {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                                    <div className={styles.passwordMatch}>
-                                        Passwords match ✓
-                                    </div>
+                                    <div className={styles.passwordMatch}>Passwords match ✓</div>
                                 )}
                             </div>
                         </div>
@@ -453,9 +417,9 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
                     </form>
 
                     <div className={styles.divider}>
-                        <hr className={styles.lineBreak}></hr>
-                        <p className={styles.loginLinkContainerz}>or</p>
-                        <hr className={styles.lineBreak}></hr>
+                        <hr className={styles.lineBreak} />
+                        <p className={styles.loginLinkContainer}>or</p>
+                        <hr className={styles.lineBreak} />
                     </div>
 
                     <div className={styles.loginLinkContainer}>
@@ -464,10 +428,7 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
 
                     <p className={styles.loginLinkContainer}>
                         Already have an account?{' '}
-                        <button
-                            onClick={handleLoginClick}
-                            className={styles.loginLink}
-                        >
+                        <button onClick={handleLoginClick} className={styles.loginLink}>
                             Login here
                         </button>
                     </p>
@@ -475,6 +436,6 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
             </div>
         </div>
     );
-}
+};
 
 export default Register;

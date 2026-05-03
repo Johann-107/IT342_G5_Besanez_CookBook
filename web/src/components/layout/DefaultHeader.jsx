@@ -3,6 +3,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Login from '../../pages/Login';
 import Register from '../../pages/Register';
+import {
+  UtensilsCrossed,
+  User,
+  ShieldCheck,
+  Settings,
+  LogOut,
+} from 'lucide-react';
 import styles from '../../styles/DefaultHeader.module.css';
 
 const DefaultHeader = ({ user = null }) => {
@@ -63,13 +70,11 @@ const DefaultHeader = ({ user = null }) => {
   };
 
   // ─── Avatar acronym ───────────────────────────────────────────────────────
-  // Backend returns { firstName, lastName } — never a combined `name` field
   const getUserAcronym = () => {
     if (!user) return '?';
     const first = user.firstName?.[0] ?? '';
     const last = user.lastName?.[0] ?? '';
     const initials = (first + last).toUpperCase();
-    // Fallback: use first two characters of email
     if (!initials && user.email) return user.email.slice(0, 2).toUpperCase();
     return initials || '?';
   };
@@ -84,8 +89,6 @@ const DefaultHeader = ({ user = null }) => {
   };
 
   // ─── Profile image ────────────────────────────────────────────────────────
-  // Backend UserResponseDTO has no profileImage field — always use acronym avatar.
-  // If a profileImage is ever added, this will pick it up automatically.
   const hasProfileImage = Boolean(user?.profileImage);
 
   return (
@@ -94,8 +97,10 @@ const DefaultHeader = ({ user = null }) => {
         <nav className={styles.nav}>
 
           {/* Brand / Logo */}
-          <Link to={user ? "/dashboard" : "/"} className={styles.brand}>
-            <div className={styles.logoIcon}>🍳</div>
+          <Link to={user ? '/dashboard' : '/'} className={styles.brand}>
+            <div className={styles.logoIcon}>
+              <UtensilsCrossed size={22} color="white" strokeWidth={2} />
+            </div>
             <span className={styles.logoText}>CookBook</span>
           </Link>
 
@@ -163,7 +168,8 @@ const DefaultHeader = ({ user = null }) => {
                       className={styles.dropdownItem}
                       onClick={() => setShowProfileDropdown(false)}
                     >
-                      👤 My Profile
+                      <User size={15} strokeWidth={2} />
+                      My Profile
                     </Link>
 
                     {user?.role === 'ADMIN' && (
@@ -174,19 +180,20 @@ const DefaultHeader = ({ user = null }) => {
                           onClick={() => setShowProfileDropdown(false)}
                           style={{ color: '#A05E33', fontWeight: 700 }}
                         >
-                          ⭐ Admin Panel
+                          <ShieldCheck size={15} strokeWidth={2} />
+                          Admin Panel
                         </Link>
                         <hr className={styles.dropdownDivider} />
                       </>
                     )}
 
-                    {/* Settings — intentionally left as-is (no route wired) */}
                     <Link
                       to="/settings"
                       className={styles.dropdownItem}
                       onClick={() => setShowProfileDropdown(false)}
                     >
-                      ⚙️ Settings
+                      <Settings size={15} strokeWidth={2} />
+                      Settings
                     </Link>
 
                     <hr className={styles.dropdownDivider} />
@@ -195,7 +202,8 @@ const DefaultHeader = ({ user = null }) => {
                       className={styles.dropdownItemLogout}
                       onClick={handleLogout}
                     >
-                      🚪 Log Out
+                      <LogOut size={15} strokeWidth={2} />
+                      Log Out
                     </button>
                   </div>
                 )}

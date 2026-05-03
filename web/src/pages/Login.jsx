@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Eye, EyeOff, X } from 'lucide-react';
 import styles from '../styles/Login.module.css';
 import GoogleLoginButton from '../components/GoogleLoginButton';
 
@@ -46,7 +47,6 @@ const Login = ({ isOpen, onClose, onSwitchToRegister, externalError = '' }) => {
         handleClose();
       }
     };
-
     document.addEventListener('keydown', handleEscKey);
     return () => document.removeEventListener('keydown', handleEscKey);
   }, [isOpen, isClosing, handleClose]);
@@ -84,10 +84,6 @@ const Login = ({ isOpen, onClose, onSwitchToRegister, externalError = '' }) => {
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   const handleRegisterClick = (e) => {
     e.preventDefault();
     handleClose();
@@ -103,7 +99,7 @@ const Login = ({ isOpen, onClose, onSwitchToRegister, externalError = '' }) => {
     >
       <div className={styles.modalContainer}>
         <button className={styles.closeButton} onClick={handleClose} aria-label="Close modal">
-          ×
+          <X size={18} strokeWidth={2.5} />
         </button>
 
         <div className={styles.welcomeContainer}>
@@ -137,20 +133,22 @@ const Login = ({ isOpen, onClose, onSwitchToRegister, externalError = '' }) => {
               <label className={styles.formLabel}>Password</label>
               <div className={styles.passwordInputContainer}>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`${styles.passwordInput} ${password ? styles.passwordInputActive : ''}`}
+                  className={`${styles.formInput} ${styles.passwordInput} ${password ? styles.passwordInputActive : ''}`}
                   placeholder="Enter your password"
                   required
                 />
                 <button
                   type="button"
                   className={styles.passwordToggle}
-                  onClick={togglePasswordVisibility}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? "👁️" : "👁️"}
+                  {showPassword
+                    ? <EyeOff size={16} strokeWidth={2} />
+                    : <Eye size={16} strokeWidth={2} />}
                 </button>
               </div>
             </div>
