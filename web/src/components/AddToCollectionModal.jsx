@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { X, FolderPlus, FolderOpen, Save } from 'lucide-react';
 import collectionAPI from '../services/collection';
 import styles from '../styles/AddToCollectionModal.module.css';
 
@@ -60,10 +61,14 @@ const AddToCollectionModal = ({ recipe, onClose, onSaved }) => {
     return (
         <div className={styles.overlay} onClick={onClose}>
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                <button className={styles.closeBtn} onClick={onClose}>×</button>
+                <button className={styles.closeBtn} onClick={onClose}>
+                    <X size={16} strokeWidth={2.5} />
+                </button>
 
                 <div className={styles.modalHeader}>
-                    <div className={styles.headerEmoji}>📂</div>
+                    <div className={styles.headerEmoji}>
+                        <FolderPlus size={36} strokeWidth={1.5} style={{ color: 'var(--terracotta, #C97D4E)' }} />
+                    </div>
                     <h2 className={styles.modalTitle}>Add to Collection</h2>
                     <p className={styles.modalSubtitle}>
                         Adding <strong>"{recipe?.name}"</strong> to your collections
@@ -105,7 +110,8 @@ const AddToCollectionModal = ({ recipe, onClose, onSaved }) => {
                                             checked={selected.includes(col.id)}
                                             onChange={() => toggleCollection(col.id)}
                                         />
-                                        <span className={styles.collName}>📂 {col.name}</span>
+                                        <FolderOpen size={15} strokeWidth={2} style={{ color: 'var(--terracotta, #C97D4E)', flexShrink: 0 }} />
+                                        <span className={styles.collName}>{col.name}</span>
                                         <span className={styles.collCount}>{col.recipeCount} recipes</span>
                                     </label>
                                 ))}
@@ -127,10 +133,11 @@ const AddToCollectionModal = ({ recipe, onClose, onSaved }) => {
                         onClick={handleSave}
                         disabled={saving || selected.length === 0 || loadingCols}
                     >
+                        <Save size={15} strokeWidth={2} style={{ marginRight: 6 }} />
                         {saving
                             ? 'Adding…'
                             : selected.length > 0
-                                ? `📂 Add to ${selected.length} collection${selected.length > 1 ? 's' : ''}`
+                                ? `Add to ${selected.length} collection${selected.length > 1 ? 's' : ''}`
                                 : 'Select a collection'}
                     </button>
                 </div>

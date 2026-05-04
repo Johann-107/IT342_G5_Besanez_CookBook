@@ -12,6 +12,7 @@
   z-index: 1000;
   animation: fadeIn 0.5s ease forwards;
   padding: 20px;
+  overflow: hidden;
 }
 
 .modalOverlay.fadeOut {
@@ -48,6 +49,10 @@
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.modalContainer::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes slideUp {

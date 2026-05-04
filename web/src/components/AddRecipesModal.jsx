@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { X, ChefHat, Globe, Lock, Plus } from 'lucide-react';
 import recipeAPI from '../services/recipe';
 import collectionAPI from '../services/collection';
 import styles from '../styles/AddRecipesModal.module.css';
@@ -84,10 +85,14 @@ const AddRecipesModal = ({ collectionId, existingIds = [], onClose, onSaved }) =
     return (
         <div className={styles.overlay} onClick={onClose}>
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                <button className={styles.closeBtn} onClick={onClose}>×</button>
+                <button className={styles.closeBtn} onClick={onClose}>
+                    <X size={16} strokeWidth={2.5} />
+                </button>
 
                 <div className={styles.modalHeader}>
-                    <div className={styles.headerEmoji}>🍳</div>
+                    <div className={styles.headerEmoji}>
+                        <ChefHat size={36} strokeWidth={1.5} style={{ color: 'var(--terracotta, #C97D4E)' }} />
+                    </div>
                     <h2 className={styles.modalTitle}>Add Recipes</h2>
                     <p className={styles.modalSubtitle}>
                         Select recipes to add to this collection
@@ -98,7 +103,7 @@ const AddRecipesModal = ({ collectionId, existingIds = [], onClose, onSaved }) =
                     <input
                         className={styles.searchInput}
                         type="text"
-                        placeholder="🔍 Search recipes…"
+                        placeholder="Search recipes…"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         autoFocus
@@ -122,7 +127,9 @@ const AddRecipesModal = ({ collectionId, existingIds = [], onClose, onSaved }) =
                         <div className={styles.loadingState}>Loading your recipes…</div>
                     ) : recipes.length === 0 ? (
                         <div className={styles.emptyState}>
-                            <div className={styles.emptyEmoji}>🍳</div>
+                            <div className={styles.emptyEmoji}>
+                                <ChefHat size={40} strokeWidth={1.2} style={{ color: 'var(--text-light, #B09080)' }} />
+                            </div>
                             <p className={styles.emptyTitle}>All your recipes are already in this collection</p>
                         </div>
                     ) : filteredRecipes.length === 0 ? (
@@ -152,15 +159,16 @@ const AddRecipesModal = ({ collectionId, existingIds = [], onClose, onSaved }) =
                                         <span className={styles.recipeName}>{recipe.name}</span>
                                         {recipe.totalTimeMinutes && (
                                             <span className={styles.recipeMeta}>
-                                                ⏱ {recipe.totalTimeMinutes < 60
+                                                {recipe.totalTimeMinutes < 60
                                                     ? `${recipe.totalTimeMinutes}m`
                                                     : `${Math.floor(recipe.totalTimeMinutes / 60)}h ${recipe.totalTimeMinutes % 60 ? recipe.totalTimeMinutes % 60 + 'm' : ''}`}
                                             </span>
                                         )}
                                     </div>
-                                    <span className={recipe.isPublic ? styles.tagPublic : styles.tagPrivate}>
-                                        {recipe.isPublic ? '🌐' : '🔒'}
-                                    </span>
+                                    {recipe.isPublic
+                                        ? <Globe size={15} strokeWidth={2} className={styles.tagPublic} style={{ color: '#4A8B4E', flexShrink: 0 }} />
+                                        : <Lock size={14} strokeWidth={2} className={styles.tagPrivate} style={{ color: 'var(--text-mid, #7A5C46)', flexShrink: 0 }} />
+                                    }
                                 </label>
                             ))}
                         </div>
@@ -184,6 +192,7 @@ const AddRecipesModal = ({ collectionId, existingIds = [], onClose, onSaved }) =
                             onClick={handleSave}
                             disabled={saving || selected.length === 0}
                         >
+                            <Plus size={15} strokeWidth={2.5} style={{ marginRight: 4 }} />
                             {saving
                                 ? 'Adding…'
                                 : selected.length > 0

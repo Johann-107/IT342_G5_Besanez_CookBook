@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link2, X, Unlink, Share2 } from 'lucide-react';
 import shareAPI from '../services/share';
 import styles from '../styles/SharePanel.module.css';
 
@@ -70,20 +71,22 @@ const SharePanel = ({ recipeId, initialToken }) => {
                 className={`${styles.triggerBtn} ${shareToken ? styles.active : ''}`}
                 onClick={() => {
                     if (!shareToken) handleGenerate();
-                    else setOpen(o => !o);
+                    setOpen(o => !o);
                 }}
                 disabled={loading}
                 title={shareToken ? 'Share options' : 'Create share link'}
             >
-                <span className={styles.icon}>🔗</span>
-                {loading ? 'Generating…' : shareToken ? 'Share' : 'Share'}
+                <Share2 size={14} strokeWidth={2} className={styles.icon} />
+                {loading ? 'Generating…' : 'Share'}
             </button>
 
             {shareToken && open && (
                 <div className={styles.panel}>
                     <div className={styles.panelHeader}>
                         <span className={styles.panelTitle}>Share this recipe</span>
-                        <button className={styles.closePanel} onClick={() => setOpen(false)}>×</button>
+                        <button className={styles.closePanel} onClick={() => setOpen(false)}>
+                            <X size={16} strokeWidth={2} />
+                        </button>
                     </div>
 
                     <p className={styles.panelDesc}>
@@ -111,20 +114,11 @@ const SharePanel = ({ recipeId, initialToken }) => {
                             onClick={handleRevoke}
                             disabled={loading}
                         >
-                            🚫 Disable link
+                            <Unlink size={13} strokeWidth={2} style={{ marginRight: 4 }} />
+                            Disable link
                         </button>
                     </div>
                 </div>
-            )}
-
-            {/* Auto-open panel after generating */}
-            {shareToken && !open && (
-                <button
-                    className={styles.viewLinkBtn}
-                    onClick={() => setOpen(true)}
-                >
-                    View link ↓
-                </button>
             )}
         </div>
     );

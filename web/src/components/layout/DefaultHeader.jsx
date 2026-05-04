@@ -22,10 +22,21 @@ const DefaultHeader = ({ user = null }) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   const dropdownRef = useRef(null);
-
   const isLandingPage = location.pathname === '/';
 
-  // ─── Close dropdown when clicking outside ─────────────────────────────────
+  // ─── Centralized body scroll lock ─────────────────────────────────────────
+  // Managed here (not inside each modal) to avoid race conditions when
+  // switching between Login and Register — if each modal manages its own
+  // lock, the closing modal's cleanup fires after the opening modal sets the
+  // lock, silently resetting overflow back to 'unset'.
+  useEffect(() => {
+    document.body.style.overflow = (showLoginModal || showRegisterModal) ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showLoginModal, showRegisterModal]);
+
+  // ─── Close dropdown on outside click ──────────────────────────────────────
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -69,7 +80,7 @@ const DefaultHeader = ({ user = null }) => {
     navigate('/');
   };
 
-  // ─── Avatar acronym ───────────────────────────────────────────────────────
+  // ─── Avatar helpers ───────────────────────────────────────────────────────
   const getUserAcronym = () => {
     if (!user) return '?';
     const first = user.firstName?.[0] ?? '';
@@ -79,7 +90,6 @@ const DefaultHeader = ({ user = null }) => {
     return initials || '?';
   };
 
-  // ─── Display name ─────────────────────────────────────────────────────────
   const getDisplayName = () => {
     if (!user) return '';
     if (user.firstName || user.lastName) {
@@ -88,7 +98,6 @@ const DefaultHeader = ({ user = null }) => {
     return user.email ?? '';
   };
 
-  // ─── Profile image ────────────────────────────────────────────────────────
   const hasProfileImage = Boolean(user?.profileImage);
 
   return (
@@ -96,7 +105,7 @@ const DefaultHeader = ({ user = null }) => {
       <header className={styles.header}>
         <nav className={styles.nav}>
 
-          {/* Brand / Logo */}
+          {/* Brand */}
           <Link to={user ? '/dashboard' : '/'} className={styles.brand}>
             <div className={styles.logoIcon}>
               <UtensilsCrossed size={22} color="white" strokeWidth={2} />
@@ -104,7 +113,7 @@ const DefaultHeader = ({ user = null }) => {
             <span className={styles.logoText}>CookBook</span>
           </Link>
 
-          {/* Feature Nav Links — hidden on landing page */}
+          {/* Feature nav — hidden on landing */}
           {!isLandingPage && (
             <ul className={styles.navLinks}>
               <li><Link to="/dashboard" className={styles.navLink}>Dashboard</Link></li>
@@ -115,8 +124,6 @@ const DefaultHeader = ({ user = null }) => {
 
           {/* Right-side menu */}
           <div className={styles.menu}>
-
-            {/* Login / Sign Up — shown only when no user is logged in */}
             {!user && (
               <>
                 <button onClick={openLoginModal} className={styles.navLinkButton}>
@@ -128,7 +135,6 @@ const DefaultHeader = ({ user = null }) => {
               </>
             )}
 
-            {/* Avatar — shown when user is logged in */}
             {user && (
               <div className={styles.avatarWrapper} ref={dropdownRef}>
                 <button
@@ -209,7 +215,6 @@ const DefaultHeader = ({ user = null }) => {
                 )}
               </div>
             )}
-
           </div>
         </nav>
       </header>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { X, Download, Lock, FolderOpen, Save } from 'lucide-react';
 import collectionAPI from '../services/collection';
 import shareAPI from '../services/share';
 import styles from '../styles/SaveRecipeModal.module.css';
@@ -15,7 +16,6 @@ import styles from '../styles/SaveRecipeModal.module.css';
 const SaveRecipeModal = ({ token, recipe, onClose, onSaved }) => {
     const [collections, setCollections] = useState([]);
     const [selected, setSelected] = useState([]);
-    const [saveAsPrivate, setSaveAsPrivate] = useState(true);
     const [saving, setSaving] = useState(false);
     const [loadingCols, setLoadingCols] = useState(true);
     const [error, setError] = useState('');
@@ -55,10 +55,14 @@ const SaveRecipeModal = ({ token, recipe, onClose, onSaved }) => {
     return (
         <div className={styles.overlay} onClick={onClose}>
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                <button className={styles.closeBtn} onClick={onClose}>×</button>
+                <button className={styles.closeBtn} onClick={onClose}>
+                    <X size={16} strokeWidth={2.5} />
+                </button>
 
                 <div className={styles.modalHeader}>
-                    <div className={styles.headerEmoji}>📥</div>
+                    <div className={styles.headerEmoji}>
+                        <Download size={36} strokeWidth={1.5} style={{ color: 'var(--terracotta, #C97D4E)' }} />
+                    </div>
                     <h2 className={styles.modalTitle}>Save Recipe</h2>
                     <p className={styles.modalSubtitle}>
                         <strong>"{recipe?.name}"</strong> will be saved as a private copy in your cookbook.
@@ -70,7 +74,7 @@ const SaveRecipeModal = ({ token, recipe, onClose, onSaved }) => {
 
                     {/* Private badge */}
                     <div className={styles.privateBadge}>
-                        <span className={styles.privateBadgeIcon}>🔒</span>
+                        <Lock size={22} strokeWidth={1.8} className={styles.privateBadgeIcon} style={{ color: 'var(--terracotta, #C97D4E)' }} />
                         <div>
                             <div className={styles.privateBadgeTitle}>Saved as Private</div>
                             <div className={styles.privateBadgeDesc}>Only you can see this recipe</div>
@@ -107,7 +111,8 @@ const SaveRecipeModal = ({ token, recipe, onClose, onSaved }) => {
                                             checked={selected.includes(col.id)}
                                             onChange={() => toggleCollection(col.id)}
                                         />
-                                        <span className={styles.collName}>📂 {col.name}</span>
+                                        <FolderOpen size={15} strokeWidth={2} style={{ color: 'var(--terracotta, #C97D4E)', flexShrink: 0 }} />
+                                        <span className={styles.collName}>{col.name}</span>
                                         <span className={styles.collCount}>{col.recipeCount} recipes</span>
                                     </label>
                                 ))}
@@ -129,11 +134,12 @@ const SaveRecipeModal = ({ token, recipe, onClose, onSaved }) => {
                         onClick={handleSave}
                         disabled={saving}
                     >
+                        <Save size={15} strokeWidth={2} style={{ marginRight: 6 }} />
                         {saving
                             ? 'Saving…'
                             : selected.length > 0
-                                ? `💾 Save to ${selected.length} collection${selected.length > 1 ? 's' : ''}`
-                                : '💾 Save to My Cookbook'}
+                                ? `Save to ${selected.length} collection${selected.length > 1 ? 's' : ''}`
+                                : 'Save to My Cookbook'}
                     </button>
                 </div>
             </div>
