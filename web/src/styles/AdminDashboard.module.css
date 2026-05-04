@@ -262,9 +262,10 @@
 }
 
 .spinner {
-    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     animation: spin 1.5s linear infinite;
-    display: inline-block;
 }
 
 @keyframes spin {

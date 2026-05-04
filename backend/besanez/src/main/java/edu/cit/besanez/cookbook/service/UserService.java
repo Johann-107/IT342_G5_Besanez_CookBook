@@ -101,6 +101,7 @@ public class UserService {
                 .profileImage(userEntity.getProfileImage())
                 .cookingLevel(userEntity.getCookingLevel())
                 .role(userEntity.getRole())
+                .createdAt(userEntity.getCreatedAt().toLocalDate())
                 .build();
     }
 }

@@ -22,6 +22,7 @@ public class UserResponseDTO {
     private String profileImage;
     private CookingLevel cookingLevel;
     private String role;
+    private LocalDate createdAt;
 
     public int getAge() {
         if (this.birthdate == null) {
