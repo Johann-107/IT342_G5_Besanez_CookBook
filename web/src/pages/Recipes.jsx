@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Globe, Lock, FolderPlus, Pencil, Trash2, ChefHat } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import AddToCollectionModal from '../components/AddToCollectionModal';
@@ -22,7 +23,6 @@ const Recipes = () => {
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    // Add to collection modal state
     const [addToCollectionRecipe, setAddToCollectionRecipe] = useState(null);
 
     const fetchRecipes = useCallback(async () => {
@@ -94,7 +94,7 @@ const Recipes = () => {
                 <div className={styles.filterBar}>
                     <input
                         className={styles.searchInput}
-                        placeholder="🔍 Search recipes…"
+                        placeholder="Search recipes…"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
@@ -124,12 +124,16 @@ const Recipes = () => {
 
                 {loading ? (
                     <div className={styles.loadingState}>
-                        <div className={styles.loadingEmoji}>🍳</div>
+                        <div className={styles.loadingEmoji}>
+                            <ChefHat size={48} strokeWidth={1.2} />
+                        </div>
                         <p>Loading your recipes…</p>
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className={styles.emptyState}>
-                        <div className={styles.emptyEmoji}>🍳</div>
+                        <div className={styles.emptyEmoji}>
+                            <ChefHat size={56} strokeWidth={1.2} style={{ color: 'var(--text-light, #B09080)' }} />
+                        </div>
                         <h3 className={styles.emptyTitle}>
                             {search ? 'No recipes found' : 'No recipes yet'}
                         </h3>
@@ -163,8 +167,8 @@ const Recipes = () => {
                                         <div className={styles.recipeCardTop}>
                                             <div className={styles.recipeCardTitle}>{recipe.name}</div>
                                             {recipe.isPublic
-                                                ? <span className={styles.tagPublic}>🌐 Public</span>
-                                                : <span className={styles.tagPrivate}>🔒 Private</span>
+                                                ? <span className={styles.tagPublic}><Globe size={13} strokeWidth={2} /> Public</span>
+                                                : <span className={styles.tagPrivate}><Lock size={12} strokeWidth={2} /> Private</span>
                                             }
                                         </div>
                                         <div className={styles.recipeCardMeta}>
@@ -183,22 +187,27 @@ const Recipes = () => {
                                                     : ''}
                                             </span>
                                             <div className={styles.cardActions} onClick={e => e.stopPropagation()}>
-                                                {/* Add to Collection button */}
                                                 <button
                                                     className={styles.iconBtn}
                                                     onClick={(e) => handleAddToCollection(e, recipe)}
                                                     title="Add to collection"
-                                                >📂</button>
+                                                >
+                                                    <FolderPlus size={13} strokeWidth={2} />
+                                                </button>
                                                 <button
                                                     className={styles.iconBtn}
                                                     onClick={() => navigate(`/recipe/${recipe.id}/edit`)}
                                                     title="Edit"
-                                                >✏️</button>
+                                                >
+                                                    <Pencil size={13} strokeWidth={2} />
+                                                </button>
                                                 <button
                                                     className={styles.iconBtn}
                                                     onClick={(e) => handleDelete(e, recipe.id)}
                                                     title="Delete"
-                                                >🗑</button>
+                                                >
+                                                    <Trash2 size={13} strokeWidth={2} />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

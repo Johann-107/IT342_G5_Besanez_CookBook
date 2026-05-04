@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { PenLine, FolderOpen, Cloud } from 'lucide-react';
 import styles from '../styles/Landing.module.css';
 import DefaultHeader from '../components/layout/DefaultHeader';
-import Login from './Login'; // adjust path if needed
+import Login from './Login';
 
 const Landing = ({
   onGetStarted,
@@ -10,7 +11,7 @@ const Landing = ({
   onLogoClick,
   onFeatureClick,
   onFooterLinkClick,
-  openLoginOnLoad = false, // Added
+  openLoginOnLoad = false,
   featuredRecipe = {
     title: 'Moroccan Lamb Tagine',
     time: '45 min',
@@ -24,7 +25,6 @@ const Landing = ({
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginError, setLoginError] = useState('');
 
-  // Auto-open login modal with error if redirected from failed Google login
   useEffect(() => {
     if (openLoginOnLoad) {
       setLoginError('Google Sign-In failed. Please try again.');
@@ -34,23 +34,30 @@ const Landing = ({
 
   const handleGetStarted = () => {
     if (onGetStarted) onGetStarted();
-    else setIsLoginOpen(true); // fallback: open login modal
+    else setIsLoginOpen(true);
   };
-
-  // ... rest of your existing handlers unchanged ...
 
   const features = [
     {
-      id: 'create', icon: '📝', title: 'Create Recipes',
-      description: 'Add ingredients, steps, and personal notes with our intuitive editor.', bgColor: '#FDE8D0'
+      id: 'create',
+      Icon: PenLine,
+      title: 'Create Recipes',
+      description: 'Add ingredients, steps, and personal notes with our intuitive editor.',
+      bgColor: '#FDE8D0'
     },
     {
-      id: 'organize', icon: '📂', title: 'Organize Collections',
-      description: 'Group recipes into custom collections with color coding.', bgColor: '#D5EBD6'
+      id: 'organize',
+      Icon: FolderOpen,
+      title: 'Organize Collections',
+      description: 'Group recipes into custom collections with color coding.',
+      bgColor: '#D5EBD6'
     },
     {
-      id: 'access', icon: '☁️', title: 'Access Anywhere',
-      description: 'Your recipes sync across all your devices seamlessly.', bgColor: '#FDF1D0'
+      id: 'access',
+      Icon: Cloud,
+      title: 'Access Anywhere',
+      description: 'Your recipes sync across all your devices seamlessly.',
+      bgColor: '#FDF1D0'
     }
   ];
 
@@ -111,6 +118,11 @@ const Landing = ({
               className={styles.featureItem}
               onClick={() => onFeatureClick && onFeatureClick(feature.id)}
             >
+              <feature.Icon
+                size={28}
+                strokeWidth={1.8}
+                style={{ color: 'var(--terracotta, #C97D4E)', marginBottom: 12, display: 'block' }}
+              />
               <h3 className={styles.featureTitle}>{feature.title}</h3>
               <p className={styles.featureDescription}>{feature.description}</p>
             </div>
@@ -137,7 +149,7 @@ const Landing = ({
         isOpen={isLoginOpen}
         onClose={() => { setIsLoginOpen(false); setLoginError(''); }}
         onSwitchToRegister={() => setIsLoginOpen(false)}
-        externalError={loginError} // pass the error to the modal
+        externalError={loginError}
       />
     </>
   );

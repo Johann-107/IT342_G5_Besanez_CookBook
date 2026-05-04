@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import {
+    ArrowLeft, FolderPlus, Pencil, Printer, Trash2,
+    Timer, Flame, Clock, Globe, Lock, ChefHat, AlertCircle,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import SharePanel from '../components/SharePanel';
@@ -68,7 +72,9 @@ const RecipeDetail = () => {
             <>
                 <DefaultHeader user={user} />
                 <div className={styles.loadingState}>
-                    <div className={styles.loadingEmoji}>🍳</div>
+                    <div className={styles.loadingEmoji}>
+                        <ChefHat size={56} strokeWidth={1.2} />
+                    </div>
                     <p>Loading recipe…</p>
                 </div>
             </>
@@ -80,10 +86,13 @@ const RecipeDetail = () => {
             <>
                 <DefaultHeader user={user} />
                 <div className={styles.errorState}>
-                    <div className={styles.emptyEmoji}>😕</div>
+                    <div className={styles.emptyEmoji}>
+                        <AlertCircle size={56} strokeWidth={1.2} style={{ color: 'var(--text-light, #B09080)' }} />
+                    </div>
                     <h3>{error || 'Recipe not found.'}</h3>
                     <button className={styles.btnGhost} onClick={() => navigate('/recipes')}>
-                        ← Back to Recipes
+                        <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                        Back to Recipes
                     </button>
                 </div>
             </>
@@ -112,7 +121,8 @@ const RecipeDetail = () => {
                         className={hasImage ? styles.backBtnOnImage : styles.backBtn}
                         onClick={() => navigate('/recipes')}
                     >
-                        ← My Recipes
+                        <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                        My Recipes
                     </button>
                     <div className={styles.titleRow}>
                         <h1 className={`${styles.recipeTitle} ${hasImage ? styles.recipeTitleOnImage : ''}`}>
@@ -120,46 +130,58 @@ const RecipeDetail = () => {
                         </h1>
                         <div className={styles.recipeActions}>
                             <SharePanel recipeId={id} initialToken={recipe.shareToken} />
-                            {/* Add to Collection button */}
                             <button
                                 className={hasImage ? styles.btnGhostOnImage : styles.btnGhost}
                                 onClick={() => setShowAddToCollection(true)}
                                 title="Add to collection"
                             >
-                                📂 Add to Collection
+                                <FolderPlus size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />
+                                Add to Collection
                             </button>
-                            <button className={hasImage ? styles.btnGhostOnImage : styles.btnGhost}
-                                onClick={() => navigate(`/recipe/${id}/edit`)}>
-                                ✏️ Edit
+                            <button
+                                className={hasImage ? styles.btnGhostOnImage : styles.btnGhost}
+                                onClick={() => navigate(`/recipe/${id}/edit`)}
+                            >
+                                <Pencil size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />
+                                Edit
                             </button>
-                            <button className={hasImage ? styles.btnGhostOnImage : styles.btnGhost}
-                                onClick={() => window.print()}>
-                                🖨 Print
+                            <button
+                                className={hasImage ? styles.btnGhostOnImage : styles.btnGhost}
+                                onClick={() => window.print()}
+                            >
+                                <Printer size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />
+                                Print
                             </button>
                             <button className={styles.btnDanger} onClick={handleDelete}>
-                                🗑 Delete
+                                <Trash2 size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />
+                                Delete
                             </button>
                         </div>
                     </div>
                     <div className={styles.timeBadges}>
                         {recipe.prepTimeMinutes && (
                             <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
-                                ⏱ Prep <span>{formatTime(recipe.prepTimeMinutes)}</span>
+                                <Timer size={13} strokeWidth={2} />
+                                Prep <span>{formatTime(recipe.prepTimeMinutes)}</span>
                             </div>
                         )}
                         {recipe.cookTimeMinutes && (
                             <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
-                                🔥 Cook <span>{formatTime(recipe.cookTimeMinutes)}</span>
+                                <Flame size={13} strokeWidth={2} />
+                                Cook <span>{formatTime(recipe.cookTimeMinutes)}</span>
                             </div>
                         )}
                         {recipe.totalTimeMinutes && (
                             <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
-                                ⏰ Total <span>{formatTime(recipe.totalTimeMinutes)}</span>
+                                <Clock size={13} strokeWidth={2} />
+                                Total <span>{formatTime(recipe.totalTimeMinutes)}</span>
                             </div>
                         )}
                         <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
-                            {recipe.isPublic ? '🌐' : '🔒'}{' '}
-                            <span>{recipe.isPublic ? 'Public' : 'Private'}</span>
+                            {recipe.isPublic
+                                ? <><Globe size={13} strokeWidth={2} /> <span>Public</span></>
+                                : <><Lock size={12} strokeWidth={2} /> <span>Private</span></>
+                            }
                         </div>
                     </div>
                 </div>
@@ -207,7 +229,10 @@ const RecipeDetail = () => {
                             </div>
                             <div className={styles.tagRow}>
                                 <span className={recipe.isPublic ? styles.tagPublic : styles.tagPrivate}>
-                                    {recipe.isPublic ? '🌐 Public' : '🔒 Private'}
+                                    {recipe.isPublic
+                                        ? <><Globe size={12} strokeWidth={2} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Public</>
+                                        : <><Lock size={11} strokeWidth={2} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Private</>
+                                    }
                                 </span>
                             </div>
                         </div>
@@ -238,7 +263,10 @@ const RecipeDetail = () => {
                 </div>
 
                 <div className={styles.footer}>
-                    <button className={styles.btnGhost} onClick={() => navigate(-1)}>← Back</button>
+                    <button className={styles.btnGhost} onClick={() => navigate(-1)}>
+                        <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                        Back
+                    </button>
                 </div>
             </div>
 

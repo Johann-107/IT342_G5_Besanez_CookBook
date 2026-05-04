@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { BookOpen, FolderOpen, FolderPlus, Sparkles, ChefHat } from 'lucide-react';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import AddToCollectionModal from '../components/AddToCollectionModal';
 import CookbookFacade from '../patterns/CookbookFacade';
@@ -25,7 +26,6 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // Add to collection modal state
     const [addToCollectionRecipe, setAddToCollectionRecipe] = useState(null);
 
     useEffect(() => {
@@ -74,6 +74,12 @@ const Dashboard = () => {
 
     const displayName = user?.firstName || user?.name || 'Chef';
 
+    const statCards = [
+        { label: 'Total Recipes', value: stats.totalRecipes, Icon: BookOpen, bg: '#FDE8D0' },
+        { label: 'Collections', value: stats.totalCollections, Icon: FolderOpen, bg: '#D5EBD6' },
+        { label: 'Added This Week', value: stats.addedThisWeek, Icon: Sparkles, bg: '#FDF1D0' },
+    ];
+
     return (
         <>
             <DefaultHeader user={user} />
@@ -100,21 +106,15 @@ const Dashboard = () => {
                         </div>
                     ) : (
                         <div className={styles.statsRow}>
-                            <div className={styles.statCard}>
-                                <div className={styles.statIcon} style={{ background: '#FDE8D0' }}>📖</div>
-                                <div className={styles.statNum}>{stats.totalRecipes}</div>
-                                <div className={styles.statLabel}>Total Recipes</div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={styles.statIcon} style={{ background: '#D5EBD6' }}>📂</div>
-                                <div className={styles.statNum}>{stats.totalCollections}</div>
-                                <div className={styles.statLabel}>Collections</div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={styles.statIcon} style={{ background: '#FDF1D0' }}>✨</div>
-                                <div className={styles.statNum}>{stats.addedThisWeek}</div>
-                                <div className={styles.statLabel}>Added This Week</div>
-                            </div>
+                            {statCards.map(({ label, value, Icon, bg }) => (
+                                <div className={styles.statCard} key={label}>
+                                    <div className={styles.statIcon} style={{ background: bg }}>
+                                        <Icon size={20} strokeWidth={1.8} style={{ color: 'var(--terracotta, #C97D4E)' }} />
+                                    </div>
+                                    <div className={styles.statNum}>{value}</div>
+                                    <div className={styles.statLabel}>{label}</div>
+                                </div>
+                            ))}
                         </div>
                     )}
 
@@ -123,7 +123,8 @@ const Dashboard = () => {
                             + Add New Recipe
                         </button>
                         <button className={styles.btnOutline} onClick={() => navigate('/collections')}>
-                            📁 Create Collection
+                            <FolderPlus size={16} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                            Create Collection
                         </button>
                     </div>
 
@@ -144,7 +145,7 @@ const Dashboard = () => {
                         </div>
                     ) : recentRecipes.length === 0 ? (
                         <div className={styles.emptySection}>
-                            <span>🍳</span>
+                            <ChefHat size={22} strokeWidth={1.6} style={{ color: 'var(--text-light, #B09080)' }} />
                             <p>
                                 No recipes yet.{' '}
                                 <button className={styles.inlineLink} onClick={() => navigate('/create-recipe')}>
@@ -174,10 +175,9 @@ const Dashboard = () => {
                                                 </span>
                                             )}
                                             {recipe.isPublic
-                                                ? <span className={styles.metaPillGreen}>🌐 Public</span>
-                                                : <span className={styles.metaPill}>🔒 Private</span>}
+                                                ? <span className={styles.metaPillGreen}>Public</span>
+                                                : <span className={styles.metaPill}>Private</span>}
                                         </div>
-                                        {/* Add to Collection button on card */}
                                         <div
                                             className={styles.cardQuickAction}
                                             onClick={e => e.stopPropagation()}
@@ -190,7 +190,8 @@ const Dashboard = () => {
                                                 }}
                                                 title="Add to collection"
                                             >
-                                                📂 Add to Collection
+                                                <FolderPlus size={13} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />
+                                                Add to Collection
                                             </button>
                                         </div>
                                     </div>
@@ -214,7 +215,7 @@ const Dashboard = () => {
                         </div>
                     ) : collections.length === 0 ? (
                         <div className={styles.emptySection}>
-                            <span>📂</span>
+                            <FolderOpen size={22} strokeWidth={1.6} style={{ color: 'var(--text-light, #B09080)' }} />
                             <p>
                                 No collections yet.{' '}
                                 <button className={styles.inlineLink} onClick={() => navigate('/collections')}>
