@@ -1,7 +1,7 @@
+import styles from '../styles/Register.module.css';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, X } from 'lucide-react';
-import styles from '../styles/Register.module.css';
 import GoogleLoginButton from '../components/GoogleLoginButton';
 
 const Register = ({ isOpen, onClose, onSwitchToLogin }) => {

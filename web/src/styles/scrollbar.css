@@ -1,0 +1,29 @@
+/* ─────────────────────────────────────────
+   scrollbar.css
+   Global custom scrollbar — warm palette
+───────────────────────────────────────── */
+
+/* ── Webkit (Chrome, Edge, Safari) ── */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--cream, #FDF8F2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #DDB899;
+    border-radius: 99px;
+    border: 2px solid var(--cream, #FDF8F2);
+    transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--terracotta, #C97D4E);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--cream, #FDF8F2);
+}
