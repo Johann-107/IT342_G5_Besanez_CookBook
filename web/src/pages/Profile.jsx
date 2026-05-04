@@ -45,7 +45,7 @@ const Profile = () => {
 
     const showMessage = (text, type = 'success') => {
         setMessage({ text, type });
-        setTimeout(() => setMessage({ text: '', type: '' }), 3500);
+        setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     };
 
     // ─── Edit mode helpers ──────────────────────────────────────────────────────
@@ -170,15 +170,6 @@ const Profile = () => {
         <>
             <DefaultHeader user={{ ...user, profileImage }} />
             <div className={styles.page}>
-
-                <div className={styles.pageHeader}>
-                    <h2 className={styles.pageTitle}>My Profile</h2>
-                    <button className={styles.backBtn} onClick={() => navigate('/dashboard')}>
-                        <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 5 }} />
-                        Dashboard
-                    </button>
-                </div>
-
                 {message.text && (
                     <div className={`${styles.message} ${styles[message.type]}`}>
                         {message.type === 'success'
@@ -264,7 +255,7 @@ const Profile = () => {
                             <span className={styles.aiLabel}>Member Since</span>
                             <span className={styles.aiValue}>
                                 {user?.createdAt
-                                    ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                                    ? new Date(user?.createdAt).toLocaleDateString('en-US', {
                                         month: 'long', year: 'numeric',
                                     })
                                     : '—'}

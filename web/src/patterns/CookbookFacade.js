@@ -66,11 +66,21 @@ class CookbookFacade {
             recipeAPI.getRecipes({ size: 1, page: 0 }),
             collectionAPI.getCollections({ size: 50, sort: 'createdAt,desc', page: 0 }),
         ]);
+
+        // Support both flat { totalElements } and nested { page: { totalElements } }
+        const totalRecipes = allRes.data.page?.totalElements
+            ?? allRes.data.totalElements
+            ?? 0;
+
+        const totalCollections = collectionsRes.data.page?.totalElements
+            ?? collectionsRes.data.totalElements
+            ?? 0;
+
         return {
             recentRecipes: recentRes.data.content || [],
-            totalRecipes: allRes.data.totalElements || 0,
+            totalRecipes,
             collections: collectionsRes.data.content || [],
-            totalCollections: collectionsRes.data.totalElements || 0,
+            totalCollections,
         };
     }
 

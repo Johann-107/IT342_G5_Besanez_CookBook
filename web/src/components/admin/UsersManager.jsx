@@ -23,11 +23,9 @@ const UsersManager = () => {
                 sort: 'createdAt,desc',
                 ...(search.trim() && { search: search.trim() }),
             });
-            // Fix: data is nested under 'page' for pagination
-            const pageData = res.data.page ?? res.data;  // fallback in case shape changes
             setUsers(res.data.content ?? []);
-            setTotalPages(pageData.totalPages ?? 0);
-            setTotalElements(pageData.totalElements ?? 0);
+            setTotalPages(res.data.page.totalPages ?? 0);
+            setTotalElements(res.data.page.totalElements ?? 0);
         } catch (e) {
             console.error(e);
         } finally {
@@ -141,9 +139,7 @@ const UsersManager = () => {
                                         )}
                                     </td>
                                     <td className={styles.td}>
-                                        {u.createdAt || u.joinedAt
-                                            ? formatRelativeTime(u.createdAt || u.joinedAt)
-                                            : '—'}
+                                        {formatRelativeTime(u.createdAt || u.joinedAt)}
                                     </td>
                                     <td className={styles.td}>
                                         <div className={styles.actionBtns}>

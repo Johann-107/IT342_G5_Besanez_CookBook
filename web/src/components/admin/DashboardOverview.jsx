@@ -139,7 +139,7 @@ const DashboardOverview = ({ stats, loading }) => {
                                 {r.ownerFirstName} {r.ownerLastName}
                             </td>
                             <td className={styles.td}>
-                                {r.isPublic ? (
+                                {r.public ? (
                                     <span className={styles.publicBadge}>
                                         <Globe size={14} /> Public
                                     </span>

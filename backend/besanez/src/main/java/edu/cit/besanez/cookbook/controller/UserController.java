@@ -63,6 +63,7 @@ public class UserController {
             response.put("profileImage", user.getProfileImage());
             response.put("cookingLevel", user.getCookingLevel());
             response.put("role", user.getRole());
+            response.put("createdAt", user.getCreatedAt());
 
             return ResponseEntity.ok(response);
 

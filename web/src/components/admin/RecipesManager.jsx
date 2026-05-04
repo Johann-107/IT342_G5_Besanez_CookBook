@@ -24,8 +24,8 @@ const RecipesManager = () => {
                 ...(search.trim() && { search: search.trim() }),
             });
             setRecipes(res.data.content || []);
-            setTotalPages(res.data.totalPages || 0);
-            setTotalElements(res.data.totalElements || 0);
+            setTotalPages(res.data.page.totalPages || 0);
+            setTotalElements(res.data.page.totalElements || 0);
         } catch (e) {
             console.error(e);
         } finally {
