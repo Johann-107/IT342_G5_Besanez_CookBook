@@ -4,12 +4,21 @@ import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import { uploadImage } from '../services/image';
 import userAPI from '../services/user';
+import {
+    ArrowLeft,
+    Camera,
+    Loader2,
+    Save,
+    CheckCircle,
+    AlertTriangle,
+    Pencil,
+} from 'lucide-react';
 import styles from '../styles/Profile.module.css';
 
 const COOKING_LEVELS = [
-    { value: 'BEGINNER', label: '👶 Beginner' },
-    { value: 'INTERMEDIATE', label: '🧑‍🍳 Intermediate' },
-    { value: 'ADVANCED', label: '⭐ Advanced' },
+    { value: 'BEGINNER', label: 'Beginner' },
+    { value: 'INTERMEDIATE', label: 'Intermediate' },
+    { value: 'ADVANCED', label: 'Advanced' },
 ];
 
 const Profile = () => {
@@ -17,7 +26,6 @@ const Profile = () => {
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
 
-    // ─── Edit mode ────────────────────────────────────────────────────────────
     const [isEditing, setIsEditing] = useState(false);
 
     const [form, setForm] = useState({
@@ -29,7 +37,6 @@ const Profile = () => {
     });
 
     const [formSnapshot, setFormSnapshot] = useState({ ...form });
-
     const [profileImage, setProfileImage] = useState(user?.profileImage || null);
     const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -41,7 +48,7 @@ const Profile = () => {
         setTimeout(() => setMessage({ text: '', type: '' }), 3500);
     };
 
-    // ─── Edit mode helpers ─────────────────────────────────────────────────────
+    // ─── Edit mode helpers ──────────────────────────────────────────────────────
     const handleStartEdit = () => {
         setFormSnapshot({ ...form });
         setIsEditing(true);
@@ -52,7 +59,7 @@ const Profile = () => {
         setIsEditing(false);
     };
 
-    // ─── Profile image — Cloudinary upload ────────────────────────────────────
+    // ─── Profile image ──────────────────────────────────────────────────────────
     const handleFileChange = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -66,29 +73,22 @@ const Profile = () => {
             return;
         }
 
-        // Instant local preview while uploading
         const previewUrl = URL.createObjectURL(file);
         setProfileImage(previewUrl);
         setUploadingImage(true);
 
         try {
-            // Upload to Cloudinary using the user-scoped profile folder
             const folder = `users/${user.userId}/profiles`;
             const uploadRes = await uploadImage(file, folder);
             const cloudinaryUrl = uploadRes.data.url;
 
-            // Persist the Cloudinary URL to the backend
             await userAPI.updateProfileImage(cloudinaryUrl);
-
             setProfileImage(cloudinaryUrl);
             showMessage('Profile photo updated!');
             await refreshUser();
         } catch (err) {
             setProfileImage(user?.profileImage || null);
-            showMessage(
-                err.response?.data?.message || 'Failed to upload photo.',
-                'error'
-            );
+            showMessage(err.response?.data?.message || 'Failed to upload photo.', 'error');
         } finally {
             setUploadingImage(false);
             e.target.value = '';
@@ -109,7 +109,7 @@ const Profile = () => {
         }
     };
 
-    // ─── Update Profile ────────────────────────────────────────────────────────
+    // ─── Update Profile ─────────────────────────────────────────────────────────
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
         setSavingProfile(true);
@@ -133,7 +133,7 @@ const Profile = () => {
         }
     };
 
-    // ─── Delete Account ────────────────────────────────────────────────────────
+    // ─── Delete Account ─────────────────────────────────────────────────────────
     const handleDeleteAccount = async () => {
         if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
         try {
@@ -145,7 +145,7 @@ const Profile = () => {
         }
     };
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────
+    // ─── Helpers ────────────────────────────────────────────────────────────────
     const getInitials = () => {
         const first = (form.firstName || user?.firstName || '')[0] || '';
         const last = (form.lastName || user?.lastName || '')[0] || '';
@@ -174,13 +174,16 @@ const Profile = () => {
                 <div className={styles.pageHeader}>
                     <h2 className={styles.pageTitle}>My Profile</h2>
                     <button className={styles.backBtn} onClick={() => navigate('/dashboard')}>
-                        ← Dashboard
+                        <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 5 }} />
+                        Dashboard
                     </button>
                 </div>
 
                 {message.text && (
                     <div className={`${styles.message} ${styles[message.type]}`}>
-                        <span>{message.type === 'success' ? '✓' : '⚠'}</span>
+                        {message.type === 'success'
+                            ? <CheckCircle size={16} strokeWidth={2} />
+                            : <AlertTriangle size={16} strokeWidth={2} />}
                         {message.text}
                     </div>
                 )}
@@ -208,7 +211,9 @@ const Profile = () => {
                                 )}
 
                                 <div className={`${styles.cameraOverlay} ${uploadingImage ? styles.uploading : ''}`}>
-                                    {uploadingImage ? '⏳' : '📷'}
+                                    {uploadingImage
+                                        ? <Loader2 size={22} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />
+                                        : <Camera size={22} strokeWidth={2} />}
                                 </div>
                             </div>
 
@@ -226,7 +231,8 @@ const Profile = () => {
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={uploadingImage}
                                 >
-                                    {uploadingImage ? 'Uploading…' : '📷 Upload Photo'}
+                                    <Camera size={13} strokeWidth={2} style={{ marginRight: 5 }} />
+                                    {uploadingImage ? 'Uploading…' : 'Upload Photo'}
                                 </button>
                                 {profileImage && !uploadingImage && (
                                     <button
@@ -278,7 +284,8 @@ const Profile = () => {
                                         className={styles.btnEditInfo}
                                         onClick={handleStartEdit}
                                     >
-                                        ✏️ Edit Information
+                                        <Pencil size={13} strokeWidth={2} style={{ marginRight: 5 }} />
+                                        Edit Information
                                     </button>
                                 )}
                             </div>
@@ -293,8 +300,7 @@ const Profile = () => {
                                             value={form.firstName}
                                             onChange={e => setForm({ ...form, firstName: e.target.value })}
                                             placeholder="First name"
-                                            required
-                                            maxLength={50}
+                                            required maxLength={50}
                                             readOnly={!isEditing}
                                         />
                                     </div>
@@ -306,8 +312,7 @@ const Profile = () => {
                                             value={form.lastName}
                                             onChange={e => setForm({ ...form, lastName: e.target.value })}
                                             placeholder="Last name"
-                                            required
-                                            maxLength={50}
+                                            required maxLength={50}
                                             readOnly={!isEditing}
                                         />
                                     </div>
@@ -368,7 +373,9 @@ const Profile = () => {
                                             className={styles.btnPrimary}
                                             disabled={savingProfile}
                                         >
-                                            {savingProfile ? 'Saving…' : '💾 Save Changes'}
+                                            {savingProfile ? 'Saving…' : (
+                                                <><Save size={14} strokeWidth={2} style={{ marginRight: 6 }} />Save Changes</>
+                                            )}
                                         </button>
                                         <button
                                             type="button"
@@ -384,7 +391,10 @@ const Profile = () => {
                         </div>
 
                         <div className={styles.dangerZone}>
-                            <h4 className={styles.dangerTitle}>⚠️ Danger Zone</h4>
+                            <h4 className={styles.dangerTitle}>
+                                <AlertTriangle size={14} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
+                                Danger Zone
+                            </h4>
                             <p className={styles.dangerText}>
                                 Permanently delete your account and all your recipes. This cannot be undone.
                             </p>

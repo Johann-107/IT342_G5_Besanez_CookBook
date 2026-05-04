@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import {
+    ChefHat, Link2, Timer, Flame, Clock, Download, Lock, AlertCircle, UtensilsCrossed,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CookbookFacade from '../patterns/CookbookFacade';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
@@ -25,9 +28,6 @@ const SharedRecipePage = () => {
             setLoading(true);
             setError('');
             try {
-                // Facade + Factory: one call using publicClient — no auth token needed.
-                // All three resources are always fetched so the blur overlay for guests
-                // has real data to render beneath it.
                 const detail = await CookbookFacade.getSharedRecipeDetail(token);
                 setRecipe(detail.recipe);
                 setIngredients(detail.ingredients);
@@ -59,7 +59,9 @@ const SharedRecipePage = () => {
         return (
             <div className={styles.pageWrap}>
                 <div className={styles.loadingState}>
-                    <div className={styles.loadingEmoji}>🍳</div>
+                    <div className={styles.loadingEmoji}>
+                        <ChefHat size={56} strokeWidth={1.2} />
+                    </div>
                     <p>Loading shared recipe…</p>
                 </div>
             </div>
@@ -71,7 +73,9 @@ const SharedRecipePage = () => {
         return (
             <div className={styles.pageWrap}>
                 <div className={styles.errorState}>
-                    <div className={styles.errorEmoji}>🔗</div>
+                    <div className={styles.errorEmoji}>
+                        <AlertCircle size={56} strokeWidth={1.2} style={{ color: 'var(--text-light, #B09080)' }} />
+                    </div>
                     <h2 className={styles.errorTitle}>Link unavailable</h2>
                     <p className={styles.errorDesc}>{error}</p>
                     <Link to="/" className={styles.homeLink}>← Back to CookBook</Link>
@@ -87,7 +91,9 @@ const SharedRecipePage = () => {
             {/* Top bar */}
             <nav className={styles.topBar}>
                 <Link to={user ? '/dashboard' : '/'} className={styles.brand}>
-                    <div className={styles.brandIcon}>🍳</div>
+                    <div className={styles.brandIcon}>
+                        <UtensilsCrossed size={20} color="white" strokeWidth={2} />
+                    </div>
                     <span className={styles.brandText}>CookBook</span>
                 </Link>
 
@@ -98,7 +104,8 @@ const SharedRecipePage = () => {
 
                     {user && !isOwnRecipe && !savedRecipe && (
                         <button className={styles.saveBtn} onClick={() => setShowSaveModal(true)}>
-                            📥 Save Recipe
+                            <Download size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />
+                            Save Recipe
                         </button>
                     )}
 
@@ -121,7 +128,9 @@ const SharedRecipePage = () => {
 
             {/* Shared-by banner */}
             <div className={styles.sharedBanner}>
-                <span className={styles.sharedBannerIcon}>🔗</span>
+                <span className={styles.sharedBannerIcon}>
+                    <Link2 size={15} strokeWidth={2} />
+                </span>
                 <span>You're viewing a shared recipe</span>
             </div>
 
@@ -134,17 +143,20 @@ const SharedRecipePage = () => {
                 <div className={styles.timeBadges}>
                     {recipe.prepTimeMinutes && (
                         <div className={styles.timeBadge}>
-                            ⏱ Prep <span>{formatTime(recipe.prepTimeMinutes)}</span>
+                            <Timer size={13} strokeWidth={2} />
+                            Prep <span>{formatTime(recipe.prepTimeMinutes)}</span>
                         </div>
                     )}
                     {recipe.cookTimeMinutes && (
                         <div className={styles.timeBadge}>
-                            🔥 Cook <span>{formatTime(recipe.cookTimeMinutes)}</span>
+                            <Flame size={13} strokeWidth={2} />
+                            Cook <span>{formatTime(recipe.cookTimeMinutes)}</span>
                         </div>
                     )}
                     {recipe.totalTimeMinutes && (
                         <div className={styles.timeBadge}>
-                            ⏰ Total <span>{formatTime(recipe.totalTimeMinutes)}</span>
+                            <Clock size={13} strokeWidth={2} />
+                            Total <span>{formatTime(recipe.totalTimeMinutes)}</span>
                         </div>
                     )}
                 </div>
@@ -159,7 +171,6 @@ const SharedRecipePage = () => {
                                 Ingredients
                                 <span className={styles.countBadge}>{ingredients.length}</span>
                             </h4>
-                            {/* Blur wrapper for guests */}
                             <div className={!user ? styles.blurredContent : undefined}>
                                 <ul className={styles.ingredientList}>
                                     {ingredients.map((ing) => (
@@ -217,7 +228,8 @@ const SharedRecipePage = () => {
                         className={styles.floatingSaveBtn}
                         onClick={() => setShowSaveModal(true)}
                     >
-                        📥 Save Recipe to My Cookbook
+                        <Download size={16} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                        Save Recipe to My Cookbook
                     </button>
                 </div>
             )}
@@ -239,12 +251,12 @@ const SharedRecipePage = () => {
 };
 
 // ─── Guest blur overlay ────────────────────────────────────────────────────────
-// Shown on top of blurred content sections when the user is not logged in.
-
 const GuestOverlay = () => (
     <div style={guestOverlayStyles.wrap}>
         <div style={guestOverlayStyles.card}>
-            <div style={guestOverlayStyles.lock}>🔒</div>
+            <div style={guestOverlayStyles.lock}>
+                <Lock size={24} strokeWidth={1.8} style={{ color: 'var(--text-dark, #3A2A1E)' }} />
+            </div>
             <p style={guestOverlayStyles.text}>
                 <Link to="/" style={guestOverlayStyles.link}>Sign in</Link>
                 {' '}to see the full recipe
@@ -272,7 +284,7 @@ const guestOverlayStyles = {
         boxShadow: '0 4px 20px rgba(92, 61, 46, 0.12)',
         border: '1px solid #EDD8C4',
     },
-    lock: { fontSize: '1.5rem', marginBottom: '8px' },
+    lock: { display: 'flex', justifyContent: 'center', marginBottom: '8px' },
     text: { fontSize: '0.875rem', color: '#7A5C46', margin: 0 },
     link: { color: '#C97D4E', fontWeight: 600, textDecoration: 'none' },
 };

@@ -10,6 +10,22 @@ import {
     IMAGE_STRATEGIES,
 } from '../patterns/ImageUploadStrategy';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
+import {
+    ArrowLeft,
+    Pencil,
+    Trash2,
+    Eye,
+    X,
+    Plus,
+    Globe,
+    Lock,
+    ChefHat,
+    AlertCircle,
+    Camera,
+    Link,
+    ImageIcon,
+    Save,
+} from 'lucide-react';
 import styles from '../styles/CollectionDetail.module.css';
 
 const BG_CLASSES = ['rc1', 'rc2', 'rc3', 'rc4', 'rc5', 'rc6'];
@@ -40,7 +56,6 @@ const CollectionDetail = () => {
     const [editForm, setEditForm] = useState({ name: '', description: '' });
     const [saving, setSaving] = useState(false);
 
-    // Add Recipes modal
     const [showAddRecipesModal, setShowAddRecipesModal] = useState(false);
 
     const [imageMode, setImageMode] = useState('cloudinary');
@@ -72,9 +87,7 @@ const CollectionDetail = () => {
         }
     };
 
-    useEffect(() => {
-        loadData();
-    }, [id]);
+    useEffect(() => { loadData(); }, [id]);
 
     const colorClass = COLOR_CLASSES[Number(id) % COLOR_CLASSES.length];
     const colorGradient = COLOR_GRADIENTS[colorClass];
@@ -126,10 +139,7 @@ const CollectionDetail = () => {
 
             if (imageFile) {
                 setUploading(true);
-                resolvedImageUrl = await imageContext.resolve({
-                    file: imageFile,
-                    userId: user?.userId,
-                });
+                resolvedImageUrl = await imageContext.resolve({ file: imageFile, userId: user?.userId });
                 setUploading(false);
             } else if (imageMode === 'url' && urlInput.trim()) {
                 resolvedImageUrl = urlInput.trim();
@@ -174,9 +184,7 @@ const CollectionDetail = () => {
         }
     };
 
-    // Called when AddRecipesModal successfully adds recipes
-    const handleRecipesAdded = async (count) => {
-        // Reload the collection and recipes to show updated state
+    const handleRecipesAdded = async () => {
         await loadData();
         setShowAddRecipesModal(false);
     };
@@ -196,27 +204,30 @@ const CollectionDetail = () => {
         });
     };
 
+    // ─── Loading ────────────────────────────────────────────────────────────────
     if (loading) {
         return (
             <>
                 <DefaultHeader user={user} />
                 <div className={styles.loadingState}>
-                    <div className={styles.loadingEmoji}>📂</div>
+                    <ChefHat size={52} strokeWidth={1.3} color="var(--text-light, #B09080)" />
                     <p>Loading collection…</p>
                 </div>
             </>
         );
     }
 
+    // ─── Error ──────────────────────────────────────────────────────────────────
     if (error && !collection) {
         return (
             <>
                 <DefaultHeader user={user} />
                 <div className={styles.errorState}>
-                    <div className={styles.errorEmoji}>😕</div>
+                    <AlertCircle size={52} strokeWidth={1.3} color="var(--text-light, #B09080)" />
                     <h3>{error}</h3>
                     <button className={styles.btnGhost} onClick={() => navigate('/collections')}>
-                        ← Back to Collections
+                        <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 5 }} />
+                        Back to Collections
                     </button>
                 </div>
             </>
@@ -241,67 +252,59 @@ const CollectionDetail = () => {
 
                 <div className={`${styles.hero} ${hasCover ? styles.heroWithImage : ''}`} style={heroStyle}>
                     <button className={styles.backBtn} onClick={() => navigate('/collections')}>
-                        ← Collections
+                        <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 5 }} />
+                        Collections
                     </button>
                     <div className={styles.heroContent}>
                         <div className={styles.heroLeft}>
-                            <div className={styles.collectionEmoji}>
-                                {hasCover ? null : '📂'}
-                            </div>
+                            {!hasCover && (
+                                <div className={styles.collectionEmoji}>📂</div>
+                            )}
                             <h1 className={styles.collectionTitle}>{collection.name}</h1>
                             {collection.description && (
                                 <p className={styles.collectionDesc}>{collection.description}</p>
                             )}
                             <div className={styles.heroBadges}>
                                 <span className={styles.badge}>
-                                    📖 {recipes.length} {recipes.length === 1 ? 'recipe' : 'recipes'}
+                                    {recipes.length} {recipes.length === 1 ? 'recipe' : 'recipes'}
                                 </span>
                                 {collection.createdAt && (
                                     <span className={styles.badge}>
-                                        🗓 Created {formatDate(collection.createdAt)}
+                                        Created {formatDate(collection.createdAt)}
                                     </span>
                                 )}
                             </div>
                         </div>
                         <div className={styles.heroActions}>
                             <button className={styles.btnHeroEdit} onClick={openEditModal}>
-                                ✏️ Edit
+                                <Pencil size={14} strokeWidth={2} style={{ marginRight: 5 }} />
+                                Edit
                             </button>
                             <button className={styles.btnHeroDanger} onClick={handleDelete}>
-                                🗑 Delete
+                                <Trash2 size={14} strokeWidth={2} style={{ marginRight: 5 }} />
+                                Delete
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {error && (
-                    <div className={styles.errorBanner}>{error}</div>
-                )}
+                {error && <div className={styles.errorBanner}>{error}</div>}
 
                 <div className={styles.body}>
                     <div className={styles.sectionHeader}>
                         <h2 className={styles.sectionTitle}>Recipes in this Collection</h2>
-                        {/* Changed from navigate to open modal */}
-                        <button
-                            className={styles.btnAddRecipes}
-                            onClick={() => setShowAddRecipesModal(true)}
-                        >
-                            + Add Recipes
+                        <button className={styles.btnAddRecipes} onClick={() => setShowAddRecipesModal(true)}>
+                            <Plus size={15} strokeWidth={2.5} style={{ marginRight: 5 }} />
+                            Add Recipes
                         </button>
                     </div>
 
                     {recipes.length === 0 ? (
                         <div className={styles.emptyState}>
-                            <div className={styles.emptyEmoji}>🍳</div>
+                            <ChefHat size={64} strokeWidth={1.3} color="var(--text-light, #B09080)" />
                             <h3 className={styles.emptyTitle}>No recipes yet</h3>
-                            <p className={styles.emptyText}>
-                                Add recipes to this collection from your recipe library.
-                            </p>
-                            {/* Changed from navigate to open modal */}
-                            <button
-                                className={styles.btnPrimary}
-                                onClick={() => setShowAddRecipesModal(true)}
-                            >
+                            <p className={styles.emptyText}>Add recipes to this collection from your recipe library.</p>
+                            <button className={styles.btnPrimary} onClick={() => setShowAddRecipesModal(true)}>
                                 Browse My Recipes
                             </button>
                         </div>
@@ -323,8 +326,8 @@ const CollectionDetail = () => {
                                         <div className={styles.recipeCardTop}>
                                             <div className={styles.recipeCardTitle}>{recipe.name}</div>
                                             {recipe.isPublic
-                                                ? <span className={styles.tagPublic}>🌐</span>
-                                                : <span className={styles.tagPrivate}>🔒</span>
+                                                ? <Globe size={14} strokeWidth={2} className={styles.tagPublic} />
+                                                : <Lock size={14} strokeWidth={2} className={styles.tagPrivate} />
                                             }
                                         </div>
                                         {recipe.description && (
@@ -348,12 +351,16 @@ const CollectionDetail = () => {
                                                     className={styles.iconBtn}
                                                     title="View Recipe"
                                                     onClick={() => navigate(`/recipe/${recipe.id}`)}
-                                                >👁️</button>
+                                                >
+                                                    <Eye size={13} strokeWidth={2} />
+                                                </button>
                                                 <button
                                                     className={styles.iconBtnDanger}
                                                     title="Remove from collection"
                                                     onClick={(e) => handleRemoveRecipe(e, recipe.id)}
-                                                >✕</button>
+                                                >
+                                                    <X size={13} strokeWidth={2.5} />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -365,7 +372,8 @@ const CollectionDetail = () => {
 
                 <div className={styles.footer}>
                     <button className={styles.btnGhost} onClick={() => navigate('/collections')}>
-                        ← Back to Collections
+                        <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 5 }} />
+                        Back to Collections
                     </button>
                 </div>
             </div>
@@ -384,7 +392,9 @@ const CollectionDetail = () => {
             {showEditModal && (
                 <div className={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
                     <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                        <button className={styles.closeBtn} onClick={() => setShowEditModal(false)}>×</button>
+                        <button className={styles.closeBtn} onClick={() => setShowEditModal(false)}>
+                            <X size={18} strokeWidth={2.5} />
+                        </button>
 
                         <div className={styles.modalHeader}>
                             <h3 className={styles.modalTitle}>Edit Collection</h3>
@@ -399,9 +409,7 @@ const CollectionDetail = () => {
                                     type="text"
                                     value={editForm.name}
                                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                    required
-                                    maxLength={100}
-                                    autoFocus
+                                    required maxLength={100} autoFocus
                                 />
                             </div>
 
@@ -412,8 +420,7 @@ const CollectionDetail = () => {
                                     placeholder="What's this collection about?"
                                     value={editForm.description}
                                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                                    rows={3}
-                                    maxLength={255}
+                                    rows={3} maxLength={255}
                                 />
                             </div>
 
@@ -426,14 +433,16 @@ const CollectionDetail = () => {
                                         className={`${styles.imageModeTab} ${imageMode === 'cloudinary' ? styles.imageModeTabActive : ''}`}
                                         onClick={() => { setImageMode('cloudinary'); handleRemoveImage(); }}
                                     >
-                                        📷 Upload Photo
+                                        <Camera size={13} strokeWidth={2} style={{ marginRight: 5 }} />
+                                        Upload Photo
                                     </button>
                                     <button
                                         type="button"
                                         className={`${styles.imageModeTab} ${imageMode === 'url' ? styles.imageModeTabActive : ''}`}
                                         onClick={() => { setImageMode('url'); handleRemoveImage(); }}
                                     >
-                                        🔗 Paste URL
+                                        <Link size={13} strokeWidth={2} style={{ marginRight: 5 }} />
+                                        Paste URL
                                     </button>
                                 </div>
 
@@ -450,8 +459,10 @@ const CollectionDetail = () => {
                                             <div className={styles.imagePreviewWrap}>
                                                 <img src={imagePreview} alt="Cover preview" className={styles.imagePreview} onError={() => setImagePreview(null)} />
                                                 <div className={styles.imagePreviewOverlay}>
-                                                    <button type="button" className={styles.imagePreviewChange} onClick={() => fileInputRef.current?.click()}>📷 Change</button>
-                                                    <button type="button" className={styles.imagePreviewRemove} onClick={handleRemoveImage}>🗑 Remove</button>
+                                                    <button type="button" className={styles.imagePreviewChange} onClick={() => fileInputRef.current?.click()}>
+                                                        <Camera size={13} strokeWidth={2} style={{ marginRight: 4 }} />Change
+                                                    </button>
+                                                    <button type="button" className={styles.imagePreviewRemove} onClick={handleRemoveImage}>Remove</button>
                                                 </div>
                                             </div>
                                         ) : (
@@ -462,14 +473,18 @@ const CollectionDetail = () => {
                                                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                                                 onDragLeave={() => setDragOver(false)}
                                             >
-                                                <div className={styles.dropZoneIcon}>🖼️</div>
+                                                <div className={styles.dropZoneIcon}>
+                                                    <ImageIcon size={32} strokeWidth={1.5} color="var(--text-light, #B09080)" />
+                                                </div>
                                                 <div className={styles.dropZoneText}>
-                                                    <span className={styles.dropZonePrimary}>Drop an image here or <span className={styles.dropZoneLink}>browse</span></span>
+                                                    <span className={styles.dropZonePrimary}>
+                                                        Drop an image here or <span className={styles.dropZoneLink}>browse</span>
+                                                    </span>
                                                     <span className={styles.dropZoneHint}>JPEG, PNG, GIF, WEBP · max 5 MB</span>
                                                 </div>
                                             </div>
                                         )}
-                                        {uploading && <p className={styles.uploadingHint}>⏳ Uploading…</p>}
+                                        {uploading && <p className={styles.uploadingHint}>Uploading…</p>}
                                     </>
                                 )}
 
@@ -484,13 +499,15 @@ const CollectionDetail = () => {
                                                 onChange={(e) => setUrlInput(e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleUrlApply())}
                                             />
-                                            <button type="button" className={styles.urlApplyBtn} onClick={handleUrlApply} disabled={!urlInput.trim()}>Preview</button>
+                                            <button type="button" className={styles.urlApplyBtn} onClick={handleUrlApply} disabled={!urlInput.trim()}>
+                                                Preview
+                                            </button>
                                         </div>
                                         {imagePreview && (
-                                            <div className={styles.imagePreviewWrap} style={{ marginTop: '10px' }}>
+                                            <div className={styles.imagePreviewWrap} style={{ marginTop: 10 }}>
                                                 <img src={imagePreview} alt="Cover preview" className={styles.imagePreview} onError={() => setImagePreview(null)} />
                                                 <div className={styles.imagePreviewOverlay}>
-                                                    <button type="button" className={styles.imagePreviewRemove} onClick={handleRemoveImage}>🗑 Remove</button>
+                                                    <button type="button" className={styles.imagePreviewRemove} onClick={handleRemoveImage}>Remove</button>
                                                 </div>
                                             </div>
                                         )}
@@ -501,7 +518,9 @@ const CollectionDetail = () => {
                             <div className={styles.modalActions}>
                                 <button type="button" className={styles.btnOutline} onClick={() => setShowEditModal(false)}>Cancel</button>
                                 <button type="submit" className={styles.btnPrimary} disabled={saving || uploading}>
-                                    {uploading ? '⏳ Uploading…' : saving ? 'Saving…' : '💾 Save Changes'}
+                                    {uploading ? 'Uploading…' : saving ? 'Saving…' : (
+                                        <><Save size={14} strokeWidth={2} style={{ marginRight: 5 }} />Save Changes</>
+                                    )}
                                 </button>
                             </div>
                         </form>

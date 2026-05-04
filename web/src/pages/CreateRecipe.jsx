@@ -11,6 +11,20 @@ import {
     IMAGE_STRATEGIES,
 } from '../patterns/ImageUploadStrategy';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
+import {
+    FileText,
+    Salad,
+    ClipboardList,
+    NotebookPen,
+    FolderOpen,
+    Camera,
+    Link,
+    ImageIcon,
+    Minus,
+    Save,
+    Loader,
+    Plus,
+} from 'lucide-react';
 import styles from '../styles/CreateRecipe.module.css';
 
 const UNITS = [
@@ -46,13 +60,11 @@ const CreateRecipe = () => {
     const fileInputRef = useRef(null);
     const isEditing = Boolean(id);
 
-    // ─── Form state ─────────────────────────────────────────────────────────────
     const [form, setForm] = useState({
         name: '', description: '', prepTimeMinutes: '', cookTimeMinutes: '',
         totalTimeMinutes: '', imageUrl: '', isPublic: false, notes: '',
     });
 
-    // ─── Image state ─────────────────────────────────────────────────────────────
     const [imageMode, setImageMode] = useState('cloudinary');
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
@@ -60,13 +72,11 @@ const CreateRecipe = () => {
     const [dragOver, setDragOver] = useState(false);
     const [uploading, setUploading] = useState(false);
 
-    // Strategy context — swapped when imageMode changes
     const imageContext = useMemo(() => new ImageUploadContext(IMAGE_STRATEGIES[imageMode]), []);
     useEffect(() => {
         imageContext.setStrategy(IMAGE_STRATEGIES[imageMode]);
     }, [imageMode, imageContext]);
 
-    // ─── Other form state ────────────────────────────────────────────────────────
     const [ingredients, setIngredients] = useState([emptyIngredient()]);
     const [steps, setSteps] = useState([emptyStep()]);
     const [collections, setCollections] = useState([]);
@@ -74,7 +84,7 @@ const CreateRecipe = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
-    // ─── Load existing recipe (edit mode) ────────────────────────────────────────
+    // ─── Load existing recipe (edit mode) ──────────────────────────────────────
     useEffect(() => {
         if (!isEditing) return;
         const load = async () => {
@@ -110,14 +120,14 @@ const CreateRecipe = () => {
         load();
     }, [id, isEditing]);
 
-    // ─── Load collections ────────────────────────────────────────────────────────
+    // ─── Load collections ───────────────────────────────────────────────────────
     useEffect(() => {
         collectionAPI.getCollections({ size: 100 })
             .then((res) => setCollections(res.data.content || []))
             .catch(() => { });
     }, []);
 
-    // ─── Image helpers ────────────────────────────────────────────────────────────
+    // ─── Image helpers ──────────────────────────────────────────────────────────
     const handleFileSelected = (file) => {
         if (!file) return;
         const validationError = imageContext.validate(file);
@@ -155,14 +165,14 @@ const CreateRecipe = () => {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    // ─── Ingredient helpers ───────────────────────────────────────────────────────
+    // ─── Ingredient helpers ─────────────────────────────────────────────────────
     const addIngredient = () => setIngredients((p) => [...p, emptyIngredient()]);
     const updateIngredient = (key, field, val) =>
         setIngredients((p) => p.map((i) => i._key === key ? { ...i, [field]: val } : i));
     const removeIngredient = (key) =>
         setIngredients((p) => p.filter((i) => i._key !== key));
 
-    // ─── Step helpers ─────────────────────────────────────────────────────────────
+    // ─── Step helpers ───────────────────────────────────────────────────────────
     const addStep = () => setSteps((p) => [...p, emptyStep()]);
     const updateStep = (key, val) =>
         setSteps((p) => p.map((s) => s._key === key ? { ...s, description: val } : s));
@@ -174,7 +184,7 @@ const CreateRecipe = () => {
             p.includes(colId) ? p.filter((c) => c !== colId) : [...p, colId]
         );
 
-    // ─── Submit ───────────────────────────────────────────────────────────────────
+    // ─── Submit ─────────────────────────────────────────────────────────────────
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -183,13 +193,11 @@ const CreateRecipe = () => {
         try {
             let resolvedImageUrl = form.imageUrl;
 
-            // Upload file to Cloudinary if a new file was selected
             if (imageFile) {
                 setUploading(true);
                 resolvedImageUrl = await imageContext.resolve({ file: imageFile, url: urlInput, userId: user?.userId });
                 setUploading(false);
             } else if (imageMode === 'url' && urlInput.trim()) {
-                // URL mode — just use the pasted URL directly (no upload needed)
                 resolvedImageUrl = await imageContext.resolve({ file: null, url: urlInput });
             }
 
@@ -265,7 +273,6 @@ const CreateRecipe = () => {
         }
     };
 
-    // ─── Render ───────────────────────────────────────────────────────────────────
     return (
         <>
             <DefaultHeader user={user} />
@@ -276,22 +283,18 @@ const CreateRecipe = () => {
                             {isEditing ? 'Edit Recipe' : 'Create New Recipe'}
                         </h2>
                     </div>
-                    <button
-                        type="button"
-                        className={styles.cancelBtn}
-                        onClick={() => navigate(isEditing ? `/recipe/${id}` : '/recipes')}
-                    >
-                        Cancel
-                    </button>
                 </div>
 
                 {error && <div className={styles.errorBanner}>{error}</div>}
 
                 <form onSubmit={handleSubmit} className={styles.formBody}>
 
-                    {/* Basic Info */}
+                    {/* ── Basic Info ── */}
                     <section className={styles.formSection}>
-                        <h3 className={styles.sectionTitle}>📝 Basic Information</h3>
+                        <h3 className={styles.sectionTitle}>
+                            <FileText size={17} strokeWidth={2} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
+                            Basic Information
+                        </h3>
                         <div className={styles.formGroup}>
                             <label className={styles.formLabel}>Recipe Title *</label>
                             <input
@@ -331,29 +334,29 @@ const CreateRecipe = () => {
                             ))}
                         </div>
 
-                        {/* ── Image Upload (Strategy pattern) ── */}
+                        {/* ── Image Upload ── */}
                         <div className={styles.formGroup}>
                             <label className={styles.formLabel}>Recipe Photo</label>
 
-                            {/* Mode tabs */}
                             <div className={styles.imageModeTabs}>
                                 <button
                                     type="button"
                                     className={`${styles.imageModeTab} ${imageMode === 'cloudinary' ? styles.imageModeTabActive : ''}`}
                                     onClick={() => { setImageMode('cloudinary'); handleRemoveImage(); }}
                                 >
-                                    📷 Upload Photo
+                                    <Camera size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'text-bottom' }} />
+                                    Upload Photo
                                 </button>
                                 <button
                                     type="button"
                                     className={`${styles.imageModeTab} ${imageMode === 'url' ? styles.imageModeTabActive : ''}`}
                                     onClick={() => { setImageMode('url'); handleRemoveImage(); }}
                                 >
-                                    🔗 Paste URL
+                                    <Link size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'text-bottom' }} />
+                                    Paste URL
                                 </button>
                             </div>
 
-                            {/* Cloudinary upload mode */}
                             {imageMode === 'cloudinary' && (
                                 <>
                                     <input
@@ -363,7 +366,6 @@ const CreateRecipe = () => {
                                         className={styles.hiddenFileInput}
                                         onChange={handleFileInputChange}
                                     />
-
                                     {imagePreview ? (
                                         <div className={styles.imagePreviewWrap}>
                                             <img
@@ -378,14 +380,15 @@ const CreateRecipe = () => {
                                                     className={styles.imagePreviewChange}
                                                     onClick={() => fileInputRef.current?.click()}
                                                 >
-                                                    📷 Change Photo
+                                                    <Camera size={13} strokeWidth={2} style={{ marginRight: 4 }} />
+                                                    Change Photo
                                                 </button>
                                                 <button
                                                     type="button"
                                                     className={styles.imagePreviewRemove}
                                                     onClick={handleRemoveImage}
                                                 >
-                                                    🗑 Remove
+                                                    Remove
                                                 </button>
                                             </div>
                                         </div>
@@ -397,7 +400,9 @@ const CreateRecipe = () => {
                                             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                                             onDragLeave={() => setDragOver(false)}
                                         >
-                                            <div className={styles.dropZoneIcon}>🖼️</div>
+                                            <div className={styles.dropZoneIcon}>
+                                                <ImageIcon size={36} strokeWidth={1.5} color="var(--text-light, #B09080)" />
+                                            </div>
                                             <div className={styles.dropZoneText}>
                                                 <span className={styles.dropZonePrimary}>
                                                     Drop an image here or{' '}
@@ -409,16 +414,15 @@ const CreateRecipe = () => {
                                             </div>
                                         </div>
                                     )}
-
                                     {uploading && (
-                                        <p style={{ fontSize: '0.8rem', color: '#7A5C46', marginTop: '6px' }}>
-                                            ⏳ Uploading to Cloudinary…
+                                        <p style={{ fontSize: '0.8rem', color: 'var(--text-mid)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <Loader size={14} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />
+                                            Uploading to Cloudinary…
                                         </p>
                                     )}
                                 </>
                             )}
 
-                            {/* URL paste mode */}
                             {imageMode === 'url' && (
                                 <>
                                     <div className={styles.urlInputRow}>
@@ -440,7 +444,7 @@ const CreateRecipe = () => {
                                         </button>
                                     </div>
                                     {imagePreview && (
-                                        <div className={styles.imagePreviewWrap} style={{ marginTop: '10px' }}>
+                                        <div className={styles.imagePreviewWrap} style={{ marginTop: 10 }}>
                                             <img
                                                 src={imagePreview}
                                                 alt="Recipe preview"
@@ -453,7 +457,7 @@ const CreateRecipe = () => {
                                                     className={styles.imagePreviewRemove}
                                                     onClick={handleRemoveImage}
                                                 >
-                                                    🗑 Remove
+                                                    Remove
                                                 </button>
                                             </div>
                                         </div>
@@ -463,23 +467,27 @@ const CreateRecipe = () => {
                         </div>
                     </section>
 
-                    {/* Ingredients */}
+                    {/* ── Ingredients ── */}
                     <section className={styles.formSection}>
                         <div className={styles.sectionTitleRow}>
-                            <h3 className={styles.sectionTitle}>🧅 Ingredients</h3>
+                            <h3 className={styles.sectionTitle}>
+                                <Salad size={17} strokeWidth={2} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
+                                Ingredients
+                            </h3>
                             <button type="button" className={styles.btnGhost} onClick={addIngredient}>
-                                + Add Ingredient
+                                <Plus size={14} strokeWidth={2.5} style={{ marginRight: 4 }} />
+                                Add Ingredient
                             </button>
                         </div>
                         {ingredients.map((ing) => (
                             <div key={ing._key} className={styles.ingredientRow}>
                                 <input
                                     className={styles.formInput} type="number" placeholder="Qty"
-                                    value={ing.quantity} min="0" style={{ maxWidth: '80px' }}
+                                    value={ing.quantity} min="0" style={{ maxWidth: 80 }}
                                     onChange={(e) => updateIngredient(ing._key, 'quantity', e.target.value)}
                                 />
                                 <select
-                                    className={styles.formSelect} value={ing.unit} style={{ maxWidth: '90px' }}
+                                    className={styles.formSelect} value={ing.unit} style={{ maxWidth: 90 }}
                                     onChange={(e) => updateIngredient(ing._key, 'unit', e.target.value)}
                                 >
                                     {UNITS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
@@ -495,19 +503,29 @@ const CreateRecipe = () => {
                                     onChange={(e) => updateIngredient(ing._key, 'notes', e.target.value)}
                                 />
                                 {ingredients.length > 1 && (
-                                    <button type="button" className={styles.removeBtn}
-                                        onClick={() => removeIngredient(ing._key)}>−</button>
+                                    <button
+                                        type="button"
+                                        className={styles.removeBtn}
+                                        onClick={() => removeIngredient(ing._key)}
+                                        aria-label="Remove ingredient"
+                                    >
+                                        <Minus size={14} strokeWidth={2.5} />
+                                    </button>
                                 )}
                             </div>
                         ))}
                     </section>
 
-                    {/* Instructions */}
+                    {/* ── Instructions ── */}
                     <section className={styles.formSection}>
                         <div className={styles.sectionTitleRow}>
-                            <h3 className={styles.sectionTitle}>📋 Instructions</h3>
+                            <h3 className={styles.sectionTitle}>
+                                <ClipboardList size={17} strokeWidth={2} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
+                                Instructions
+                            </h3>
                             <button type="button" className={styles.btnGhost} onClick={addStep}>
-                                + Add Step
+                                <Plus size={14} strokeWidth={2.5} style={{ marginRight: 4 }} />
+                                Add Step
                             </button>
                         </div>
                         {steps.map((step, index) => (
@@ -520,16 +538,25 @@ const CreateRecipe = () => {
                                     onChange={(e) => updateStep(step._key, e.target.value)}
                                 />
                                 {steps.length > 1 && (
-                                    <button type="button" className={styles.removeBtn}
-                                        onClick={() => removeStep(step._key)}>−</button>
+                                    <button
+                                        type="button"
+                                        className={styles.removeBtn}
+                                        onClick={() => removeStep(step._key)}
+                                        aria-label="Remove step"
+                                    >
+                                        <Minus size={14} strokeWidth={2.5} />
+                                    </button>
                                 )}
                             </div>
                         ))}
                     </section>
 
-                    {/* Notes */}
+                    {/* ── Notes ── */}
                     <section className={styles.formSection}>
-                        <h3 className={styles.sectionTitle}>🗒️ Additional Notes</h3>
+                        <h3 className={styles.sectionTitle}>
+                            <NotebookPen size={17} strokeWidth={2} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
+                            Additional Notes
+                        </h3>
                         <textarea
                             className={styles.formTextarea}
                             placeholder="Tips, variations, serving suggestions…"
@@ -538,9 +565,12 @@ const CreateRecipe = () => {
                         />
                     </section>
 
-                    {/* Organization */}
+                    {/* ── Organization ── */}
                     <section className={styles.formSection}>
-                        <h3 className={styles.sectionTitle}>📂 Organization</h3>
+                        <h3 className={styles.sectionTitle}>
+                            <FolderOpen size={17} strokeWidth={2} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
+                            Organization
+                        </h3>
                         <label className={styles.checkboxRow}>
                             <input
                                 type="checkbox"
@@ -550,7 +580,7 @@ const CreateRecipe = () => {
                             <span>Make this recipe public</span>
                         </label>
                         {!isEditing && collections.length > 0 && (
-                            <div className={styles.formGroup} style={{ marginTop: '14px' }}>
+                            <div className={styles.formGroup} style={{ marginTop: 14 }}>
                                 <label className={styles.formLabel}>Add to Collections</label>
                                 <div className={styles.collectionsList}>
                                     {collections.map((col) => (
@@ -560,7 +590,7 @@ const CreateRecipe = () => {
                                                 checked={selectedCollections.includes(col.id)}
                                                 onChange={() => toggleCollection(col.id)}
                                             />
-                                            <span>📂 {col.name}</span>
+                                            <span>{col.name}</span>
                                         </label>
                                     ))}
                                 </div>
@@ -568,7 +598,7 @@ const CreateRecipe = () => {
                         )}
                     </section>
 
-                    {/* Sticky Save Bar */}
+                    {/* ── Sticky Save Bar ── */}
                     <div className={styles.stickyBar}>
                         <button
                             type="button" className={styles.btnOutline}
@@ -577,11 +607,13 @@ const CreateRecipe = () => {
                             Cancel
                         </button>
                         <button type="submit" className={styles.btnPrimary} disabled={saving || uploading}>
-                            {uploading
-                                ? '⏳ Uploading image…'
-                                : saving
-                                    ? 'Saving…'
-                                    : `💾 ${isEditing ? 'Update Recipe' : 'Save Recipe'}`}
+                            {uploading ? (
+                                <><Loader size={15} strokeWidth={2} style={{ marginRight: 6, animation: 'spin 1s linear infinite' }} />Uploading image…</>
+                            ) : saving ? (
+                                'Saving…'
+                            ) : (
+                                <><Save size={15} strokeWidth={2} style={{ marginRight: 6 }} />{isEditing ? 'Update Recipe' : 'Save Recipe'}</>
+                            )}
                         </button>
                     </div>
                 </form>

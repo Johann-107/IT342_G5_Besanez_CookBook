@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import collectionAPI from '../services/collection';
+import { FolderOpen, Pencil, Trash2, Plus, X } from 'lucide-react';
 import styles from '../styles/Collections.module.css';
 
 const COLOR_CLASSES = ['rust', 'sage', 'amber', 'rose', 'sky', 'plum'];
@@ -17,7 +18,7 @@ const Collections = () => {
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState('createdAt,desc');
     const [showModal, setShowModal] = useState(false);
-    const [editTarget, setEditTarget] = useState(null); // null = creating, object = editing
+    const [editTarget, setEditTarget] = useState(null);
     const [formData, setFormData] = useState({ name: '', description: '' });
     const [saving, setSaving] = useState(false);
 
@@ -103,14 +104,15 @@ const Collections = () => {
                         </p>
                     </div>
                     <button className={styles.btnPrimary} onClick={openCreate}>
-                        + New Collection
+                        <Plus size={15} strokeWidth={2.5} style={{ marginRight: 5 }} />
+                        New Collection
                     </button>
                 </div>
 
                 <div className={styles.filterBar}>
                     <input
                         className={styles.searchInput}
-                        placeholder="🔍 Search collections…"
+                        placeholder="Search collections…"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
@@ -129,7 +131,9 @@ const Collections = () => {
 
                 {loading ? (
                     <div className={styles.loadingState}>
-                        <div className={styles.loadingEmoji}>📂</div>
+                        <div className={styles.loadingEmoji} >
+                            <FolderOpen size={48} strokeWidth={1.5} color="var(--text-light, #B09080)" />
+                        </div>
                         <p>Loading collections…</p>
                     </div>
                 ) : (
@@ -157,12 +161,16 @@ const Collections = () => {
                                             className={styles.iconBtn}
                                             title="Edit"
                                             onClick={e => openEdit(e, col)}
-                                        >✏️</button>
+                                        >
+                                            <Pencil size={13} strokeWidth={2} />
+                                        </button>
                                         <button
                                             className={styles.iconBtn}
                                             title="Delete"
                                             onClick={e => handleDelete(e, col)}
-                                        >🗑</button>
+                                        >
+                                            <Trash2 size={13} strokeWidth={2} />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -171,7 +179,9 @@ const Collections = () => {
                         {/* Add new card */}
                         <div className={styles.newCollCard} onClick={openCreate}>
                             <div className={styles.newCollInner}>
-                                <div className={styles.newCollIcon}>➕</div>
+                                <div className={styles.newCollIcon}>
+                                    <Plus size={28} strokeWidth={1.8} color="var(--text-light, #B09080)" />
+                                </div>
                                 <div className={styles.newCollLabel}>New Collection</div>
                             </div>
                         </div>
@@ -180,12 +190,14 @@ const Collections = () => {
 
                 {!loading && collections.length === 0 && (
                     <div className={styles.emptyState}>
-                        <div className={styles.emptyEmoji}>📂</div>
+                        <FolderOpen size={56} strokeWidth={1.3} color="var(--text-light, #B09080)" />
                         <h3 className={styles.emptyTitle}>
                             {search ? 'No collections found' : 'No collections yet'}
                         </h3>
                         <p className={styles.emptyText}>
-                            {search ? 'Try a different search term.' : 'Create your first collection to organise your recipes.'}
+                            {search
+                                ? 'Try a different search term.'
+                                : 'Create your first collection to organise your recipes.'}
                         </p>
                     </div>
                 )}
@@ -195,7 +207,9 @@ const Collections = () => {
             {showModal && (
                 <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
                     <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                        <button className={styles.closeBtn} onClick={() => setShowModal(false)}>×</button>
+                        <button className={styles.closeBtn} onClick={() => setShowModal(false)}>
+                            <X size={18} strokeWidth={2.5} />
+                        </button>
                         <div className={styles.modalHeader}>
                             <h3 className={styles.modalTitle}>
                                 {editTarget ? 'Edit Collection' : 'New Collection'}
