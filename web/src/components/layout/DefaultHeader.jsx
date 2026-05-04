@@ -23,12 +23,7 @@ const DefaultHeader = ({ user = null }) => {
 
   const dropdownRef = useRef(null);
   const isLandingPage = location.pathname === '/';
-
-  // ─── Centralized body scroll lock ─────────────────────────────────────────
-  // Managed here (not inside each modal) to avoid race conditions when
-  // switching between Login and Register — if each modal manages its own
-  // lock, the closing modal's cleanup fires after the opening modal sets the
-  // lock, silently resetting overflow back to 'unset'.
+  const isSharedPage = location.pathname.startsWith('/shared/');
   useEffect(() => {
     document.body.style.overflow = (showLoginModal || showRegisterModal) ? 'hidden' : '';
     return () => {
@@ -114,7 +109,7 @@ const DefaultHeader = ({ user = null }) => {
           </Link>
 
           {/* Feature nav — hidden on landing */}
-          {!isLandingPage && (
+          {!isLandingPage && !isSharedPage && (
             <ul className={styles.navLinks}>
               <li><Link to="/dashboard" className={styles.navLink}>Dashboard</Link></li>
               <li><Link to="/recipes" className={styles.navLink}>Recipes</Link></li>

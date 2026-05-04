@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-    ChefHat, Link2, Timer, Flame, Clock, Download, Lock, AlertCircle, UtensilsCrossed,
+    ChefHat, Link2, Timer, Flame, Clock, Download, Lock, AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import DefaultHeader from '../components/layout/DefaultHeader';
 import CookbookFacade from '../patterns/CookbookFacade';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import SaveRecipeModal from '../components/SaveRecipeModal';
@@ -57,196 +58,206 @@ const SharedRecipePage = () => {
     // ─── Loading ───────────────────────────────────────────────────────────────
     if (loading) {
         return (
-            <div className={styles.pageWrap}>
-                <div className={styles.loadingState}>
-                    <div className={styles.loadingEmoji}>
-                        <ChefHat size={56} strokeWidth={1.2} />
+            <>
+                <DefaultHeader user={user} />
+                <div className={styles.pageWrap}>
+                    <div className={styles.loadingState}>
+                        <div className={styles.loadingEmoji}>
+                            <ChefHat size={56} strokeWidth={1.2} />
+                        </div>
+                        <p>Loading shared recipe…</p>
                     </div>
-                    <p>Loading shared recipe…</p>
                 </div>
-            </div>
+            </>
         );
     }
 
     // ─── Error ─────────────────────────────────────────────────────────────────
     if (error) {
         return (
-            <div className={styles.pageWrap}>
-                <div className={styles.errorState}>
-                    <div className={styles.errorEmoji}>
-                        <AlertCircle size={56} strokeWidth={1.2} style={{ color: 'var(--text-light, #B09080)' }} />
+            <>
+                <DefaultHeader user={user} />
+                <div className={styles.pageWrap}>
+                    <div className={styles.errorState}>
+                        <div className={styles.errorEmoji}>
+                            <AlertCircle size={56} strokeWidth={1.2} style={{ color: 'var(--text-light, #B09080)' }} />
+                        </div>
+                        <h2 className={styles.errorTitle}>Link unavailable</h2>
+                        <p className={styles.errorDesc}>{error}</p>
+                        <Link to="/" className={styles.homeLink}>← Back to CookBook</Link>
                     </div>
-                    <h2 className={styles.errorTitle}>Link unavailable</h2>
-                    <p className={styles.errorDesc}>{error}</p>
-                    <Link to="/" className={styles.homeLink}>← Back to CookBook</Link>
                 </div>
-            </div>
+            </>
         );
     }
 
+    // ─── Hero image support ────────────────────────────────────────────────────
+    const hasImage = Boolean(recipe.imageUrl);
+    const heroStyle = hasImage
+        ? {
+            backgroundImage: `linear-gradient(to bottom, rgba(92,61,46,0.45) 0%, rgba(58,42,30,0.75) 100%), url(${recipe.imageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+        }
+        : {};
+
     // ─── Main render ───────────────────────────────────────────────────────────
     return (
-        <div className={styles.pageWrap}>
+        <>
+            <DefaultHeader user={user} />
+            <div className={styles.pageWrap}>
 
-            {/* Top bar */}
-            <nav className={styles.topBar}>
-                <Link to={user ? '/dashboard' : '/'} className={styles.brand}>
-                    <div className={styles.brandIcon}>
-                        <UtensilsCrossed size={20} color="white" strokeWidth={2} />
+                {/* Shared-by banner */}
+                <div className={styles.sharedBanner}>
+                    <span className={styles.sharedBannerIcon}>
+                        <Link2 size={15} strokeWidth={2} />
+                    </span>
+                    <span>You're viewing a shared recipe</span>
+                </div>
+
+                {/* Hero */}
+                <div className={`${styles.hero} ${hasImage ? styles.heroWithImage : ''}`} style={heroStyle}>
+                    {/* Action buttons row */}
+                    <div className={styles.heroActionRow}>
+                        {savedRecipe && (
+                            <span className={styles.savedBadge}>✓ Saved to your cookbook!</span>
+                        )}
+
+                        {user && !isOwnRecipe && !savedRecipe && (
+                            <button className={styles.saveBtn} onClick={() => setShowSaveModal(true)}>
+                                <Download size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />
+                                Save Recipe
+                            </button>
+                        )}
+
+                        {isOwnRecipe && (
+                            <button
+                                className={`${styles.viewOwnBtn} ${hasImage ? styles.viewOwnBtnOnImage : ''}`}
+                                onClick={() => navigate(`/recipe/${recipe.id}`)}
+                            >
+                                View in My Cookbook →
+                            </button>
+                        )}
                     </div>
-                    <span className={styles.brandText}>CookBook</span>
-                </Link>
 
-                <div className={styles.topBarRight}>
-                    {savedRecipe && (
-                        <span className={styles.savedBadge}>✓ Saved to your cookbook!</span>
+                    <h1 className={`${styles.recipeTitle} ${hasImage ? styles.recipeTitleOnImage : ''}`}>
+                        {recipe.name}
+                    </h1>
+
+                    {recipe.description && (
+                        <p className={`${styles.recipeDesc} ${hasImage ? styles.recipeDescOnImage : ''}`}>
+                            {recipe.description}
+                        </p>
                     )}
 
-                    {user && !isOwnRecipe && !savedRecipe && (
-                        <button className={styles.saveBtn} onClick={() => setShowSaveModal(true)}>
-                            <Download size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />
-                            Save Recipe
-                        </button>
-                    )}
+                    <div className={styles.timeBadges}>
+                        {recipe.prepTimeMinutes && (
+                            <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
+                                <Timer size={13} strokeWidth={2} />
+                                Prep <span>{formatTime(recipe.prepTimeMinutes)}</span>
+                            </div>
+                        )}
+                        {recipe.cookTimeMinutes && (
+                            <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
+                                <Flame size={13} strokeWidth={2} />
+                                Cook <span>{formatTime(recipe.cookTimeMinutes)}</span>
+                            </div>
+                        )}
+                        {recipe.totalTimeMinutes && (
+                            <div className={`${styles.timeBadge} ${hasImage ? styles.timeBadgeOnImage : ''}`}>
+                                <Clock size={13} strokeWidth={2} />
+                                Total <span>{formatTime(recipe.totalTimeMinutes)}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
 
-                    {!user && (
-                        <Link to="/" className={styles.loginPromptBtn}>
-                            Sign in to Save
-                        </Link>
-                    )}
+                {/* Body — always rendered; guest content is blurred via CSS */}
+                <div className={styles.body}>
+                    <div className={styles.left}>
+                        {ingredients.length > 0 && (
+                            <div className={styles.detailCard}>
+                                <h4 className={styles.cardTitle}>
+                                    Ingredients
+                                    <span className={styles.countBadge}>{ingredients.length}</span>
+                                </h4>
+                                <div className={!user ? styles.blurredContent : undefined}>
+                                    <ul className={styles.ingredientList}>
+                                        {ingredients.map((ing) => (
+                                            <li key={ing.id} className={styles.ingredientItem}>
+                                                <strong>
+                                                    {ing.quantity}{ing.unit ? ` ${ing.unit.toLowerCase()}` : ''}
+                                                </strong>{' '}
+                                                {ing.name}
+                                                {ing.notes && (
+                                                    <span className={styles.ingNotes}> — {ing.notes}</span>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                {!user && <GuestOverlay />}
+                            </div>
+                        )}
 
-                    {isOwnRecipe && (
+                        {recipe.notes && (
+                            <div className={styles.detailCard}>
+                                <h4 className={styles.cardTitle}>Notes</h4>
+                                <div className={!user ? styles.blurredContent : undefined}>
+                                    <p className={styles.notesText}>{recipe.notes}</p>
+                                </div>
+                                {!user && <GuestOverlay />}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className={styles.right}>
+                        {instructions.length > 0 && (
+                            <div className={styles.detailCard}>
+                                <h4 className={styles.cardTitle}>Instructions</h4>
+                                <div className={!user ? styles.blurredContent : undefined}>
+                                    <ol className={styles.stepsList}>
+                                        {instructions.map((step) => (
+                                            <li key={step.id} className={styles.stepItem}>
+                                                <div className={styles.stepNum}>{step.stepNumber}</div>
+                                                <p className={styles.stepText}>{step.description}</p>
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </div>
+                                {!user && <GuestOverlay />}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Floating save CTA for mobile */}
+                {user && !isOwnRecipe && !savedRecipe && (
+                    <div className={styles.floatingSave}>
                         <button
-                            className={styles.viewOwnBtn}
-                            onClick={() => navigate(`/recipe/${recipe.id}`)}
+                            className={styles.floatingSaveBtn}
+                            onClick={() => setShowSaveModal(true)}
                         >
-                            View in My Cookbook →
+                            <Download size={16} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                            Save Recipe to My Cookbook
                         </button>
-                    )}
-                </div>
-            </nav>
-
-            {/* Shared-by banner */}
-            <div className={styles.sharedBanner}>
-                <span className={styles.sharedBannerIcon}>
-                    <Link2 size={15} strokeWidth={2} />
-                </span>
-                <span>You're viewing a shared recipe</span>
-            </div>
-
-            {/* Hero */}
-            <div className={styles.hero}>
-                <h1 className={styles.recipeTitle}>{recipe.name}</h1>
-                {recipe.description && (
-                    <p className={styles.recipeDesc}>{recipe.description}</p>
+                    </div>
                 )}
-                <div className={styles.timeBadges}>
-                    {recipe.prepTimeMinutes && (
-                        <div className={styles.timeBadge}>
-                            <Timer size={13} strokeWidth={2} />
-                            Prep <span>{formatTime(recipe.prepTimeMinutes)}</span>
-                        </div>
-                    )}
-                    {recipe.cookTimeMinutes && (
-                        <div className={styles.timeBadge}>
-                            <Flame size={13} strokeWidth={2} />
-                            Cook <span>{formatTime(recipe.cookTimeMinutes)}</span>
-                        </div>
-                    )}
-                    {recipe.totalTimeMinutes && (
-                        <div className={styles.timeBadge}>
-                            <Clock size={13} strokeWidth={2} />
-                            Total <span>{formatTime(recipe.totalTimeMinutes)}</span>
-                        </div>
-                    )}
-                </div>
+
+                {/* Save modal */}
+                {showSaveModal && (
+                    <SaveRecipeModal
+                        token={token}
+                        recipe={recipe}
+                        onClose={() => setShowSaveModal(false)}
+                        onSaved={(saved) => {
+                            setSavedRecipe(saved);
+                            setShowSaveModal(false);
+                        }}
+                    />
+                )}
             </div>
-
-            {/* Body — always rendered; guest content is blurred via CSS */}
-            <div className={styles.body}>
-                <div className={styles.left}>
-                    {ingredients.length > 0 && (
-                        <div className={styles.detailCard}>
-                            <h4 className={styles.cardTitle}>
-                                Ingredients
-                                <span className={styles.countBadge}>{ingredients.length}</span>
-                            </h4>
-                            <div className={!user ? styles.blurredContent : undefined}>
-                                <ul className={styles.ingredientList}>
-                                    {ingredients.map((ing) => (
-                                        <li key={ing.id} className={styles.ingredientItem}>
-                                            <strong>
-                                                {ing.quantity}{ing.unit ? ` ${ing.unit.toLowerCase()}` : ''}
-                                            </strong>{' '}
-                                            {ing.name}
-                                            {ing.notes && (
-                                                <span className={styles.ingNotes}> — {ing.notes}</span>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            {!user && <GuestOverlay />}
-                        </div>
-                    )}
-
-                    {recipe.notes && (
-                        <div className={styles.detailCard}>
-                            <h4 className={styles.cardTitle}>Notes</h4>
-                            <div className={!user ? styles.blurredContent : undefined}>
-                                <p className={styles.notesText}>{recipe.notes}</p>
-                            </div>
-                            {!user && <GuestOverlay />}
-                        </div>
-                    )}
-                </div>
-
-                <div className={styles.right}>
-                    {instructions.length > 0 && (
-                        <div className={styles.detailCard}>
-                            <h4 className={styles.cardTitle}>Instructions</h4>
-                            <div className={!user ? styles.blurredContent : undefined}>
-                                <ol className={styles.stepsList}>
-                                    {instructions.map((step) => (
-                                        <li key={step.id} className={styles.stepItem}>
-                                            <div className={styles.stepNum}>{step.stepNumber}</div>
-                                            <p className={styles.stepText}>{step.description}</p>
-                                        </li>
-                                    ))}
-                                </ol>
-                            </div>
-                            {!user && <GuestOverlay />}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Floating save CTA for mobile */}
-            {user && !isOwnRecipe && !savedRecipe && (
-                <div className={styles.floatingSave}>
-                    <button
-                        className={styles.floatingSaveBtn}
-                        onClick={() => setShowSaveModal(true)}
-                    >
-                        <Download size={16} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                        Save Recipe to My Cookbook
-                    </button>
-                </div>
-            )}
-
-            {/* Save modal */}
-            {showSaveModal && (
-                <SaveRecipeModal
-                    token={token}
-                    recipe={recipe}
-                    onClose={() => setShowSaveModal(false)}
-                    onSaved={(saved) => {
-                        setSavedRecipe(saved);
-                        setShowSaveModal(false);
-                    }}
-                />
-            )}
-        </div>
+        </>
     );
 };
 
