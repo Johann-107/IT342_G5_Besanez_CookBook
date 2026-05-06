@@ -61,13 +61,6 @@ const Landing = ({
     }
   ];
 
-  const footerLinks = [
-    { id: 'about', label: 'About' },
-    { id: 'contact', label: 'Contact' },
-    { id: 'privacy', label: 'Privacy' },
-    { id: 'terms', label: 'Terms' }
-  ];
-
   return (
     <>
       <DefaultHeader />
@@ -127,20 +120,6 @@ const Landing = ({
               <p className={styles.featureDescription}>{feature.description}</p>
             </div>
           ))}
-        </div>
-
-        {/* Footer */}
-        <div className={styles.pageFooter}>
-          {footerLinks.map((link) => (
-            <span
-              key={link.id}
-              onClick={() => onFooterLinkClick && onFooterLinkClick(link.id)}
-              className={styles.footerLink}
-            >
-              {link.label}
-            </span>
-          ))}
-          <span className={styles.copyright}>© 2025 CookBook</span>
         </div>
       </div>
 

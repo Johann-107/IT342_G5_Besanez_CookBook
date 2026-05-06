@@ -3,7 +3,7 @@
     min-height: calc(100vh - 80px);
     font-family: 'DM Sans', sans-serif;
     color: var(--text-dark, #3A2A1E);
-    padding-bottom: 80px;
+    padding-bottom: 40px;
 }
 
 /* Page Header */
@@ -30,23 +30,6 @@
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-dark, #3A2A1E);
-}
-
-.cancelBtn {
-    background: var(--peach-light, #FAE3CC);
-    color: var(--terracotta-dark, #A05E33);
-    border: none;
-    border-radius: 10px;
-    padding: 8px 16px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.cancelBtn:hover {
-    background: var(--peach, #F5C9A0);
 }
 
 /* Form Body */
@@ -91,12 +74,19 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
 }
 
-.btnPrimary:hover {
+.btnPrimary:hover:not(:disabled) {
     background: var(--terracotta-dark, #A05E33);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(201, 125, 78, 0.3);
+}
+
+.btnPrimary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 .btnOutline {
@@ -112,8 +102,13 @@
     transition: all 0.2s ease;
 }
 
-.btnOutline:hover {
+.btnOutline:hover:not(:disabled) {
     background: var(--peach-light, #FAE3CC);
+}
+
+.btnOutline:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 .btnGhost {
@@ -127,6 +122,8 @@
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s ease;
+    display: inline-flex;
+    align-items: center;
 }
 
 .btnGhost:hover {
@@ -342,20 +339,15 @@
     margin-top: 6px;
 }
 
-/* Sticky Save Bar */
-.stickyBar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    border-top: 1px solid var(--border, #EDD8C4);
-    padding: 14px 120px;
+/* ── Form Actions (Save + Cancel below Organization) ── */
+.formActions {
     display: flex;
     gap: 10px;
+    align-items: center;
     justify-content: flex-end;
-    box-shadow: 0 -4px 20px rgba(92, 61, 46, 0.08);
-    z-index: 20;
+    margin-top: 10px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border, #EDD8C4);
 }
 
 /* Error Banner */
@@ -394,6 +386,8 @@
     color: var(--text-mid, #7A5C46);
     cursor: pointer;
     transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
 }
 
 .imageModeTab:hover {
@@ -503,6 +497,8 @@
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s ease, transform 0.15s ease;
+    display: inline-flex;
+    align-items: center;
 }
 
 .imagePreviewChange {
@@ -562,7 +558,6 @@
 
     .pageHeader,
     .formBody,
-    .stickyBar,
     .errorBanner {
         padding-left: 32px;
         padding-right: 32px;
@@ -581,7 +576,6 @@
 
     .pageHeader,
     .formBody,
-    .stickyBar,
     .errorBanner {
         padding-left: 16px;
         padding-right: 16px;
@@ -596,14 +590,14 @@
         grid-template-rows: auto auto;
     }
 
-    .stickyBar {
-        flex-wrap: wrap;
-        gap: 8px;
+    .formActions {
+        flex-direction: column-reverse;
     }
 
-    .stickyBar .btnGhost {
-        order: 3;
+    .formActions .btnPrimary,
+    .formActions .btnOutline {
         width: 100%;
+        justify-content: center;
         text-align: center;
     }
 

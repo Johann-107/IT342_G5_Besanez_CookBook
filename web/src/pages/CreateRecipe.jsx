@@ -598,14 +598,8 @@ const CreateRecipe = () => {
                         )}
                     </section>
 
-                    {/* ── Sticky Save Bar ── */}
-                    <div className={styles.stickyBar}>
-                        <button
-                            type="button" className={styles.btnOutline}
-                            onClick={() => navigate(isEditing ? `/recipe/${id}` : '/recipes')}
-                        >
-                            Cancel
-                        </button>
+                    {/* ── Action Buttons ── */}
+                    <div className={styles.formActions}>
                         <button type="submit" className={styles.btnPrimary} disabled={saving || uploading}>
                             {uploading ? (
                                 <><Loader size={15} strokeWidth={2} style={{ marginRight: 6, animation: 'spin 1s linear infinite' }} />Uploading image…</>
@@ -614,6 +608,14 @@ const CreateRecipe = () => {
                             ) : (
                                 <><Save size={15} strokeWidth={2} style={{ marginRight: 6 }} />{isEditing ? 'Update Recipe' : 'Save Recipe'}</>
                             )}
+                        </button>
+                        <button
+                            type="button"
+                            className={styles.btnOutline}
+                            onClick={() => navigate(isEditing ? `/recipe/${id}` : '/recipes')}
+                            disabled={saving || uploading}
+                        >
+                            Cancel
                         </button>
                     </div>
                 </form>
