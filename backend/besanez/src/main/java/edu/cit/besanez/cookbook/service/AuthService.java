@@ -24,6 +24,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final CloudinaryService cloudinaryService;
+    private final DefaultDataSeederService seederService; // ← injected
 
     // ─── Register ─────────────────────────────────────────────────────────────
 
@@ -48,6 +49,11 @@ public class AuthService {
                 .build();
 
         UserEntity savedUser = userRepository.save(userEntity);
+
+        // Seed 3 built-in Filipino recipes + 1 starter collection for every new
+        // account.
+        seederService.seedDefaultData(savedUser);
+
         return convertToResponseDTO(savedUser);
     }
 
@@ -81,6 +87,8 @@ public class AuthService {
         String lastName = oauth2User.getAttribute("family_name");
         String picture = oauth2User.getAttribute("picture");
 
+        boolean[] isNewUser = { false };
+
         UserEntity user = userRepository.findByEmail(email).orElseGet(() -> {
             // New Google user — upload their avatar to Cloudinary immediately so we
             // never depend on lh3.googleusercontent.com again.
@@ -95,15 +103,23 @@ public class AuthService {
                     .profileImage(persistedImage)
                     .cookingLevel(CookingLevel.BEGINNER)
                     .build();
-            return userRepository.save(newUser);
+
+            UserEntity saved = userRepository.save(newUser);
+            isNewUser[0] = true;
+            return saved;
         });
+
+        // Seed default recipes only for brand-new Google accounts.
+        if (isNewUser[0]) {
+            seederService.seedDefaultData(user);
+        }
 
         // For existing users: re-upload only when Google gives us a new picture URL
         // (i.e. the stored URL is still a Google URL, or it changed).
         boolean storedIsGoogleUrl = user.getProfileImage() != null
                 && user.getProfileImage().contains("googleusercontent.com");
 
-        if (picture != null && (storedIsGoogleUrl || user.getProfileImage() == null)) {
+        if (!isNewUser[0] && picture != null && (storedIsGoogleUrl || user.getProfileImage() == null)) {
             String cloudinaryUrl = uploadGoogleAvatar(user.getId(), picture);
             if (cloudinaryUrl != null) {
                 user.setProfileImage(cloudinaryUrl);
@@ -155,14 +171,8 @@ public class AuthService {
 
     /**
      * Uploads a Google profile picture to Cloudinary and returns the CDN URL.
-     * Falls back to null (gracefully) if the upload fails for any reason,
+     * Falls back to the original Google URL if Cloudinary is unavailable,
      * so a Cloudinary outage never blocks login.
-     *
-     * @param userId  the user's id (used to build the folder path); may be null
-     *                for brand-new users whose id isn't known yet — in that case
-     *                the image lands in the generic "users/profiles" folder.
-     * @param picture the Google lh3.googleusercontent.com URL
-     * @return Cloudinary secure_url, or null on failure
      */
     private String uploadGoogleAvatar(Long userId, String picture) {
         if (picture == null || picture.isBlank())
@@ -174,7 +184,7 @@ public class AuthService {
             return cloudinaryService.uploadImageFromUrl(picture, folder);
         } catch (Exception e) {
             System.err.println("Google avatar upload to Cloudinary failed: " + e.getMessage());
-            return picture; // fall back to original Google URL rather than losing it entirely
+            return picture;
         }
     }
 

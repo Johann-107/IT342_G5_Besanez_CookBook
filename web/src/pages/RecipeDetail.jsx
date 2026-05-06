@@ -261,13 +261,6 @@ const RecipeDetail = () => {
                         )}
                     </div>
                 </div>
-
-                <div className={styles.footer}>
-                    <button className={styles.btnGhost} onClick={() => navigate(-1)}>
-                        <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 4, verticalAlign: 'middle' }} />
-                        Back
-                    </button>
-                </div>
             </div>
 
             {showAddToCollection && (

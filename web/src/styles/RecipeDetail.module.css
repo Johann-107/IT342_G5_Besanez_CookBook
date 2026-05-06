@@ -417,21 +417,11 @@
     color: var(--text-mid, #7A5C46);
 }
 
-/* Footer */
-.footer {
-    display: flex;
-    align-items: center;
-    padding: 16px 120px;
-    border-top: 1px solid var(--border, #EDD8C4);
-    background: var(--warm-white, #FFF9F2);
-}
-
 /* Responsive */
 @media (max-width: 1024px) {
 
     .heroBar,
-    .body,
-    .footer {
+    .body {
         padding-left: 32px;
         padding-right: 32px;
     }
@@ -456,8 +446,7 @@
 @media (max-width: 640px) {
 
     .heroBar,
-    .body,
-    .footer {
+    .body {
         padding-left: 16px;
         padding-right: 16px;
     }
