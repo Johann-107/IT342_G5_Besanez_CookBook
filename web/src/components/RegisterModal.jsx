@@ -2,9 +2,9 @@ import styles from '../styles/Register.module.css';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, X } from 'lucide-react';
-import GoogleLoginButton from '../components/GoogleLoginButton';
+import GoogleLoginButton from './GoogleLoginButton';
 
-const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
+const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -438,4 +438,4 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     );
 };
 
-export default Register;
+export default RegisterModal;

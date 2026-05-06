@@ -3,9 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, X } from 'lucide-react';
 import styles from '../styles/Login.module.css';
-import GoogleLoginButton from '../components/GoogleLoginButton';
+import GoogleLoginButton from './GoogleLoginButton';
 
-const Login = ({ isOpen, onClose, onSwitchToRegister, externalError = '' }) => {
+const LoginModal = ({ isOpen, onClose, onSwitchToRegister, externalError = '' }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -199,4 +199,4 @@ const Login = ({ isOpen, onClose, onSwitchToRegister, externalError = '' }) => {
   );
 };
 
-export default Login;
+export default LoginModal;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PenLine, FolderOpen, Cloud } from 'lucide-react';
 import styles from '../styles/Landing.module.css';
 import DefaultHeader from '../components/layout/DefaultHeader';
-import Login from './Login';
+import Login from '../components/LoginModal';
 
 const Landing = ({
   onGetStarted,
