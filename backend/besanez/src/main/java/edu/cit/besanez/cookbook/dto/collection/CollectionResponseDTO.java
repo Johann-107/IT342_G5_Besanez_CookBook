@@ -1,6 +1,7 @@
 package edu.cit.besanez.cookbook.dto.collection;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +27,8 @@ public class CollectionResponseDTO {
     private int recipeCount;
 
     private String coverImage;
+
+    private List<String> recipeImages;
 
     private LocalDateTime createdAt;
 

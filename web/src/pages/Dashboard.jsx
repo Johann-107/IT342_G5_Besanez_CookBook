@@ -7,14 +7,11 @@ import AddToCollectionModal from '../components/AddToCollectionModal';
 import CookbookFacade from '../patterns/CookbookFacade';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import styles from '../styles/Dashboard.module.css';
+import CollectionImageSlideshow from '../components/collection/CollectionImageSlideshow';
 
 const BG_CLASSES = ['rcImg1', 'rcImg2', 'rcImg3', 'rcImg4', 'rcImg5', 'rcImg6'];
 const EMOJI_MAP = ['🥘', '🥗', '🍋', '🍝', '🍜', '🥧', '🍲', '🥩', '🍰', '🥞'];
 const COLLECTION_COLORS = ['ccRust', 'ccSage', 'ccAmber', 'ccRose', 'ccSky', 'ccPlum'];
-const COLLECTION_ICONS = [
-    ['🍖', '🥩', '🐟'], ['🥬', '🍅', '🥕'], ['🧁', '🍞', '🥐'],
-    ['🍷', '🥩', '🎂'], ['🥣', '🍳', '🥞'], ['🌮', '🥙', '🥗'],
-];
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -89,13 +86,12 @@ const Dashboard = () => {
                     <div className={styles.welcomeBanner}>
                         <div>
                             <h2 className={styles.welcomeTitle}>
-                                {getGreeting()}, {displayName}! 👋
+                                {getGreeting()}, {displayName}!
                             </h2>
                             <p className={styles.welcomeQuote}>
                                 "Cooking is an art, but all art requires knowing something about technique."
                             </p>
                         </div>
-                        <div className={styles.welcomeEmoji}>🥗</div>
                     </div>
 
                     {loading ? (
@@ -225,23 +221,26 @@ const Dashboard = () => {
                         </div>
                     ) : (
                         <div className={styles.collectionsRow}>
-                            {collections.map((col, index) => (
-                                <div
-                                    key={col.id}
-                                    className={`${styles.collectionCard} ${styles[COLLECTION_COLORS[index % COLLECTION_COLORS.length]]}`}
-                                    onClick={() => navigate('/collections')}
-                                >
-                                    <div className={styles.collectionName}>📂 {col.name}</div>
-                                    <div className={styles.collectionCount}>
-                                        {col.recipeCount || 0} {col.recipeCount === 1 ? 'recipe' : 'recipes'}
+                            {collections.map((col, index) => {
+                                const hasImages = (col.recipeImages?.length ?? 0) > 0;
+                                return (
+                                    <div
+                                        key={col.id}
+                                        className={`${styles.collectionCard} ${styles[COLLECTION_COLORS[index % COLLECTION_COLORS.length]]}`}
+                                        onClick={() => navigate(`/collections/${col.id}`)}
+                                    >
+                                        {hasImages && (
+                                            <CollectionImageSlideshow images={col.recipeImages} />
+                                        )}
+                                        <div className={styles.collectionContent}>
+                                            <div className={styles.collectionName}>{col.name}</div>
+                                            <div className={styles.collectionCount}>
+                                                {col.recipeCount || 0} {col.recipeCount === 1 ? 'recipe' : 'recipes'}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className={styles.collectionIcons}>
-                                        {COLLECTION_ICONS[index % COLLECTION_ICONS.length].map((icon, i) => (
-                                            <div key={i} className={styles.collectionIcon}>{icon}</div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
 

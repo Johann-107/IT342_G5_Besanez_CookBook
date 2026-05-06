@@ -129,6 +129,12 @@
     height: 6px;
 }
 
+.collCardImgArea {
+    position: relative;
+    height: 90px;
+    overflow: hidden;
+}
+
 .rust {
     background: #D4845A;
 }

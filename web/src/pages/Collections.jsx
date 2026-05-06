@@ -6,6 +6,7 @@ import collectionAPI from '../services/collection';
 import { FolderOpen, Pencil, Trash2, Plus, X, ChefHat } from 'lucide-react';
 import styles from '../styles/Collections.module.css';
 import LoadingScreen from '../components/common/LoadingScreen';
+import CollectionImageSlideshow from '../components/collection/CollectionImageSlideshow';
 
 const COLOR_CLASSES = ['rust', 'sage', 'amber', 'rose', 'sky', 'plum'];
 
@@ -138,43 +139,49 @@ const Collections = () => {
                     />
                 ) : (
                     <div className={styles.collGrid}>
-                        {collections.map((col, index) => (
-                            <div
-                                key={col.id}
-                                className={styles.collCard}
-                                onClick={() => navigate(`/collections/${col.id}`)}
-                            >
-                                <div className={`${styles.colorBar} ${styles[COLOR_CLASSES[index % COLOR_CLASSES.length]]}`} />
-                                <div className={styles.collCardBody}>
-                                    <div className={styles.collCardName}>{col.name}</div>
-                                    {col.description && (
-                                        <div className={styles.collCardDesc}>{col.description}</div>
+                        {collections.map((col, index) => {
+                            const hasImages = (col.recipeImages?.length ?? 0) > 0;
+                            return (
+                                <div
+                                    key={col.id}
+                                    className={styles.collCard}
+                                    onClick={() => navigate(`/collections/${col.id}`)}
+                                >
+                                    {hasImages ? (
+                                        <div className={styles.collCardImgArea}>
+                                            <CollectionImageSlideshow images={col.recipeImages} overlay={false} />
+                                        </div>
+                                    ) : (
+                                        <div className={`${styles.colorBar} ${styles[COLOR_CLASSES[index % COLOR_CLASSES.length]]}`} />
                                     )}
-                                    <div className={styles.collCardFooter}>
-                                        <span className={styles.collCount}>{col.recipeCount || 0} recipes</span>
-                                    </div>
-                                    <div
-                                        className={styles.cardActions}
-                                        onClick={e => e.stopPropagation()}
-                                    >
-                                        <button
-                                            className={styles.iconBtn}
-                                            title="Edit"
-                                            onClick={e => openEdit(e, col)}
-                                        >
-                                            <Pencil size={13} strokeWidth={2} />
-                                        </button>
-                                        <button
-                                            className={styles.iconBtn}
-                                            title="Delete"
-                                            onClick={e => handleDelete(e, col)}
-                                        >
-                                            <Trash2 size={13} strokeWidth={2} />
-                                        </button>
+                                    <div className={styles.collCardBody}>
+                                        <div className={styles.collCardName}>{col.name}</div>
+                                        {col.description && (
+                                            <div className={styles.collCardDesc}>{col.description}</div>
+                                        )}
+                                        <div className={styles.collCardFooter}>
+                                            <span className={styles.collCount}>{col.recipeCount || 0} recipes</span>
+                                        </div>
+                                        <div className={styles.cardActions} onClick={e => e.stopPropagation()}>
+                                            <button
+                                                className={styles.iconBtn}
+                                                title="Edit"
+                                                onClick={e => openEdit(e, col)}
+                                            >
+                                                <Pencil size={13} strokeWidth={2} />
+                                            </button>
+                                            <button
+                                                className={styles.iconBtn}
+                                                title="Delete"
+                                                onClick={e => handleDelete(e, col)}
+                                            >
+                                                <Trash2 size={13} strokeWidth={2} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
 
                         {/* Add new card */}
                         <div className={styles.newCollCard} onClick={openCreate}>

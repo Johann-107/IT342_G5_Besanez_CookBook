@@ -1,5 +1,7 @@
 package edu.cit.besanez.cookbook.service;
 
+import java.util.stream.Collectors;
+
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +19,7 @@ import edu.cit.besanez.cookbook.repository.RecipeRepository;
 import edu.cit.besanez.cookbook.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -136,11 +139,17 @@ public class CollectionService {
 
     private CollectionResponseDTO convertToResponseDTO(CollectionEntity collection) {
         Hibernate.initialize(collection.getRecipes());
+        List<String> recipeImages = collection.getRecipes().stream()
+                .map(RecipeEntity::getImageUrl)
+                .filter(url -> url != null && !url.isBlank())
+                .limit(6)
+                .collect(Collectors.toList());
         return CollectionResponseDTO.builder()
                 .id(collection.getId())
                 .name(collection.getName())
                 .description(collection.getDescription())
                 .coverImage(collection.getCoverImage())
+                .recipeImages(recipeImages)
                 .userId(collection.getUser().getId())
                 .recipeCount(collection.getRecipes().size())
                 .createdAt(collection.getCreatedAt())
@@ -150,11 +159,17 @@ public class CollectionService {
 
     public CollectionResponseDTO convertToResponseDTOPublic(CollectionEntity collection) {
         Hibernate.initialize(collection.getRecipes());
+        List<String> recipeImages = collection.getRecipes().stream()
+                .map(RecipeEntity::getImageUrl)
+                .filter(url -> url != null && !url.isBlank())
+                .limit(6)
+                .collect(Collectors.toList());
         return CollectionResponseDTO.builder()
                 .id(collection.getId())
                 .name(collection.getName())
                 .description(collection.getDescription())
                 .coverImage(collection.getCoverImage())
+                .recipeImages(recipeImages)
                 .userId(collection.getUser().getId())
                 .recipeCount(collection.getRecipes().size())
                 .createdAt(collection.getCreatedAt())

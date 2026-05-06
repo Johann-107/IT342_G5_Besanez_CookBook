@@ -36,10 +36,6 @@
     font-style: italic;
 }
 
-.welcomeEmoji {
-    font-size: 48px;
-}
-
 /* Stats Row */
 .statsRow {
     display: grid;
@@ -318,6 +314,16 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.collectionContent {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .collectionCard:hover {
@@ -367,23 +373,6 @@
     opacity: 0.85;
     font-weight: 500;
     margin-bottom: auto;
-}
-
-.collectionIcons {
-    display: flex;
-    gap: 4px;
-    margin-top: 14px;
-}
-
-.collectionIcon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .cardQuickAction {
@@ -459,10 +448,6 @@
 
     .welcomeTitle {
         font-size: 1.4rem;
-    }
-
-    .welcomeEmoji {
-        font-size: 2.5rem;
     }
 
     .statsRow {

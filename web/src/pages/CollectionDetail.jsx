@@ -11,19 +11,12 @@ import CollectionRecipeGrid from '../components/collection/CollectionRecipeGrid'
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import {
     ArrowLeft,
-    Eye,
-    X,
     Plus,
-    Globe,
-    Lock,
     ChefHat,
     AlertCircle,
 } from 'lucide-react';
 import styles from '../styles/CollectionDetail.module.css';
 import LoadingScreen from '../components/common/LoadingScreen';
-
-const BG_CLASSES = ['rc1', 'rc2', 'rc3', 'rc4', 'rc5', 'rc6'];
-const EMOJI_MAP = ['🥘', '🥗', '🍋', '🍝', '🍜', '🥧', '🍲', '🥩', '🍰', '🥞'];
 
 const COLOR_CLASSES = ['rust', 'sage', 'amber', 'rose', 'sky', 'plum'];
 const COLOR_GRADIENTS = {
@@ -33,14 +26,6 @@ const COLOR_GRADIENTS = {
     rose: 'linear-gradient(135deg, #D47B85, #B85A65)',
     sky: 'linear-gradient(135deg, #6BA3BF, #4A82A0)',
     plum: 'linear-gradient(135deg, #9B6BAB, #7A4A8A)',
-};
-
-const formatTime = (minutes) => {
-    if (!minutes) return null;
-    if (minutes < 60) return `${minutes}m`;
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m ? `${h}h ${m}m` : `${h}h`;
 };
 
 const CollectionDetail = () => {

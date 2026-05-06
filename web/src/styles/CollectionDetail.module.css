@@ -59,6 +59,11 @@
     transition: background 0.3s ease;
 }
 
+.heroContentWrap {
+    position: relative;
+    z-index: 4;
+}
+
 .heroWithImage {
     border-bottom: none;
     min-height: 300px;
