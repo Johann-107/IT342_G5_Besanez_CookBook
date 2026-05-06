@@ -205,7 +205,6 @@ const CollectionDetail = () => {
         });
     };
 
-    // ─── Loading ────────────────────────────────────────────────────────────────
     if (loading) {
         return (
             <>
@@ -219,7 +218,6 @@ const CollectionDetail = () => {
         );
     }
 
-    // ─── Error ──────────────────────────────────────────────────────────────────
     if (error && !collection) {
         return (
             <>
@@ -370,13 +368,6 @@ const CollectionDetail = () => {
                             ))}
                         </div>
                     )}
-                </div>
-
-                <div className={styles.footer}>
-                    <button className={styles.btnGhost} onClick={() => navigate('/collections')}>
-                        <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 5 }} />
-                        Back to Collections
-                    </button>
                 </div>
             </div>
 

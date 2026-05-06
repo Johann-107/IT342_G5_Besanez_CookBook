@@ -259,7 +259,6 @@ const SharedRecipePage = () => {
     );
 };
 
-// ─── Guest blur overlay ────────────────────────────────────────────────────────
 const GuestOverlay = () => (
     <div style={guestOverlayStyles.wrap}>
         <div style={guestOverlayStyles.card}>

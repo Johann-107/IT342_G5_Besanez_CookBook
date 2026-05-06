@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
@@ -6,77 +6,40 @@ import recipeAPI from '../services/recipe';
 import ingredientAPI from '../services/ingredient';
 import instructionAPI from '../services/instruction';
 import collectionAPI from '../services/collection';
-import {
-    ImageUploadContext,
-    IMAGE_STRATEGIES,
-} from '../patterns/ImageUploadStrategy';
+import { ImageUploadContext, IMAGE_STRATEGIES } from '../patterns/ImageUploadStrategy';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
-import {
-    FileText,
-    Salad,
-    ClipboardList,
-    NotebookPen,
-    FolderOpen,
-    Camera,
-    Link,
-    ImageIcon,
-    Minus,
-    Save,
-    Loader,
-    Plus,
-} from 'lucide-react';
+import { Save, Loader, ArrowLeft } from 'lucide-react';
 import styles from '../styles/CreateRecipe.module.css';
 
-const UNITS = [
-    { value: '', label: 'Unit' },
-    { value: 'G', label: 'g' },
-    { value: 'KG', label: 'kg' },
-    { value: 'ML', label: 'ml' },
-    { value: 'L', label: 'L' },
-    { value: 'TSP', label: 'tsp' },
-    { value: 'TBSP', label: 'tbsp' },
-    { value: 'CUP', label: 'cup' },
-    { value: 'FL_OZ', label: 'fl oz' },
-    { value: 'OZ', label: 'oz' },
-    { value: 'LB', label: 'lb' },
-    { value: 'PIECE', label: 'piece' },
-    { value: 'PINCH', label: 'pinch' },
-    { value: 'CLOVE', label: 'clove' },
-    { value: 'SLICE', label: 'slice' },
-    { value: 'OTHER', label: 'other' },
-];
+import RecipeBasicInfo from '../components/recipe-form/RecipeBasicInfo';
+import IngredientList from '../components/recipe-form/IngredientList';
+import InstructionList from '../components/recipe-form/InstructionList';
+import RecipeNotes from '../components/recipe-form/RecipeNotes';
+import RecipeOrganization from '../components/recipe-form/RecipeOrganization';
 
 const emptyIngredient = () => ({
-    _key: Date.now() + Math.random(), name: '', quantity: '', unit: '', notes: '',
+    _key: crypto.randomUUID(),
+    name: '', quantity: '', unit: '', notes: '',
+    id: null, _deleted: false,
 });
+
 const emptyStep = () => ({
-    _key: Date.now() + Math.random(), description: '',
+    _key: crypto.randomUUID(),
+    description: '',
+    id: null, stepNumber: null, _deleted: false,
 });
 
 const CreateRecipe = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { id } = useParams();
-    const fileInputRef = useRef(null);
     const isEditing = Boolean(id);
 
     const [form, setForm] = useState({
-        name: '', description: '', prepTimeMinutes: '', cookTimeMinutes: '',
-        totalTimeMinutes: '', imageUrl: '', isPublic: false, notes: '',
+        name: '', description: '',
+        prepTimeMinutes: '', cookTimeMinutes: '', totalTimeMinutes: '',
+        imageUrl: '', isPublic: false, notes: '',
     });
-
-    const [imageMode, setImageMode] = useState('cloudinary');
-    const [imageFile, setImageFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
-    const [urlInput, setUrlInput] = useState('');
-    const [dragOver, setDragOver] = useState(false);
-    const [uploading, setUploading] = useState(false);
-
-    const imageContext = useMemo(() => new ImageUploadContext(IMAGE_STRATEGIES[imageMode]), []);
-    useEffect(() => {
-        imageContext.setStrategy(IMAGE_STRATEGIES[imageMode]);
-    }, [imageMode, imageContext]);
-
     const [ingredients, setIngredients] = useState([emptyIngredient()]);
     const [steps, setSteps] = useState([emptyStep()]);
     const [collections, setCollections] = useState([]);
@@ -84,9 +47,29 @@ const CreateRecipe = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
-    // ─── Load existing recipe (edit mode) ──────────────────────────────────────
+    const [imageMode, setImageMode] = useState('cloudinary');
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [urlInput, setUrlInput] = useState('');
+    const [uploading, setUploading] = useState(false);
+
+    // Single instance, update strategy when mode changes
+    const imageContext = useRef(new ImageUploadContext(IMAGE_STRATEGIES.cloudinary)).current;
+    useEffect(() => {
+        imageContext.setStrategy(IMAGE_STRATEGIES[imageMode]);
+    }, [imageMode, imageContext]);
+
+    // Revoke blob URLs on unmount to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (imagePreview?.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
+        };
+    }, [imagePreview]);
+
+    // ─── Load existing recipe (edit mode) ───────────────────────────────────
     useEffect(() => {
         if (!isEditing) return;
+        let alive = true;
         const load = async () => {
             try {
                 const [recipeRes, ingRes, instRes] = await Promise.all([
@@ -94,97 +77,119 @@ const CreateRecipe = () => {
                     ingredientAPI.getIngredients(id),
                     instructionAPI.getInstructions(id),
                 ]);
+                if (!alive) return;
                 const r = recipeRes.data;
                 setForm({
                     name: r.name || '', description: r.description || '',
-                    prepTimeMinutes: r.prepTimeMinutes || '', cookTimeMinutes: r.cookTimeMinutes || '',
-                    totalTimeMinutes: r.totalTimeMinutes || '', imageUrl: r.imageUrl || '',
-                    isPublic: r.isPublic || false, notes: r.notes || '',
+                    prepTimeMinutes: r.prepTimeMinutes ?? '',
+                    cookTimeMinutes: r.cookTimeMinutes ?? '',
+                    totalTimeMinutes: r.totalTimeMinutes ?? '',
+                    imageUrl: r.imageUrl || '', isPublic: r.isPublic || false,
+                    notes: r.notes || '',
                 });
                 if (r.imageUrl) {
                     setImagePreview(r.imageUrl);
                     setUrlInput(r.imageUrl);
+                    setImageMode('url');
                 }
-                setIngredients(ingRes.data.length > 0
-                    ? ingRes.data.map((i) => ({ ...i, _key: i.id }))
-                    : [emptyIngredient()]
+                setIngredients(
+                    ingRes.data.length
+                        ? ingRes.data.map(i => ({ ...i, _key: crypto.randomUUID(), _deleted: false }))
+                        : [emptyIngredient()]
                 );
-                setSteps(instRes.data.length > 0
-                    ? instRes.data.map((s) => ({ ...s, _key: s.id }))
-                    : [emptyStep()]
+                setSteps(
+                    instRes.data.length
+                        ? instRes.data.map(s => ({ ...s, _key: crypto.randomUUID(), _deleted: false }))
+                        : [emptyStep()]
                 );
             } catch {
                 setError('Failed to load recipe for editing.');
             }
         };
         load();
+        return () => { alive = false; };
     }, [id, isEditing]);
 
-    // ─── Load collections ───────────────────────────────────────────────────────
+    // ─── Load collections (create mode only) ────────────────────────────────
     useEffect(() => {
+        if (isEditing) return;
         collectionAPI.getCollections({ size: 100 })
-            .then((res) => setCollections(res.data.content || []))
+            .then(res => setCollections(res.data.content || []))
             .catch(() => { });
-    }, []);
+    }, [isEditing]);
 
-    // ─── Image helpers ──────────────────────────────────────────────────────────
-    const handleFileSelected = (file) => {
-        if (!file) return;
-        const validationError = imageContext.validate(file);
-        if (validationError) { setError(validationError); return; }
-        setImageFile(file);
-        setImagePreview(URL.createObjectURL(file));
-        setError('');
-    };
-
-    const handleFileInputChange = (e) => {
-        handleFileSelected(e.target.files?.[0]);
-        e.target.value = '';
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        setDragOver(false);
-        handleFileSelected(e.dataTransfer.files?.[0]);
-    };
-
-    const handleUrlApply = () => {
-        const validationError = imageContext.validate(urlInput.trim());
-        if (validationError) { setError(validationError); return; }
-        setImagePreview(urlInput.trim());
-        setForm((f) => ({ ...f, imageUrl: urlInput.trim() }));
-        setImageFile(null);
-        setError('');
-    };
-
-    const handleRemoveImage = () => {
-        setImagePreview(null);
+    // ─── Image helpers ───────────────────────────────────────────────────────
+    const resetImageState = () => {
+        setImagePreview(prev => {
+            if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+            return null;
+        });
         setImageFile(null);
         setUrlInput('');
-        setForm((f) => ({ ...f, imageUrl: '' }));
-        if (fileInputRef.current) fileInputRef.current.value = '';
+        setForm(f => ({ ...f, imageUrl: '' }));
     };
 
-    // ─── Ingredient helpers ─────────────────────────────────────────────────────
-    const addIngredient = () => setIngredients((p) => [...p, emptyIngredient()]);
-    const updateIngredient = (key, field, val) =>
-        setIngredients((p) => p.map((i) => i._key === key ? { ...i, [field]: val } : i));
-    const removeIngredient = (key) =>
-        setIngredients((p) => p.filter((i) => i._key !== key));
+    // Action-based handler passed to ImageUploader — single responsibility per action
+    const handleImageChange = ({ action, file, url, mode }) => {
+        switch (action) {
+            case 'SWITCH_MODE':
+                resetImageState();
+                setImageMode(mode);
+                break;
 
-    // ─── Step helpers ───────────────────────────────────────────────────────────
-    const addStep = () => setSteps((p) => [...p, emptyStep()]);
+            case 'SELECT_FILE': {
+                const err = imageContext.validate(file);
+                if (err) { setError(err); return; }
+                setError('');
+                setImageFile(file);
+                setImagePreview(URL.createObjectURL(file));
+                break;
+            }
+
+            case 'APPLY_URL': {
+                const err = imageContext.validate(url);
+                if (err) { setError(err); return; }
+                setError('');
+                setImagePreview(url);
+                setUrlInput(url);
+                setImageFile(null);
+                setForm(f => ({ ...f, imageUrl: url }));
+                break;
+            }
+
+            case 'REMOVE':
+                resetImageState();
+                break;
+
+            default:
+                break;
+        }
+    };
+
+    // ─── Ingredient helpers ──────────────────────────────────────────────────
+    const addIngredient = () => setIngredients(p => [...p, emptyIngredient()]);
+
+    const updateIngredient = (key, field, val) =>
+        setIngredients(p => p.map(i => i._key === key ? { ...i, [field]: val } : i));
+
+    const removeIngredient = (key) =>
+        setIngredients(p => p.map(i => i._key === key ? { ...i, _deleted: true } : i));
+
+    // ─── Step helpers ────────────────────────────────────────────────────────
+    const addStep = () => setSteps(p => [...p, emptyStep()]);
+
     const updateStep = (key, val) =>
-        setSteps((p) => p.map((s) => s._key === key ? { ...s, description: val } : s));
+        setSteps(p => p.map(s => s._key === key ? { ...s, description: val } : s));
+
     const removeStep = (key) =>
-        setSteps((p) => p.filter((s) => s._key !== key));
+        setSteps(p => p.map(s => s._key === key ? { ...s, _deleted: true } : s));
 
     const toggleCollection = (colId) =>
-        setSelectedCollections((p) =>
-            p.includes(colId) ? p.filter((c) => c !== colId) : [...p, colId]
+        setSelectedCollections(p =>
+            p.includes(colId) ? p.filter(c => c !== colId) : [...p, colId]
         );
 
-    // ─── Submit ─────────────────────────────────────────────────────────────────
+    // ─── Submit ──────────────────────────────────────────────────────────────
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -195,10 +200,10 @@ const CreateRecipe = () => {
 
             if (imageFile) {
                 setUploading(true);
-                resolvedImageUrl = await imageContext.resolve({ file: imageFile, url: urlInput, userId: user?.userId });
+                resolvedImageUrl = await imageContext.resolve({ file: imageFile, userId: user?.userId });
                 setUploading(false);
             } else if (imageMode === 'url' && urlInput.trim()) {
-                resolvedImageUrl = await imageContext.resolve({ file: null, url: urlInput });
+                resolvedImageUrl = await imageContext.resolve({ url: urlInput.trim() });
             }
 
             const recipePayload = {
@@ -218,46 +223,74 @@ const CreateRecipe = () => {
                 recipeId = res.data.id;
             }
 
-            const validIngredients = ingredients.filter((i) => i.name.trim());
-            const validSteps = steps.filter((s) => s.description.trim());
+            const validIngredients = ingredients.filter(i => !i._deleted && i.name.trim());
+            const validSteps = steps
+                .filter(s => !s._deleted && s.description.trim())
+                .map((s, idx) => ({ ...s, stepNumber: idx + 1 }));
 
             if (!isEditing) {
                 await Promise.all([
-                    ...validIngredients.map((ing) =>
+                    ...validIngredients.map(ing =>
                         ingredientAPI.addIngredient(recipeId, {
                             name: ing.name.trim(),
                             quantity: ing.quantity ? Number(ing.quantity) : 0,
-                            unit: ing.unit || null,
-                            notes: ing.notes || null,
+                            unit: ing.unit || null, notes: ing.notes || null,
                         })
                     ),
-                    ...validSteps.map((step, idx) =>
+                    ...validSteps.map(step =>
                         instructionAPI.addInstruction(recipeId, {
-                            stepNumber: idx + 1,
+                            stepNumber: step.stepNumber,
                             description: step.description.trim(),
                         })
                     ),
                 ]);
                 if (selectedCollections.length > 0) {
                     await Promise.all(
-                        selectedCollections.map((colId) =>
+                        selectedCollections.map(colId =>
                             collectionAPI.addRecipeToCollection(colId, recipeId)
                         )
                     );
                 }
             } else {
+                // Sync ingredients
+                const existingIngredients = ingredients.filter(i => i.id && !i._deleted);
+                const newIngredients = validIngredients.filter(i => !i.id);
+                const deletedIngredients = ingredients.filter(i => i.id && i._deleted);
+
                 await Promise.all([
-                    ...validIngredients.filter((i) => i.id).map((ing) =>
+                    ...deletedIngredients.map(i => ingredientAPI.deleteIngredient(recipeId, i.id)),
+                    ...existingIngredients.map(ing =>
                         ingredientAPI.updateIngredient(recipeId, ing.id, {
                             name: ing.name.trim(),
                             quantity: ing.quantity ? Number(ing.quantity) : 0,
-                            unit: ing.unit || null,
-                            notes: ing.notes || null,
+                            unit: ing.unit || null, notes: ing.notes || null,
                         })
                     ),
-                    ...validSteps.filter((s) => s.id).map((step, idx) =>
+                    ...newIngredients.map(ing =>
+                        ingredientAPI.addIngredient(recipeId, {
+                            name: ing.name.trim(),
+                            quantity: ing.quantity ? Number(ing.quantity) : 0,
+                            unit: ing.unit || null, notes: ing.notes || null,
+                        })
+                    ),
+                ]);
+
+                // Sync steps
+                const existingSteps = steps.filter(s => s.id && !s._deleted);
+                const newSteps = validSteps.filter(s => !s.id);
+                const deletedSteps = steps.filter(s => s.id && s._deleted);
+
+                await Promise.all([
+                    ...deletedSteps.map(s => instructionAPI.deleteInstruction(recipeId, s.id)),
+                    ...existingSteps.map(step =>
                         instructionAPI.updateInstruction(recipeId, step.id, {
-                            stepNumber: step.stepNumber || idx + 1,
+                            stepNumber: step.stepNumber,
+                            description: step.description.trim(),
+                        })
+                    ),
+                    ...newSteps.map(step =>
+                        instructionAPI.addInstruction(recipeId, {
+                            stepNumber: step.stepNumber,
                             description: step.description.trim(),
                         })
                     ),
@@ -267,7 +300,7 @@ const CreateRecipe = () => {
             navigate(`/recipe/${recipeId}`);
         } catch (err) {
             setUploading(false);
-            setError(err.message || err.response?.data?.message || 'Failed to save recipe. Please try again.');
+            setError(err.response?.data?.message || err.message || 'Failed to save recipe. Please try again.');
         } finally {
             setSaving(false);
         }
@@ -279,6 +312,15 @@ const CreateRecipe = () => {
             <div className={styles.page}>
                 <div className={styles.pageHeader}>
                     <div className={styles.pageHeaderLeft}>
+                        <button
+                            type="button"
+                            className={styles.btnOutline}
+                            onClick={() => navigate('/recipes')}
+                            disabled={saving || uploading}
+                        >
+                            <ArrowLeft size={15} strokeWidth={2} style={{ marginRight: 6 }} />
+                            Back to Recipes
+                        </button>
                         <h2 className={styles.pageTitle}>
                             {isEditing ? 'Edit Recipe' : 'Create New Recipe'}
                         </h2>
@@ -288,334 +330,52 @@ const CreateRecipe = () => {
                 {error && <div className={styles.errorBanner}>{error}</div>}
 
                 <form onSubmit={handleSubmit} className={styles.formBody}>
+                    <RecipeBasicInfo
+                        form={form}
+                        onChange={updates => setForm(f => ({ ...f, ...updates }))}
+                        imageMode={imageMode}
+                        imagePreview={imagePreview}
+                        imageFile={imageFile}
+                        urlInput={urlInput}
+                        uploading={uploading}
+                        onImageChange={handleImageChange}
+                    />
 
-                    {/* ── Basic Info ── */}
-                    <section className={styles.formSection}>
-                        <h3 className={styles.sectionTitle}>
-                            <FileText size={17} strokeWidth={2} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
-                            Basic Information
-                        </h3>
-                        <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>Recipe Title *</label>
-                            <input
-                                className={`${styles.formInput} ${form.name ? styles.inputActive : ''}`}
-                                type="text"
-                                placeholder="What's the recipe called?"
-                                value={form.name}
-                                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                required
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>Description</label>
-                            <textarea
-                                className={styles.formTextarea}
-                                placeholder="Briefly describe your recipe…"
-                                value={form.description}
-                                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                rows={3}
-                            />
-                        </div>
-                        <div className={styles.formRow3}>
-                            {[
-                                { label: 'Prep Time (min)', field: 'prepTimeMinutes' },
-                                { label: 'Cook Time (min)', field: 'cookTimeMinutes' },
-                                { label: 'Total Time (min)', field: 'totalTimeMinutes' },
-                            ].map(({ label, field }) => (
-                                <div className={styles.formGroup} key={field}>
-                                    <label className={styles.formLabel}>{label}</label>
-                                    <input
-                                        className={styles.formInput}
-                                        type="number" min="0" placeholder="0"
-                                        value={form[field]}
-                                        onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-                                    />
-                                </div>
-                            ))}
-                        </div>
+                    <IngredientList
+                        ingredients={ingredients.filter(i => !i._deleted)}
+                        onAdd={addIngredient}
+                        onUpdate={updateIngredient}
+                        onRemove={removeIngredient}
+                    />
 
-                        {/* ── Image Upload ── */}
-                        <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>Recipe Photo</label>
+                    <InstructionList
+                        steps={steps.filter(s => !s._deleted)}
+                        onAdd={addStep}
+                        onUpdate={updateStep}
+                        onRemove={removeStep}
+                    />
 
-                            <div className={styles.imageModeTabs}>
-                                <button
-                                    type="button"
-                                    className={`${styles.imageModeTab} ${imageMode === 'cloudinary' ? styles.imageModeTabActive : ''}`}
-                                    onClick={() => { setImageMode('cloudinary'); handleRemoveImage(); }}
-                                >
-                                    <Camera size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'text-bottom' }} />
-                                    Upload Photo
-                                </button>
-                                <button
-                                    type="button"
-                                    className={`${styles.imageModeTab} ${imageMode === 'url' ? styles.imageModeTabActive : ''}`}
-                                    onClick={() => { setImageMode('url'); handleRemoveImage(); }}
-                                >
-                                    <Link size={14} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'text-bottom' }} />
-                                    Paste URL
-                                </button>
-                            </div>
+                    <RecipeNotes
+                        value={form.notes}
+                        onChange={val => setForm(f => ({ ...f, notes: val }))}
+                    />
 
-                            {imageMode === 'cloudinary' && (
-                                <>
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/gif,image/webp"
-                                        className={styles.hiddenFileInput}
-                                        onChange={handleFileInputChange}
-                                    />
-                                    {imagePreview ? (
-                                        <div className={styles.imagePreviewWrap}>
-                                            <img
-                                                src={imagePreview}
-                                                alt="Recipe preview"
-                                                className={styles.imagePreview}
-                                                onError={() => setImagePreview(null)}
-                                            />
-                                            <div className={styles.imagePreviewOverlay}>
-                                                <button
-                                                    type="button"
-                                                    className={styles.imagePreviewChange}
-                                                    onClick={() => fileInputRef.current?.click()}
-                                                >
-                                                    <Camera size={13} strokeWidth={2} style={{ marginRight: 4 }} />
-                                                    Change Photo
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className={styles.imagePreviewRemove}
-                                                    onClick={handleRemoveImage}
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            className={`${styles.dropZone} ${dragOver ? styles.dropZoneActive : ''}`}
-                                            onClick={() => fileInputRef.current?.click()}
-                                            onDrop={handleDrop}
-                                            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                                            onDragLeave={() => setDragOver(false)}
-                                        >
-                                            <div className={styles.dropZoneIcon}>
-                                                <ImageIcon size={36} strokeWidth={1.5} color="var(--text-light, #B09080)" />
-                                            </div>
-                                            <div className={styles.dropZoneText}>
-                                                <span className={styles.dropZonePrimary}>
-                                                    Drop an image here or{' '}
-                                                    <span className={styles.dropZoneLink}>browse files</span>
-                                                </span>
-                                                <span className={styles.dropZoneHint}>
-                                                    JPEG, PNG, GIF, WEBP · max 5 MB · uploaded to Cloudinary
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {uploading && (
-                                        <p style={{ fontSize: '0.8rem', color: 'var(--text-mid)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            <Loader size={14} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />
-                                            Uploading to Cloudinary…
-                                        </p>
-                                    )}
-                                </>
-                            )}
+                    <RecipeOrganization
+                        isPublic={form.isPublic}
+                        onPublicChange={val => setForm(f => ({ ...f, isPublic: val }))}
+                        collections={collections}
+                        selectedCollections={selectedCollections}
+                        onToggleCollection={toggleCollection}
+                        showCollections={!isEditing && collections.length > 0}
+                    />
 
-                            {imageMode === 'url' && (
-                                <>
-                                    <div className={styles.urlInputRow}>
-                                        <input
-                                            className={styles.formInput}
-                                            type="url"
-                                            placeholder="https://example.com/photo.jpg"
-                                            value={urlInput}
-                                            onChange={(e) => setUrlInput(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleUrlApply())}
-                                        />
-                                        <button
-                                            type="button"
-                                            className={styles.urlApplyBtn}
-                                            onClick={handleUrlApply}
-                                            disabled={!urlInput.trim()}
-                                        >
-                                            Preview
-                                        </button>
-                                    </div>
-                                    {imagePreview && (
-                                        <div className={styles.imagePreviewWrap} style={{ marginTop: 10 }}>
-                                            <img
-                                                src={imagePreview}
-                                                alt="Recipe preview"
-                                                className={styles.imagePreview}
-                                                onError={() => setImagePreview(null)}
-                                            />
-                                            <div className={styles.imagePreviewOverlay}>
-                                                <button
-                                                    type="button"
-                                                    className={styles.imagePreviewRemove}
-                                                    onClick={handleRemoveImage}
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </section>
-
-                    {/* ── Ingredients ── */}
-                    <section className={styles.formSection}>
-                        <div className={styles.sectionTitleRow}>
-                            <h3 className={styles.sectionTitle}>
-                                <Salad size={17} strokeWidth={2} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
-                                Ingredients
-                            </h3>
-                            <button type="button" className={styles.btnGhost} onClick={addIngredient}>
-                                <Plus size={14} strokeWidth={2.5} style={{ marginRight: 4 }} />
-                                Add Ingredient
-                            </button>
-                        </div>
-                        {ingredients.map((ing) => (
-                            <div key={ing._key} className={styles.ingredientRow}>
-                                <input
-                                    className={styles.formInput} type="number" placeholder="Qty"
-                                    value={ing.quantity} min="0" style={{ maxWidth: 80 }}
-                                    onChange={(e) => updateIngredient(ing._key, 'quantity', e.target.value)}
-                                />
-                                <select
-                                    className={styles.formSelect} value={ing.unit} style={{ maxWidth: 90 }}
-                                    onChange={(e) => updateIngredient(ing._key, 'unit', e.target.value)}
-                                >
-                                    {UNITS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
-                                </select>
-                                <input
-                                    className={styles.formInput} type="text" placeholder="Ingredient name *"
-                                    value={ing.name}
-                                    onChange={(e) => updateIngredient(ing._key, 'name', e.target.value)}
-                                />
-                                <input
-                                    className={styles.formInput} type="text" placeholder="Notes (optional)"
-                                    value={ing.notes}
-                                    onChange={(e) => updateIngredient(ing._key, 'notes', e.target.value)}
-                                />
-                                {ingredients.length > 1 && (
-                                    <button
-                                        type="button"
-                                        className={styles.removeBtn}
-                                        onClick={() => removeIngredient(ing._key)}
-                                        aria-label="Remove ingredient"
-                                    >
-                                        <Minus size={14} strokeWidth={2.5} />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </section>
-
-                    {/* ── Instructions ── */}
-                    <section className={styles.formSection}>
-                        <div className={styles.sectionTitleRow}>
-                            <h3 className={styles.sectionTitle}>
-                                <ClipboardList size={17} strokeWidth={2} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
-                                Instructions
-                            </h3>
-                            <button type="button" className={styles.btnGhost} onClick={addStep}>
-                                <Plus size={14} strokeWidth={2.5} style={{ marginRight: 4 }} />
-                                Add Step
-                            </button>
-                        </div>
-                        {steps.map((step, index) => (
-                            <div key={step._key} className={styles.stepRow}>
-                                <div className={styles.stepNum}>{index + 1}</div>
-                                <textarea
-                                    className={styles.stepTextarea}
-                                    placeholder={`Step ${index + 1}…`}
-                                    value={step.description} rows={2}
-                                    onChange={(e) => updateStep(step._key, e.target.value)}
-                                />
-                                {steps.length > 1 && (
-                                    <button
-                                        type="button"
-                                        className={styles.removeBtn}
-                                        onClick={() => removeStep(step._key)}
-                                        aria-label="Remove step"
-                                    >
-                                        <Minus size={14} strokeWidth={2.5} />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </section>
-
-                    {/* ── Notes ── */}
-                    <section className={styles.formSection}>
-                        <h3 className={styles.sectionTitle}>
-                            <NotebookPen size={17} strokeWidth={2} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
-                            Additional Notes
-                        </h3>
-                        <textarea
-                            className={styles.formTextarea}
-                            placeholder="Tips, variations, serving suggestions…"
-                            value={form.notes} rows={4}
-                            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                        />
-                    </section>
-
-                    {/* ── Organization ── */}
-                    <section className={styles.formSection}>
-                        <h3 className={styles.sectionTitle}>
-                            <FolderOpen size={17} strokeWidth={2} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
-                            Organization
-                        </h3>
-                        <label className={styles.checkboxRow}>
-                            <input
-                                type="checkbox"
-                                checked={form.isPublic}
-                                onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
-                            />
-                            <span>Make this recipe public</span>
-                        </label>
-                        {!isEditing && collections.length > 0 && (
-                            <div className={styles.formGroup} style={{ marginTop: 14 }}>
-                                <label className={styles.formLabel}>Add to Collections</label>
-                                <div className={styles.collectionsList}>
-                                    {collections.map((col) => (
-                                        <label key={col.id} className={styles.checkboxRow}>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedCollections.includes(col.id)}
-                                                onChange={() => toggleCollection(col.id)}
-                                            />
-                                            <span>{col.name}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </section>
-
-                    {/* ── Action Buttons ── */}
                     <div className={styles.formActions}>
                         <button type="submit" className={styles.btnPrimary} disabled={saving || uploading}>
                             {uploading ? (
-                                <><Loader size={15} strokeWidth={2} style={{ marginRight: 6, animation: 'spin 1s linear infinite' }} />Uploading image…</>
-                            ) : saving ? (
-                                'Saving…'
-                            ) : (
+                                <><Loader size={15} strokeWidth={2} className={styles.spin} style={{ marginRight: 6 }} />Uploading image…</>
+                            ) : saving ? 'Saving…' : (
                                 <><Save size={15} strokeWidth={2} style={{ marginRight: 6 }} />{isEditing ? 'Update Recipe' : 'Save Recipe'}</>
                             )}
-                        </button>
-                        <button
-                            type="button"
-                            className={styles.btnOutline}
-                            onClick={() => navigate(isEditing ? `/recipe/${id}` : '/recipes')}
-                            disabled={saving || uploading}
-                        >
-                            Cancel
                         </button>
                     </div>
                 </form>

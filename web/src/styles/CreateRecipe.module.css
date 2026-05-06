@@ -12,23 +12,21 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px 120px 16px;
-    border-bottom: 1px solid var(--border, #EDD8C4);
     background: var(--warm-white, #FFF9F2);
-    position: sticky;
     top: 80px;
     z-index: 10;
 }
 
 .pageHeaderLeft {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .pageTitle {
     font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 800;
     color: var(--text-dark, #3A2A1E);
 }
 
@@ -59,7 +57,47 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    width: 100%;
     margin-bottom: 18px;
+}
+
+/* Utility: icon sitting inline with heading text */
+.inlineIcon {
+    display: inline;
+    margin-right: 8px;
+    vertical-align: text-bottom;
+}
+
+/* Utility: icon inside a tab button */
+.tabIcon {
+    margin-right: 5px;
+    vertical-align: text-bottom;
+}
+
+/* Uploading status line */
+.uploadingMessage {
+    font-size: 0.8rem;
+    color: var(--text-mid, #7A5C46);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Spin animation for loader icons */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+    flex-shrink: 0;
 }
 
 /* Buttons */
@@ -76,6 +114,7 @@
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
+    gap: 6px;
 }
 
 .btnPrimary:hover:not(:disabled) {
@@ -100,6 +139,9 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .btnOutline:hover:not(:disabled) {
@@ -124,6 +166,7 @@
     transition: background 0.2s ease;
     display: inline-flex;
     align-items: center;
+    gap: 4px;
 }
 
 .btnGhost:hover {
@@ -158,7 +201,6 @@
     font-size: 0.875rem;
     color: var(--text-dark, #3A2A1E);
     outline: none;
-    width: 100%;
     transition: all 0.2s ease;
 }
 
@@ -187,7 +229,6 @@
     font-size: 0.875rem;
     color: var(--text-dark, #3A2A1E);
     outline: none;
-    width: 100%;
     resize: vertical;
     transition: all 0.2s ease;
 }
@@ -220,7 +261,7 @@
     border-color: var(--terracotta, #C97D4E);
 }
 
-/* 3-col layout */
+/* 3-col layout — restored to original 12px gap */
 .formRow3 {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -231,14 +272,18 @@
 /* Ingredient Row */
 .ingredientRow {
     display: grid;
-    grid-template-columns: 80px 90px 1fr 1fr 30px;
-    gap: 8px;
+    grid-template-columns: 100px 100px 1fr 1fr;
+    gap: 12px;
     align-items: center;
     margin-bottom: 8px;
 }
 
 .ingredientRow:last-child {
     margin-bottom: 0;
+}
+
+.ingredientRow.hasRemove {
+    grid-template-columns: 100px 100px 1fr 1fr 30px;
 }
 
 .removeBtn {
@@ -248,7 +293,6 @@
     border: 1px solid #FABBBB;
     border-radius: 8px;
     color: #E05555;
-    font-size: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -339,7 +383,7 @@
     margin-top: 6px;
 }
 
-/* ── Form Actions (Save + Cancel below Organization) ── */
+/* Form Actions */
 .formActions {
     display: flex;
     gap: 10px;
@@ -352,7 +396,7 @@
 
 /* Error Banner */
 .errorBanner {
-    margin: 0 120px 0;
+    margin: 0 120px;
     padding: 12px 16px;
     background: #FEF0EF;
     border: 1px solid #FABBBB;
@@ -363,12 +407,10 @@
 
 /* ── Image Upload ── */
 
-/* Hidden native file input */
 .hiddenFileInput {
     display: none;
 }
 
-/* Mode tabs (Upload File / Paste URL) */
 .imageModeTabs {
     display: flex;
     gap: 6px;
@@ -401,7 +443,6 @@
     color: var(--terracotta-dark, #A05E33);
 }
 
-/* Drop zone */
 .dropZone {
     display: flex;
     flex-direction: column;
@@ -423,11 +464,6 @@
     border-color: var(--terracotta, #C97D4E);
     background: #FFF4EC;
     box-shadow: 0 0 0 3px rgba(201, 125, 78, 0.08);
-}
-
-.dropZoneIcon {
-    font-size: 2.2rem;
-    line-height: 1;
 }
 
 .dropZoneText {
@@ -453,7 +489,6 @@
     color: var(--text-light, #B09080);
 }
 
-/* Image preview */
 .imagePreviewWrap {
     position: relative;
     border-radius: 12px;
@@ -499,6 +534,7 @@
     transition: background 0.15s ease, transform 0.15s ease;
     display: inline-flex;
     align-items: center;
+    gap: 4px;
 }
 
 .imagePreviewChange {
@@ -519,7 +555,6 @@
     transform: translateY(-1px);
 }
 
-/* URL input row */
 .urlInputRow {
     display: flex;
     gap: 8px;
@@ -563,11 +598,17 @@
         padding-right: 32px;
     }
 
+    .formRow3 {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
     .ingredientRow {
         grid-template-columns: 70px 80px 1fr 30px;
     }
 
-    .ingredientRow .formInput:nth-child(4) {
+    /* Hide notes column on medium screens */
+    .ingredientRow>*:nth-child(4) {
         display: none;
     }
 }
@@ -583,6 +624,7 @@
 
     .formRow3 {
         grid-template-columns: 1fr;
+        gap: 10px;
     }
 
     .ingredientRow {
