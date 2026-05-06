@@ -390,8 +390,6 @@
     background: var(--terracotta-dark, #A05E33);
 }
 
-/* ── Loading / Error states ── */
-.loadingState,
 .errorState {
     display: flex;
     flex-direction: column;
@@ -402,11 +400,6 @@
     text-align: center;
     padding: 24px;
     color: var(--text-light, #B09080);
-}
-
-.loadingEmoji {
-    font-size: 3.5rem;
-    animation: pulse 1.4s ease-in-out infinite;
 }
 
 @keyframes pulse {

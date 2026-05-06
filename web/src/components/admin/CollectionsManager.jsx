@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { FolderOpen, Trash2, Loader2 } from 'lucide-react';
+import { FolderOpen, Trash2, Loader2, ChefHat } from 'lucide-react';
 import adminAPI from '../../services/admin';
 import Pagination from './Pagination';
 import { formatRelativeTime } from '../../utils/formatRelativeTime';
 import styles from '../../styles/AdminDashboard.module.css';
+import LoadingScreen from '../common/LoadingScreen';
 
 const CollectionsManager = () => {
     const [collections, setCollections] = useState([]);
@@ -54,12 +55,11 @@ const CollectionsManager = () => {
                 <span className={styles.managerCount}>{totalElements} collections total</span>
             </div>
             {loading ? (
-                <div className={styles.loadingState}>
-                    <span className={styles.spinner}>
-                        <Loader2 size={24} />
-                    </span>{' '}
-                    Loading…
-                </div>
+                <LoadingScreen
+                    icon={<ChefHat size={52} strokeWidth={1.3} />}
+                    message="Loading collections..."
+                    fullPage={false}
+                />
             ) : (
                 <>
                     <table className={styles.table}>

@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import collectionAPI from '../services/collection';
-import { FolderOpen, Pencil, Trash2, Plus, X } from 'lucide-react';
+import { FolderOpen, Pencil, Trash2, Plus, X, ChefHat } from 'lucide-react';
 import styles from '../styles/Collections.module.css';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 const COLOR_CLASSES = ['rust', 'sage', 'amber', 'rose', 'sky', 'plum'];
 
@@ -130,12 +131,11 @@ const Collections = () => {
                 {error && <div className={styles.errorBanner}>{error}</div>}
 
                 {loading ? (
-                    <div className={styles.loadingState}>
-                        <div className={styles.loadingEmoji} >
-                            <FolderOpen size={48} strokeWidth={1.5} color="var(--text-light, #B09080)" />
-                        </div>
-                        <p>Loading collections…</p>
-                    </div>
+                    <LoadingScreen
+                        icon={<ChefHat size={52} strokeWidth={1.3} />}
+                        message="Loading collections..."
+                        fullPage={false}
+                    />
                 ) : (
                     <div className={styles.collGrid}>
                         {collections.map((col, index) => (

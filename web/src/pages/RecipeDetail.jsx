@@ -11,6 +11,7 @@ import AddToCollectionModal from '../components/AddToCollectionModal';
 import CookbookFacade from '../patterns/CookbookFacade';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import styles from '../styles/RecipeDetail.module.css';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 const RecipeDetail = () => {
     const { user } = useAuth();
@@ -71,12 +72,11 @@ const RecipeDetail = () => {
         return (
             <>
                 <DefaultHeader user={user} />
-                <div className={styles.loadingState}>
-                    <div className={styles.loadingEmoji}>
-                        <ChefHat size={56} strokeWidth={1.2} />
-                    </div>
-                    <p>Loading recipe…</p>
-                </div>
+                <LoadingScreen
+                    icon={<ChefHat size={52} strokeWidth={1.3} />}
+                    message="Loading recipe details..."
+                    fullPage={false}
+                />
             </>
         );
     }

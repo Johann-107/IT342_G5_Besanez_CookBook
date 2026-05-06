@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Globe, Lock, CookingPot, Trash2, Loader2 } from 'lucide-react';
+import { Globe, Lock, CookingPot, Trash2, Loader2, ChefHat } from 'lucide-react';
 import adminAPI from '../../services/admin';
 import Pagination from './Pagination';
 import { formatRelativeTime } from '../../utils/formatRelativeTime';
 import styles from '../../styles/AdminDashboard.module.css';
+import LoadingScreen from '../common/LoadingScreen';
 
 const RecipesManager = () => {
     const [recipes, setRecipes] = useState([]);
@@ -66,12 +67,11 @@ const RecipesManager = () => {
                 />
             </div>
             {loading ? (
-                <div className={styles.loadingState}>
-                    <span className={styles.spinner}>
-                        <Loader2 size={24} />
-                    </span>{' '}
-                    Loading…
-                </div>
+                <LoadingScreen
+                    icon={<ChefHat size={52} strokeWidth={1.3} />}
+                    message="Loading recipes..."
+                    fullPage={false}
+                />
             ) : (
                 <>
                     <table className={styles.table}>

@@ -1,18 +1,18 @@
-import { Users, Utensils, FolderOpen, Globe, Lock, CookingPot, Loader2 } from 'lucide-react';
+import { Users, Utensils, FolderOpen, Globe, Lock, CookingPot, Loader2, ChefHat } from 'lucide-react';
 import MiniChart from './MiniChart';
 import RecentTable from './RecentTable';
 import { formatRelativeTime } from '../../utils/formatRelativeTime';
 import styles from '../../styles/AdminDashboard.module.css';
+import LoadingScreen from '../common/LoadingScreen';
 
 const DashboardOverview = ({ stats, loading }) => {
     if (loading)
         return (
-            <div className={styles.loadingState}>
-                <span className={styles.spinner}>
-                    <Loader2 size={24} />
-                </span>{' '}
-                Loading dashboard…
-            </div>
+            <LoadingScreen
+                icon={<ChefHat size={52} strokeWidth={1.3} />}
+                message="Loading dashboard…"
+                fullPage={false}
+            />
         );
     if (!stats) return null;
 

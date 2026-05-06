@@ -9,6 +9,7 @@ import CookbookFacade from '../patterns/CookbookFacade';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import SaveRecipeModal from '../components/SaveRecipeModal';
 import styles from '../styles/SharedRecipePage.module.css';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 const SharedRecipePage = () => {
     const { token } = useParams();
@@ -60,14 +61,11 @@ const SharedRecipePage = () => {
         return (
             <>
                 <DefaultHeader user={user} />
-                <div className={styles.pageWrap}>
-                    <div className={styles.loadingState}>
-                        <div className={styles.loadingEmoji}>
-                            <ChefHat size={56} strokeWidth={1.2} />
-                        </div>
-                        <p>Loading shared recipe…</p>
-                    </div>
-                </div>
+                <LoadingScreen
+                    icon={<ChefHat size={52} strokeWidth={1.3} />}
+                    message="Loading shared recipe..."
+                    fullPage={false}
+                />
             </>
         );
     }

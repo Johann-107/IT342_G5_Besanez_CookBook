@@ -6,6 +6,7 @@ import DefaultHeader from '../components/layout/DefaultHeader';
 import AddToCollectionModal from '../components/AddToCollectionModal';
 import recipeAPI from '../services/recipe';
 import styles from '../styles/Recipes.module.css';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 const BG_CLASSES = ['rc1', 'rc2', 'rc3', 'rc4', 'rc5', 'rc6'];
 const EMOJI_MAP = ['🥘', '🥗', '🍋', '🍝', '🍜', '🥧', '🍲', '🥩', '🍰', '🥞'];
@@ -123,12 +124,11 @@ const Recipes = () => {
                 )}
 
                 {loading ? (
-                    <div className={styles.loadingState}>
-                        <div className={styles.loadingEmoji}>
-                            <ChefHat size={48} strokeWidth={1.2} />
-                        </div>
-                        <p>Loading your recipes…</p>
-                    </div>
+                    <LoadingScreen
+                        icon={<ChefHat size={52} strokeWidth={1.3} />}
+                        message="Loading recipes..."
+                        fullPage={false}
+                    />
                 ) : filtered.length === 0 ? (
                     <div className={styles.emptyState}>
                         <div className={styles.emptyEmoji}>

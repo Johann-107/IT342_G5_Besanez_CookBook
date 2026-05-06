@@ -27,6 +27,7 @@ import {
     Save,
 } from 'lucide-react';
 import styles from '../styles/CollectionDetail.module.css';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 const BG_CLASSES = ['rc1', 'rc2', 'rc3', 'rc4', 'rc5', 'rc6'];
 const EMOJI_MAP = ['🥘', '🥗', '🍋', '🍝', '🍜', '🥧', '🍲', '🥩', '🍰', '🥞'];
@@ -209,10 +210,11 @@ const CollectionDetail = () => {
         return (
             <>
                 <DefaultHeader user={user} />
-                <div className={styles.loadingState}>
-                    <ChefHat size={52} strokeWidth={1.3} color="var(--text-light, #B09080)" />
-                    <p>Loading collection…</p>
-                </div>
+                <LoadingScreen
+                    icon={<ChefHat size={52} strokeWidth={1.3} />}
+                    message="Loading collection details..."
+                    fullPage={false}
+                />
             </>
         );
     }
