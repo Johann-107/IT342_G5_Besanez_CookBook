@@ -23,6 +23,24 @@ public class CloudinaryService {
         return (String) result.get("secure_url");
     }
 
+    /**
+     * Uploads an image from a remote URL (e.g. a Google profile photo) directly
+     * to Cloudinary. Cloudinary fetches the image server-side, so it never hits
+     * the source CDN again after the first call.
+     *
+     * @param imageUrl the public URL of the image to import
+     * @param folder   the Cloudinary folder to store it in
+     * @return the Cloudinary secure_url for the uploaded image
+     */
+    public String uploadImageFromUrl(String imageUrl, String folder) throws IOException {
+        Map<?, ?> result = cloudinary.uploader().upload(
+                imageUrl,
+                ObjectUtils.asMap(
+                        "folder", folder,
+                        "resource_type", "image"));
+        return (String) result.get("secure_url");
+    }
+
     public void deleteImage(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank())
             return;
