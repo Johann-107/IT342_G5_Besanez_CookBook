@@ -92,7 +92,7 @@ const DashboardOverview = ({ stats, loading }) => {
                 <RecentTable
                     title="Recent Registrations"
                     rows={stats.recentUsers || []}
-                    columns={['User', 'Email', 'Level', 'Joined']}
+                    columns={['User', 'Email', 'Joined']}
                     renderRow={(u) => (
                         <>
                             <td className={styles.td}>
@@ -114,9 +114,6 @@ const DashboardOverview = ({ stats, loading }) => {
                                 </div>
                             </td>
                             <td className={styles.td}>{u.email}</td>
-                            <td className={styles.td}>
-                                <span className={styles.levelBadge}>{u.cookingLevel}</span>
-                            </td>
                             <td className={styles.td}>{formatRelativeTime(u.joinedAt)}</td>
                         </>
                     )}

@@ -24,9 +24,9 @@ const UsersManager = () => {
                 sort: 'createdAt,desc',
                 ...(search.trim() && { search: search.trim() }),
             });
-            setUsers(res.data.content ?? []);
-            setTotalPages(res.data.page.totalPages ?? 0);
-            setTotalElements(res.data.page.totalElements ?? 0);
+            setUsers(res.data.content || []);
+            setTotalPages(res.data.page.totalPages || 0);
+            setTotalElements(res.data.page.totalElements || 0);
         } catch (e) {
             console.error(e);
         } finally {
@@ -95,7 +95,7 @@ const UsersManager = () => {
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                {['User', 'Email', 'Level', 'Role', 'Joined', 'Actions'].map((h) => (
+                                {['User', 'Email', 'Role', 'Joined', 'Actions'].map((h) => (
                                     <th key={h} className={styles.th}>
                                         {h}
                                     </th>
@@ -124,9 +124,6 @@ const UsersManager = () => {
                                         </div>
                                     </td>
                                     <td className={styles.td}>{u.email}</td>
-                                    <td className={styles.td}>
-                                        <span className={styles.levelBadge}>{u.cookingLevel}</span>
-                                    </td>
                                     <td className={styles.td}>
                                         {u.role === 'ADMIN' ? (
                                             <span className={styles.adminRoleBadge}>

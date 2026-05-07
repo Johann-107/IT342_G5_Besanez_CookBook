@@ -32,6 +32,8 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
         // ─── Find by share token ─────────────────────────────────────────────────
         Optional<RecipeEntity> findByShareToken(String shareToken);
 
+        boolean existsByUserId(long userId);
+
         // ─── Public recipes ───────────────────────────────────────────────────────
 
         Page<RecipeEntity> findByIsPublicTrue(Pageable pageable);
@@ -67,4 +69,6 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
         List<RecipeEntity> findAllByCreatedAtAfter(LocalDateTime dateTime);
 
         List<RecipeEntity> findTop10ByOrderByCreatedAtDesc();
+
+        void deleteByUserId(long userId);
 }

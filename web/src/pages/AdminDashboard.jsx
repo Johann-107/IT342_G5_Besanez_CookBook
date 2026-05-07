@@ -97,10 +97,6 @@ const AdminDashboard = () => {
                 </nav>
 
                 <div className={styles.sidebarFooter}>
-                    <Link to="/dashboard" className={styles.sidebarFooterLink}>
-                        <Home size={16} style={{ marginRight: 6 }} />
-                        User Dashboard
-                    </Link>
                     <button className={styles.sidebarLogout} onClick={handleLogout}>
                         <LogOut size={16} style={{ marginRight: 6 }} />
                         Log Out

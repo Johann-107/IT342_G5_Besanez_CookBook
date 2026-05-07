@@ -24,7 +24,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final CloudinaryService cloudinaryService;
-    private final DefaultDataSeederService seederService; // ← injected
+    private final DefaultDataSeederService seederService;
+    private final AdminService adminService;
 
     // ─── Register ─────────────────────────────────────────────────────────────
 
@@ -49,9 +50,6 @@ public class AuthService {
                 .build();
 
         UserEntity savedUser = userRepository.save(userEntity);
-
-        // Seed 3 built-in Filipino recipes + 1 starter collection for every new
-        // account.
         seederService.seedDefaultData(savedUser);
 
         return convertToResponseDTO(savedUser);
@@ -73,6 +71,8 @@ public class AuthService {
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid password");
         }
+
+        adminService.cleanupUserDataIfAdmin(user.getId(), user.getRole());
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getId());
         return buildLoginResponse(token, user);

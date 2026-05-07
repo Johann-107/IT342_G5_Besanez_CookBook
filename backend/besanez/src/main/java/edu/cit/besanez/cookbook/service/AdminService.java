@@ -35,6 +35,7 @@ public class AdminService {
     private final UserService userService;
     private final RecipeService recipeService;
     private final CollectionService collectionService;
+    private final DefaultDataSeederService seederService;
 
     // ─── Dashboard Stats ──────────────────────────────────────────────────────
 
@@ -119,9 +120,30 @@ public class AdminService {
     public UserResponseDTO toggleAdminRole(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
         String newRole = "ADMIN".equals(user.getRole()) ? "USER" : "ADMIN";
         user.setRole(newRole);
+
+        if ("ADMIN".equals(newRole)) {
+            collectionRepository.deleteByUserId(userId);
+            recipeRepository.deleteByUserId(userId);
+        } else {
+            seederService.seedDefaultData(user);
+        }
+
         return userService.convertToResponseDTO(userRepository.save(user));
+    }
+
+    @Transactional
+    public void cleanupUserDataIfAdmin(Long userId, String role) {
+        if ("ADMIN".equals(role)) {
+            boolean hasData = recipeRepository.existsByUserId(userId) ||
+                    collectionRepository.existsByUserId(userId);
+            if (hasData) {
+                collectionRepository.deleteByUserId(userId);
+                recipeRepository.deleteByUserId(userId);
+            }
+        }
     }
 
     // ─── Recipe Management ────────────────────────────────────────────────────

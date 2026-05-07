@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import edu.cit.besanez.cookbook.dto.user.ProfileImageRequestDTO;
 import edu.cit.besanez.cookbook.dto.user.UserRequestDTO;
 import edu.cit.besanez.cookbook.dto.user.UserResponseDTO;
+import edu.cit.besanez.cookbook.service.AdminService;
 import edu.cit.besanez.cookbook.service.CloudinaryService;
 import edu.cit.besanez.cookbook.service.UserService;
 import edu.cit.besanez.cookbook.util.JwtUtil;
@@ -29,6 +30,7 @@ public class UserController {
     private final UserService userService;
     private final CloudinaryService cloudinaryService;
     private final JwtUtil jwtUtil;
+    private final AdminService adminService;
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -53,6 +55,8 @@ public class UserController {
 
             String email = extractEmail(request);
             UserResponseDTO user = userService.getUserByEmail(email);
+
+            adminService.cleanupUserDataIfAdmin(user.getUserId(), user.getRole().toString());
 
             Map<String, Object> response = new HashMap<>();
             response.put("userId", user.getUserId());

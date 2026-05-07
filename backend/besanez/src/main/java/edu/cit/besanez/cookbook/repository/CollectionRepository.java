@@ -21,6 +21,8 @@ public interface CollectionRepository extends JpaRepository<CollectionEntity, Lo
 
         Optional<CollectionEntity> findByIdAndUserId(Long id, long userId);
 
+        boolean existsByUserId(long userId);
+
         // ─── Search ───────────────────────────────────────────────────────────────
 
         Page<CollectionEntity> findByUserIdAndNameContainingIgnoreCase(long userId, String name,
@@ -44,4 +46,6 @@ public interface CollectionRepository extends JpaRepository<CollectionEntity, Lo
         // ─── Non-paginated (used internally for membership operations) ────────────
 
         List<CollectionEntity> findByUserId(long userId);
+
+        void deleteByUserId(long userId);
 }
