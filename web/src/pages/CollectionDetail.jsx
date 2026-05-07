@@ -6,7 +6,7 @@ import collectionAPI from '../services/collection';
 import recipeAPI from '../services/recipe';
 import AddRecipesModal from '../components/AddRecipesModal';
 import CollectionHero from '../components/collection/CollectionHero';
-import CollectionEditModal from '../components/collection/CollectionEditModal';
+import CollectionModal from '../components/collection/CollectionModal';
 import CollectionRecipeGrid from '../components/collection/CollectionRecipeGrid';
 import { withErrorBoundary } from '../patterns/ComponentDecorators';
 import {
@@ -166,7 +166,8 @@ const CollectionDetail = () => {
             )}
 
             {showEditModal && (
-                <CollectionEditModal
+                <CollectionModal
+                    mode="edit"
                     collection={collection}
                     user={user}
                     onClose={() => setShowEditModal(false)}

@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import collectionAPI from '../services/collection';
-import { FolderOpen, Pencil, Trash2, Plus, X, ChefHat } from 'lucide-react';
+import CollectionModal from '../components/collection/CollectionModal';
+import CollectionImageSlideshow from '../components/collection/CollectionImageSlideshow';
+import { FolderOpen, Pencil, Trash2, Plus, ChefHat } from 'lucide-react';
 import styles from '../styles/Collections.module.css';
 import LoadingScreen from '../components/common/LoadingScreen';
-import CollectionImageSlideshow from '../components/collection/CollectionImageSlideshow';
 
 const COLOR_CLASSES = ['rust', 'sage', 'amber', 'rose', 'sky', 'plum'];
 
@@ -19,10 +20,9 @@ const Collections = () => {
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState('createdAt,desc');
-    const [showModal, setShowModal] = useState(false);
-    const [editTarget, setEditTarget] = useState(null);
-    const [formData, setFormData] = useState({ name: '', description: '' });
-    const [saving, setSaving] = useState(false);
+
+    // modal state: null = closed, { mode, collection? }
+    const [modal, setModal] = useState(null);
 
     const fetchCollections = useCallback(async () => {
         setLoading(true);
@@ -47,38 +47,13 @@ const Collections = () => {
         return () => clearTimeout(debounce);
     }, [fetchCollections]);
 
-    const openCreate = () => {
-        setEditTarget(null);
-        setFormData({ name: '', description: '' });
-        setShowModal(true);
-    };
-
-    const openEdit = (e, col) => {
-        e.stopPropagation();
-        setEditTarget(col);
-        setFormData({ name: col.name, description: col.description || '' });
-        setShowModal(true);
-    };
-
-    const handleSave = async (e) => {
-        e.preventDefault();
-        setSaving(true);
-        try {
-            if (editTarget) {
-                const res = await collectionAPI.updateCollection(editTarget.id, formData);
-                setCollections(prev =>
-                    prev.map(c => c.id === editTarget.id ? res.data : c)
-                );
-            } else {
-                const res = await collectionAPI.createCollection(formData);
-                setCollections(prev => [res.data, ...prev]);
-            }
-            setShowModal(false);
-        } catch (err) {
-            alert(err.response?.data?.message || 'Failed to save collection.');
-        } finally {
-            setSaving(false);
+    const handleSaved = (saved) => {
+        if (modal?.mode === 'edit') {
+            setCollections(prev => prev.map(c => c.id === saved.id ? saved : c));
+        } else {
+            setCollections(prev => [saved, ...prev]);
         }
+        setModal(null);
     };
 
     const handleDelete = async (e, col) => {
@@ -105,7 +80,7 @@ const Collections = () => {
                             {collections.length} collections · {totalRecipes} recipes total
                         </p>
                     </div>
-                    <button className={styles.btnPrimary} onClick={openCreate}>
+                    <button className={styles.btnPrimary} onClick={() => setModal({ mode: 'create' })}>
                         <Plus size={15} strokeWidth={2.5} style={{ marginRight: 5 }} />
                         New Collection
                     </button>
@@ -149,7 +124,10 @@ const Collections = () => {
                                 >
                                     {hasImages ? (
                                         <div className={styles.collCardImgArea}>
-                                            <CollectionImageSlideshow images={col.recipeImages} overlay={false} />
+                                            <CollectionImageSlideshow
+                                                images={col.recipeImages}
+                                                overlay={false}
+                                            />
                                         </div>
                                     ) : (
                                         <div className={`${styles.colorBar} ${styles[COLOR_CLASSES[index % COLOR_CLASSES.length]]}`} />
@@ -166,7 +144,7 @@ const Collections = () => {
                                             <button
                                                 className={styles.iconBtn}
                                                 title="Edit"
-                                                onClick={e => openEdit(e, col)}
+                                                onClick={e => { e.stopPropagation(); setModal({ mode: 'edit', collection: col }); }}
                                             >
                                                 <Pencil size={13} strokeWidth={2} />
                                             </button>
@@ -183,8 +161,7 @@ const Collections = () => {
                             );
                         })}
 
-                        {/* Add new card */}
-                        <div className={styles.newCollCard} onClick={openCreate}>
+                        <div className={styles.newCollCard} onClick={() => setModal({ mode: 'create' })}>
                             <div className={styles.newCollInner}>
                                 <div className={styles.newCollIcon}>
                                     <Plus size={28} strokeWidth={1.8} color="var(--text-light, #B09080)" />
@@ -210,67 +187,13 @@ const Collections = () => {
                 )}
             </div>
 
-            {/* Create / Edit Modal */}
-            {showModal && (
-                <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
-                    <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                        <button className={styles.closeBtn} onClick={() => setShowModal(false)}>
-                            <X size={18} strokeWidth={2.5} />
-                        </button>
-                        <div className={styles.modalHeader}>
-                            <h3 className={styles.modalTitle}>
-                                {editTarget ? 'Edit Collection' : 'New Collection'}
-                            </h3>
-                            <p className={styles.modalSubtitle}>
-                                {editTarget
-                                    ? 'Update your collection details'
-                                    : 'Organise your recipes into a collection'}
-                            </p>
-                        </div>
-                        <form onSubmit={handleSave} className={styles.modalForm}>
-                            <div className={styles.formGroup}>
-                                <label className={styles.formLabel}>Collection Name *</label>
-                                <input
-                                    className={styles.formInput}
-                                    type="text"
-                                    placeholder="e.g. Weeknight Dinners"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    required
-                                    autoFocus
-                                    maxLength={100}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.formLabel}>Description</label>
-                                <textarea
-                                    className={styles.formTextarea}
-                                    placeholder="What's this collection about?"
-                                    value={formData.description}
-                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    rows={3}
-                                    maxLength={255}
-                                />
-                            </div>
-                            <div className={styles.modalActions}>
-                                <button
-                                    type="button"
-                                    className={styles.btnOutline}
-                                    onClick={() => setShowModal(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className={styles.btnPrimary}
-                                    disabled={saving}
-                                >
-                                    {saving ? 'Saving…' : editTarget ? 'Update' : 'Create Collection'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+            {modal && (
+                <CollectionModal
+                    mode={modal.mode}
+                    collection={modal.collection ?? null}
+                    onClose={() => setModal(null)}
+                    onSaved={handleSaved}
+                />
             )}
         </>
     );

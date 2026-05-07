@@ -25,155 +25,148 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CollectionService {
 
-    private final CollectionRepository collectionRepository;
-    private final UserRepository userRepository;
-    private final RecipeRepository recipeRepository;
+        private final CollectionRepository collectionRepository;
+        private final UserRepository userRepository;
+        private final RecipeRepository recipeRepository;
 
-    // ─── CRUD ─────────────────────────────────────────────────────────────────
+        // ─── CRUD ─────────────────────────────────────────────────────────────────
 
-    @Transactional
-    public CollectionResponseDTO createCollection(long userId, CollectionRequestDTO requestDTO) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        @Transactional
+        public CollectionResponseDTO createCollection(long userId, CollectionRequestDTO requestDTO) {
+                UserEntity user = userRepository.findById(userId)
+                                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-        CollectionEntity collection = CollectionEntity.builder()
-                .name(requestDTO.getName())
-                .description(requestDTO.getDescription())
-                .coverImage(requestDTO.getCoverImage())
-                .user(user)
-                .build();
+                CollectionEntity collection = CollectionEntity.builder()
+                                .name(requestDTO.getName())
+                                .description(requestDTO.getDescription())
+                                .user(user)
+                                .build();
 
-        CollectionEntity saved = collectionRepository.save(collection);
-        return convertToResponseDTO(saved);
-    }
-
-    @Transactional(readOnly = true)
-    public CollectionResponseDTO getCollectionById(long userId, Long collectionId) {
-        CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Collection not found with id: " + collectionId));
-        return convertToResponseDTO(collection);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<CollectionResponseDTO> getAllCollectionsByUser(long userId, Pageable pageable) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found with id: " + userId);
-        }
-        return collectionRepository.findByUserId(userId, pageable)
-                .map(this::convertToResponseDTO);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<CollectionResponseDTO> searchCollections(long userId, String name, Pageable pageable) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found with id: " + userId);
-        }
-        return collectionRepository.findByUserIdAndNameContainingIgnoreCase(userId, name, pageable)
-                .map(this::convertToResponseDTO);
-    }
-
-    @Transactional
-    public CollectionResponseDTO updateCollection(long userId, Long collectionId,
-            CollectionRequestDTO requestDTO) {
-        CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Collection not found with id: " + collectionId));
-
-        collection.setName(requestDTO.getName());
-        collection.setDescription(requestDTO.getDescription());
-
-        // Allow clearing the cover image by passing null or blank
-        if (requestDTO.getCoverImage() != null) {
-            collection.setCoverImage(
-                    requestDTO.getCoverImage().isBlank() ? null : requestDTO.getCoverImage());
+                CollectionEntity saved = collectionRepository.save(collection);
+                return convertToResponseDTO(saved);
         }
 
-        CollectionEntity updated = collectionRepository.save(collection);
-        return convertToResponseDTO(updated);
-    }
-
-    @Transactional
-    public void deleteCollection(long userId, Long collectionId) {
-        if (!collectionRepository.existsByIdAndUserId(collectionId, userId)) {
-            throw new ResourceNotFoundException("Collection not found with id: " + collectionId);
+        @Transactional(readOnly = true)
+        public CollectionResponseDTO getCollectionById(long userId, Long collectionId) {
+                CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Collection not found with id: " + collectionId));
+                return convertToResponseDTO(collection);
         }
-        collectionRepository.deleteById(collectionId);
-    }
 
-    // ─── Recipe membership ────────────────────────────────────────────────────
+        @Transactional(readOnly = true)
+        public Page<CollectionResponseDTO> getAllCollectionsByUser(long userId, Pageable pageable) {
+                if (!userRepository.existsById(userId)) {
+                        throw new ResourceNotFoundException("User not found with id: " + userId);
+                }
+                return collectionRepository.findByUserId(userId, pageable)
+                                .map(this::convertToResponseDTO);
+        }
 
-    @Transactional
-    public CollectionResponseDTO addRecipeToCollection(long userId, Long collectionId, Long recipeId) {
-        CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Collection not found with id: " + collectionId));
+        @Transactional(readOnly = true)
+        public Page<CollectionResponseDTO> searchCollections(long userId, String name, Pageable pageable) {
+                if (!userRepository.existsById(userId)) {
+                        throw new ResourceNotFoundException("User not found with id: " + userId);
+                }
+                return collectionRepository.findByUserIdAndNameContainingIgnoreCase(userId, name, pageable)
+                                .map(this::convertToResponseDTO);
+        }
 
-        RecipeEntity recipe = recipeRepository.findByIdAndUserId(recipeId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Recipe not found with id: " + recipeId));
+        @Transactional
+        public CollectionResponseDTO updateCollection(long userId, Long collectionId,
+                        CollectionRequestDTO requestDTO) {
+                CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Collection not found with id: " + collectionId));
 
-        Hibernate.initialize(collection.getRecipes());
-        collection.addRecipe(recipe);
-        CollectionEntity updated = collectionRepository.save(collection);
-        return convertToResponseDTO(updated);
-    }
+                collection.setName(requestDTO.getName());
+                collection.setDescription(requestDTO.getDescription());
 
-    @Transactional
-    public CollectionResponseDTO removeRecipeFromCollection(long userId, Long collectionId, Long recipeId) {
-        CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Collection not found with id: " + collectionId));
+                CollectionEntity updated = collectionRepository.save(collection);
+                return convertToResponseDTO(updated);
+        }
 
-        RecipeEntity recipe = recipeRepository.findByIdAndUserId(recipeId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Recipe not found with id: " + recipeId));
+        @Transactional
+        public void deleteCollection(long userId, Long collectionId) {
+                if (!collectionRepository.existsByIdAndUserId(collectionId, userId)) {
+                        throw new ResourceNotFoundException("Collection not found with id: " + collectionId);
+                }
+                collectionRepository.deleteById(collectionId);
+        }
 
-        Hibernate.initialize(collection.getRecipes());
-        collection.removeRecipe(recipe);
-        CollectionEntity updated = collectionRepository.save(collection);
-        return convertToResponseDTO(updated);
-    }
+        // ─── Recipe membership ────────────────────────────────────────────────────
 
-    // ─── Mapping ──────────────────────────────────────────────────────────────
+        @Transactional
+        public CollectionResponseDTO addRecipeToCollection(long userId, Long collectionId, Long recipeId) {
+                CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Collection not found with id: " + collectionId));
 
-    private CollectionResponseDTO convertToResponseDTO(CollectionEntity collection) {
-        Hibernate.initialize(collection.getRecipes());
-        List<String> recipeImages = collection.getRecipes().stream()
-                .map(RecipeEntity::getImageUrl)
-                .filter(url -> url != null && !url.isBlank())
-                .limit(6)
-                .collect(Collectors.toList());
-        return CollectionResponseDTO.builder()
-                .id(collection.getId())
-                .name(collection.getName())
-                .description(collection.getDescription())
-                .coverImage(collection.getCoverImage())
-                .recipeImages(recipeImages)
-                .userId(collection.getUser().getId())
-                .recipeCount(collection.getRecipes().size())
-                .createdAt(collection.getCreatedAt())
-                .updatedAt(collection.getUpdatedAt())
-                .build();
-    }
+                RecipeEntity recipe = recipeRepository.findByIdAndUserId(recipeId, userId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Recipe not found with id: " + recipeId));
 
-    public CollectionResponseDTO convertToResponseDTOPublic(CollectionEntity collection) {
-        Hibernate.initialize(collection.getRecipes());
-        List<String> recipeImages = collection.getRecipes().stream()
-                .map(RecipeEntity::getImageUrl)
-                .filter(url -> url != null && !url.isBlank())
-                .limit(6)
-                .collect(Collectors.toList());
-        return CollectionResponseDTO.builder()
-                .id(collection.getId())
-                .name(collection.getName())
-                .description(collection.getDescription())
-                .coverImage(collection.getCoverImage())
-                .recipeImages(recipeImages)
-                .userId(collection.getUser().getId())
-                .recipeCount(collection.getRecipes().size())
-                .createdAt(collection.getCreatedAt())
-                .updatedAt(collection.getUpdatedAt())
-                .build();
-    }
+                Hibernate.initialize(collection.getRecipes());
+                collection.addRecipe(recipe);
+                CollectionEntity updated = collectionRepository.save(collection);
+                return convertToResponseDTO(updated);
+        }
+
+        @Transactional
+        public CollectionResponseDTO removeRecipeFromCollection(long userId, Long collectionId, Long recipeId) {
+                CollectionEntity collection = collectionRepository.findByIdAndUserId(collectionId, userId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Collection not found with id: " + collectionId));
+
+                RecipeEntity recipe = recipeRepository.findByIdAndUserId(recipeId, userId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Recipe not found with id: " + recipeId));
+
+                Hibernate.initialize(collection.getRecipes());
+                collection.removeRecipe(recipe);
+                CollectionEntity updated = collectionRepository.save(collection);
+                return convertToResponseDTO(updated);
+        }
+
+        // ─── Mapping ──────────────────────────────────────────────────────────────
+
+        private CollectionResponseDTO convertToResponseDTO(CollectionEntity collection) {
+                Hibernate.initialize(collection.getRecipes());
+                List<String> recipeImages = collection.getRecipes().stream()
+                                .map(RecipeEntity::getImageUrl)
+                                .filter(url -> url != null && !url.isBlank())
+                                .limit(6)
+                                .collect(Collectors.toList());
+                return CollectionResponseDTO.builder()
+                                .id(collection.getId())
+                                .name(collection.getName())
+                                .description(collection.getDescription())
+                                .coverImage(collection.getCoverImage())
+                                .recipeImages(recipeImages)
+                                .userId(collection.getUser().getId())
+                                .recipeCount(collection.getRecipes().size())
+                                .createdAt(collection.getCreatedAt())
+                                .updatedAt(collection.getUpdatedAt())
+                                .build();
+        }
+
+        public CollectionResponseDTO convertToResponseDTOPublic(CollectionEntity collection) {
+                Hibernate.initialize(collection.getRecipes());
+                List<String> recipeImages = collection.getRecipes().stream()
+                                .map(RecipeEntity::getImageUrl)
+                                .filter(url -> url != null && !url.isBlank())
+                                .limit(6)
+                                .collect(Collectors.toList());
+                return CollectionResponseDTO.builder()
+                                .id(collection.getId())
+                                .name(collection.getName())
+                                .description(collection.getDescription())
+                                .coverImage(collection.getCoverImage())
+                                .recipeImages(recipeImages)
+                                .userId(collection.getUser().getId())
+                                .recipeCount(collection.getRecipes().size())
+                                .createdAt(collection.getCreatedAt())
+                                .updatedAt(collection.getUpdatedAt())
+                                .build();
+        }
 }
