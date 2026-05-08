@@ -163,7 +163,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, externalError = '' })
                 />
                 <span>Remember me</span>
               </label>
-              <Link to="/forgot-password" className={styles.forgotLink}>
+              <Link to="/settings?section=security" className={styles.forgotLink}>
                 Forgot Password?
               </Link>
             </div>

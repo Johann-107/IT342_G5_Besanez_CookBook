@@ -1,11 +1,9 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DefaultHeader from '../components/layout/DefaultHeader';
 import { uploadImage } from '../services/image';
 import userAPI from '../services/user';
 import {
-    ArrowLeft,
     Camera,
     Loader2,
     Save,
@@ -22,8 +20,7 @@ const COOKING_LEVELS = [
 ];
 
 const Profile = () => {
-    const { user, logout, refreshUser } = useAuth();
-    const navigate = useNavigate();
+    const { user, refreshUser } = useAuth();
     const fileInputRef = useRef(null);
 
     const [isEditing, setIsEditing] = useState(false);
@@ -133,19 +130,6 @@ const Profile = () => {
         }
     };
 
-    // ─── Delete Account ─────────────────────────────────────────────────────────
-    const handleDeleteAccount = async () => {
-        if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
-        try {
-            await userAPI.deleteUser(user.userId);
-            await logout();
-            navigate('/');
-        } catch {
-            showMessage('Failed to delete account.', 'error');
-        }
-    };
-
-    // ─── Helpers ────────────────────────────────────────────────────────────────
     const getInitials = () => {
         const first = (form.firstName || user?.firstName || '')[0] || '';
         const last = (form.lastName || user?.lastName || '')[0] || '';
@@ -379,19 +363,6 @@ const Profile = () => {
                                     </div>
                                 )}
                             </form>
-                        </div>
-
-                        <div className={styles.dangerZone}>
-                            <h4 className={styles.dangerTitle}>
-                                <AlertTriangle size={14} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-                                Danger Zone
-                            </h4>
-                            <p className={styles.dangerText}>
-                                Permanently delete your account and all your recipes. This cannot be undone.
-                            </p>
-                            <button className={styles.btnDanger} onClick={handleDeleteAccount}>
-                                Delete My Account
-                            </button>
                         </div>
                     </div>
                 </div>

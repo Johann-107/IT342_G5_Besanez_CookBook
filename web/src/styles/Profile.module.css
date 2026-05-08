@@ -471,49 +471,6 @@ input[type="date"].inputReadonly::-webkit-calendar-picker-indicator {
     cursor: not-allowed;
 }
 
-/* ── Danger Zone ── */
-.dangerZone {
-    background: #FEF0EF;
-    border: 1px solid #FABBBB;
-    border-radius: 12px;
-    padding: 18px;
-    margin-top: 8px;
-}
-
-.dangerTitle {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #C44;
-    margin-bottom: 8px;
-    font-family: 'DM Sans', sans-serif;
-}
-
-.dangerText {
-    font-size: 0.8rem;
-    color: #A05555;
-    margin-bottom: 12px;
-    line-height: 1.5;
-}
-
-.btnDanger {
-    background: white;
-    border: 1.5px solid #E05555;
-    color: #E05555;
-    border-radius: 10px;
-    padding: 8px 16px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btnDanger:hover {
-    background: #FEF0EF;
-    border-color: #C44;
-    color: #C44;
-}
-
 /* ── Responsive ── */
 @media (max-width: 1024px) {
 

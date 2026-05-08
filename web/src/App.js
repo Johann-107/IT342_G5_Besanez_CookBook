@@ -10,9 +10,9 @@ import RecipeDetail from './pages/RecipeDetail';
 import CreateRecipe from './pages/CreateRecipe';
 import Collections from './pages/Collections';
 import CollectionDetail from './pages/CollectionDetail';
-import ForgotPassword from './pages/ForgotPassword';
 import SharedRecipePage from './pages/SharedRecipePage';
 import AdminDashboard from './pages/AdminDashboard';
+import Settings from './pages/Settings';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminRoute from './components/common/AdminRoute';
 
@@ -30,8 +30,6 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<LandingWrapper />} />
             <Route path="oauth2/callback" element={<OAuth2Callback />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
-
             {/* Protected Routes */}
             <Route
               path="dashboard"
@@ -94,6 +92,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CollectionDetail />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route path="settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />
