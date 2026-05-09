@@ -1,0 +1,233 @@
+.page {
+    background: var(--cream, #FDF8F2);
+    min-height: calc(100vh - 80px);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-dark, #3A2A1E);
+    padding: 40px 24px 80px;
+}
+
+.container {
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+/* ── Back button ── */
+.backBtn {
+    display: inline-flex;
+    align-items: center;
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta-dark, #A05E33);
+    border: none;
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.825rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 32px;
+    transition: background 0.2s ease;
+}
+
+.backBtn:hover {
+    background: var(--peach, #F5C9A0);
+}
+
+/* ── About hero ── */
+.hero {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.heroIcon {
+    width: 68px;
+    height: 68px;
+    background: var(--terracotta, #C97D4E);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    box-shadow: 0 8px 24px rgba(201, 125, 78, 0.28);
+}
+
+.heroTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--warm-brown, #5C3D2E);
+    margin-bottom: 12px;
+}
+
+.heroSubtitle {
+    font-size: 1rem;
+    color: var(--text-mid, #7A5C46);
+    line-height: 1.7;
+    max-width: 440px;
+    margin: 0 auto;
+}
+
+/* ── Doc header (Privacy / Terms) ── */
+.docHeader {
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border, #EDD8C4);
+}
+
+.docTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--warm-brown, #5C3D2E);
+    margin-bottom: 6px;
+}
+
+.docMeta {
+    font-size: 0.825rem;
+    color: var(--text-light, #B09080);
+}
+
+/* ── Content ── */
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.section {
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border, #EDD8C4);
+}
+
+.section:last-child {
+    border-bottom: none;
+}
+
+.sectionTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-dark, #3A2A1E);
+    margin-bottom: 12px;
+}
+
+.body {
+    font-size: 0.9rem;
+    color: var(--text-mid, #7A5C46);
+    line-height: 1.75;
+    margin-bottom: 10px;
+}
+
+.body:last-child {
+    margin-bottom: 0;
+}
+
+.list {
+    padding-left: 18px;
+    margin: 0 0 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.list li {
+    font-size: 0.9rem;
+    color: var(--text-mid, #7A5C46);
+    line-height: 1.65;
+}
+
+.inlineLink {
+    color: var(--terracotta, #C97D4E);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.inlineLink:hover {
+    color: var(--terracotta-dark, #A05E33);
+    text-decoration: underline;
+}
+
+/* ── Contact link (About page) ── */
+.contactLink {
+    display: inline-block;
+    background: var(--peach-light, #FAE3CC);
+    color: var(--terracotta-dark, #A05E33);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background 0.2s ease;
+    margin-top: 4px;
+}
+
+.contactLink:hover {
+    background: var(--peach, #F5C9A0);
+}
+
+/* ── Feature grid (About page) ── */
+.featureGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 8px 0 8px;
+}
+
+.featureCard {
+    background: white;
+    border: 1px solid var(--border, #EDD8C4);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.featureCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(92, 61, 46, 0.1);
+}
+
+.featureIcon {
+    width: 40px;
+    height: 40px;
+    background: var(--peach-light, #FAE3CC);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    color: var(--terracotta, #C97D4E);
+}
+
+.featureTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-dark, #3A2A1E);
+    margin-bottom: 6px;
+}
+
+.featureDesc {
+    font-size: 0.78rem;
+    color: var(--text-light, #B09080);
+    line-height: 1.55;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+    .page {
+        padding: 24px 16px 60px;
+    }
+
+    .featureGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .heroTitle {
+        font-size: 1.7rem;
+    }
+
+    .docTitle {
+        font-size: 1.6rem;
+    }
+}

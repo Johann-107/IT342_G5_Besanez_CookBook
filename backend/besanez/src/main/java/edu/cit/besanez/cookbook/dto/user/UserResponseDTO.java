@@ -23,6 +23,7 @@ public class UserResponseDTO {
     private CookingLevel cookingLevel;
     private String role;
     private LocalDate createdAt;
+    private boolean emailVerified;
 
     public int getAge() {
         if (this.birthdate == null) {

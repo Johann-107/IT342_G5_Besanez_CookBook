@@ -75,6 +75,16 @@ public class UserEntity {
     @Builder.Default
     private String role = "USER";
 
+    @Column(name = "verification_code", length = 6)
+    private String verificationCode;
+
+    @Column(name = "verification_expiry")
+    private LocalDateTime verificationExpiry;
+
+    @Column(name = "email_verified", nullable = false)
+    @Builder.Default
+    private boolean emailVerified = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

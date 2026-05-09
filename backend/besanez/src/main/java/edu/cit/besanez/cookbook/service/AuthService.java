@@ -15,6 +15,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+
+import java.time.LocalDateTime;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +31,7 @@ public class AuthService {
     private final CloudinaryService cloudinaryService;
     private final DefaultDataSeederService seederService;
     private final AdminService adminService;
+    private final JavaMailSender mailSender;
 
     // ─── Register ─────────────────────────────────────────────────────────────
 
@@ -188,6 +194,74 @@ public class AuthService {
         }
     }
 
+    // ─── Send verification code ───────────────────────────────────────────────
+
+    @Transactional
+    public void sendVerificationCode(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with email: " + email));
+
+        String code = String.format("%06d", new Random().nextInt(999999));
+        user.setVerificationCode(code);
+        user.setVerificationExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("CookBook — Verification Code");
+        message.setText("Your verification code is: " + code + "\n\nExpires in 10 minutes.");
+        mailSender.send(message);
+    }
+
+    // ─── Verify code ──────────────────────────────────────────────────────────
+
+    @Transactional
+    public void verifyCode(String email, String code) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with email: " + email));
+
+        if (user.getVerificationCode() == null || user.getVerificationExpiry() == null) {
+            throw new IllegalArgumentException("No verification code requested.");
+        }
+        if (LocalDateTime.now().isAfter(user.getVerificationExpiry())) {
+            throw new IllegalArgumentException("Verification code has expired.");
+        }
+        if (!user.getVerificationCode().equals(code)) {
+            throw new IllegalArgumentException("Incorrect verification code.");
+        }
+
+        user.setVerificationCode(null);
+        user.setVerificationExpiry(null);
+        user.setEmailVerified(true);
+        userRepository.save(user);
+    }
+
+    // ─── Change password via code ─────────────────────────────────────────────
+
+    @Transactional
+    public void changePasswordWithCode(String email, String code, String newPassword) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with email: " + email));
+
+        if (user.getVerificationCode() == null || user.getVerificationExpiry() == null) {
+            throw new IllegalArgumentException("No verification code requested.");
+        }
+        if (LocalDateTime.now().isAfter(user.getVerificationExpiry())) {
+            throw new IllegalArgumentException("Verification code has expired.");
+        }
+        if (!user.getVerificationCode().equals(code)) {
+            throw new IllegalArgumentException("Incorrect verification code.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setVerificationCode(null);
+        user.setVerificationExpiry(null);
+        userRepository.save(user);
+    }
+
     private LoginResponse buildLoginResponse(String token, UserEntity user) {
         UserResponseDTO userDTO = convertToResponseDTO(user);
         return LoginResponse.builder()
@@ -211,6 +285,7 @@ public class AuthService {
                 .profileImage(userEntity.getProfileImage())
                 .cookingLevel(userEntity.getCookingLevel())
                 .role(userEntity.getRole())
+                .emailVerified(userEntity.isEmailVerified())
                 .build();
     }
 }

@@ -28,6 +28,16 @@ export const changePassword = (passwordData) =>
 export const forgotPassword = (data) =>
   api.post('/api/auth/forgot-password', data);
 
+// POST /api/auth/send-verification-code
+// Body: { email }
+export const sendVerificationCode = (data) =>
+  api.post('/api/auth/send-verification-code', data);
+
+// POST /api/auth/verify-code
+// Body: { email, code }
+export const verifyCode = (data) =>
+  api.post('/api/auth/verify-code', data);
+
 // ─── Current User ─────────────────────────────────────────────────────────────
 // GET /api/user/me
 // Header: Authorization Bearer <token>
@@ -44,6 +54,8 @@ const authAPI = {
   getMe,
   // Keep legacy alias used by AuthContext
   getProfile: getMe,
+  sendVerificationCode,
+  verifyCode,
 };
 
 export default authAPI;

@@ -78,19 +78,26 @@ public class AuthController {
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody Map<String, String> passwordData) {
         try {
-            Long userId = extractUserIdFromToken(authHeader);
-            String oldPassword = passwordData.get("oldPassword");
+            String verificationCode = passwordData.get("verificationCode");
             String newPassword = passwordData.get("newPassword");
 
-            authService.changePassword(userId, oldPassword, newPassword);
+            // Code-based flow (forgot password) — no auth header required
+            if (verificationCode != null && !verificationCode.isBlank()) {
+                String email = passwordData.get("email");
+                authService.changePasswordWithCode(email, verificationCode, newPassword);
+            } else {
+                // Current-password flow — requires auth header
+                Long userId = extractUserIdFromToken(authHeader);
+                String oldPassword = passwordData.get("oldPassword");
+                authService.changePassword(userId, oldPassword, newPassword);
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Password changed successfully");
-
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
@@ -112,6 +119,43 @@ public class AuthController {
             response.put("success", true);
             response.put("message", "Password reset successful");
 
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/send-verification-code")
+    public ResponseEntity<?> sendVerificationCode(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            authService.sendVerificationCode(email);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Verification code sent to " + email);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/verify-code")
+    public ResponseEntity<?> verifyCode(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String code = request.get("code");
+            authService.verifyCode(email, code);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Code verified successfully");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();

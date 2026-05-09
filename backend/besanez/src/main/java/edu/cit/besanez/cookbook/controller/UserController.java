@@ -68,6 +68,7 @@ public class UserController {
             response.put("cookingLevel", user.getCookingLevel());
             response.put("role", user.getRole());
             response.put("createdAt", user.getCreatedAt());
+            response.put("emailVerified", user.isEmailVerified());
 
             return ResponseEntity.ok(response);
 

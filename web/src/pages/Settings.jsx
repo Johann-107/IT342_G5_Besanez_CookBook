@@ -44,7 +44,7 @@ const Settings = () => {
     const [verifyCode, setVerifyCode] = useState('');
     const [sendingCode, setSendingCode] = useState(false);
     const [verifying, setVerifying] = useState(false);
-    const [emailVerified, setEmailVerified] = useState(false);
+    const [emailVerified, setEmailVerified] = useState(user?.emailVerified ?? false);
 
     // Delete account state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -67,9 +67,7 @@ const Settings = () => {
     const handleSendCode = async () => {
         setSendingCode(true);
         try {
-            // TODO (Step 1): await authAPI.sendVerificationCode({ email: user.email });
-            // Stubbed — replace when backend OTP is ready
-            await new Promise(r => setTimeout(r, 900)); // simulate network
+            await authAPI.sendVerificationCode({ email: user.email });
             setVerifyStep('sent');
         } catch {
             showMsg('Failed to send code. Try again.', 'error');
@@ -83,10 +81,10 @@ const Settings = () => {
         if (verifyCode.length !== 6) return;
         setVerifying(true);
         try {
-            // TODO (Step 1): await authAPI.verifyCode({ email: user.email, code: verifyCode });
-            await new Promise(r => setTimeout(r, 900));
+            await authAPI.verifyCode({ email: user.email, code: verifyCode });
             setVerifyStep('verified');
             setEmailVerified(true);
+            await refreshUser();
             setTimeout(() => {
                 setShowVerifyModal(false);
                 setVerifyStep('idle');
@@ -359,8 +357,7 @@ const ChangePasswordModal = ({ email, onClose }) => {
         setSendingCode(true);
         setError('');
         try {
-            // TODO (Step 1): await authAPI.sendVerificationCode({ email });
-            await new Promise(r => setTimeout(r, 900));
+            await authAPI.sendVerificationCode({ email });
             setCodeStep('sent');
         } catch {
             setError('Failed to send code. Try again.');
@@ -394,9 +391,11 @@ const ChangePasswordModal = ({ email, onClose }) => {
         setSaving(true);
         setError('');
         try {
-            // TODO (Step 1): await authAPI.verifyCode({ email, code });
-            // TODO (Step 2): await authAPI.changePassword({ verificationCode: code, newPassword: form.newPassword });
-            await new Promise(r => setTimeout(r, 900));
+            await authAPI.changePassword({
+                email,
+                verificationCode: code,
+                newPassword: form.newPassword,
+            });
             setSuccess(true);
             setTimeout(onClose, 1400);
         } catch (err) {

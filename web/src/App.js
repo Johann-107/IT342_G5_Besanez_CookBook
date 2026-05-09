@@ -13,6 +13,9 @@ import CollectionDetail from './pages/CollectionDetail';
 import SharedRecipePage from './pages/SharedRecipePage';
 import AdminDashboard from './pages/AdminDashboard';
 import Settings from './pages/Settings';
+import About from './pages/About';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminRoute from './components/common/AdminRoute';
 
@@ -103,6 +106,10 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route path="about" element={<About />} />
+            <Route path="privacy" element={<Privacy />} />
+            <Route path="terms" element={<Terms />} />
 
             <Route path="shared/:token" element={<SharedRecipePage />} />
 
