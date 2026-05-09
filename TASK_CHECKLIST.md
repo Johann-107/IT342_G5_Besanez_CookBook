@@ -14,10 +14,10 @@ TODO:
 IN PROGRESS
 WEB
     Create:
-        Settings page
     
 
 BACKEND
+    Add an otp system for email verification and password changing
 
 Mobile 
     Create:
@@ -72,6 +72,7 @@ WEB
             Users - d865d1bf9884e8728ce2bd60a70f8e4551bd4735
             Recipes - d865d1bf9884e8728ce2bd60a70f8e4551bd4735
             Collection - d865d1bf9884e8728ce2bd60a70f8e4551bd4735
+        Settings page - 3a8a1c609213bd975448237cf8136ca8c6c3350c
 
     Connect backend api to frontend services - 378f94c7130d76156cf2624c1e3bc88076099984
     Connect admin api to frontend - d865d1bf9884e8728ce2bd60a70f8e4551bd4735
