@@ -1,0 +1,441 @@
+import styles from './Register.module.css';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from './AuthContext';
+import { Eye, EyeOff, X } from 'lucide-react';
+import GoogleLoginButton from './GoogleLoginButton';
+
+const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        birthMonth: '',
+        birthDay: '',
+        birthYear: '',
+    });
+
+    const [error, setError] = useState('');
+    const [passwordErrors, setPasswordErrors] = useState([]);
+    const [daysInMonth, setDaysInMonth] = useState([]);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
+    const { register } = useAuth();
+
+    const handleClose = useCallback(() => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setIsClosing(false);
+            onClose();
+        }, 300);
+    }, [onClose]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setFormData({
+                firstName: '',
+                lastName: '',
+                email: '',
+                password: '',
+                confirmPassword: '',
+                birthMonth: '',
+                birthDay: '',
+                birthYear: '',
+            });
+            setError('');
+            setPasswordErrors([]);
+            setShowPassword(false);
+            setShowConfirmPassword(false);
+            setIsClosing(false);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        const handleEscKey = (e) => {
+            if (e.key === 'Escape' && isOpen && !isClosing) {
+                handleClose();
+            }
+        };
+        document.addEventListener('keydown', handleEscKey);
+        return () => document.removeEventListener('keydown', handleEscKey);
+    }, [isOpen, isClosing, handleClose]);
+
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
+    const months = [
+        { value: '', label: 'Month' },
+        { value: '01', label: 'Jan' },
+        { value: '02', label: 'Feb' },
+        { value: '03', label: 'Mar' },
+        { value: '04', label: 'Apr' },
+        { value: '05', label: 'May' },
+        { value: '06', label: 'Jun' },
+        { value: '07', label: 'Jul' },
+        { value: '08', label: 'Aug' },
+        { value: '09', label: 'Sep' },
+        { value: '10', label: 'Oct' },
+        { value: '11', label: 'Nov' },
+        { value: '12', label: 'Dec' },
+    ];
+
+    const currentYear = new Date().getFullYear();
+    const years = [{ value: '', label: 'Year' }];
+    for (let year = currentYear - 60; year <= currentYear - 15; year++) {
+        years.push({ value: year.toString(), label: year.toString() });
+    }
+    years.reverse();
+
+    useEffect(() => {
+        if (formData.birthMonth && formData.birthYear) {
+            const year = parseInt(formData.birthYear);
+            const month = parseInt(formData.birthMonth);
+            const daysInMonthCount = new Date(year, month, 0).getDate();
+
+            const days = [{ value: '', label: 'Day' }];
+            for (let day = 1; day <= daysInMonthCount; day++) {
+                days.push({
+                    value: day.toString().padStart(2, '0'),
+                    label: day.toString(),
+                });
+            }
+            setDaysInMonth(days);
+
+            if (formData.birthDay && parseInt(formData.birthDay) > daysInMonthCount) {
+                setFormData(prev => ({ ...prev, birthDay: '' }));
+            }
+        } else {
+            const days = [{ value: '', label: 'Day' }];
+            for (let day = 1; day <= 31; day++) {
+                days.push({
+                    value: day.toString().padStart(2, '0'),
+                    label: day.toString(),
+                });
+            }
+            setDaysInMonth(days);
+        }
+    }, [formData.birthDay, formData.birthMonth, formData.birthYear]);
+
+    const validatePassword = (password) => {
+        const errors = [];
+        if (password.length < 8) errors.push('Password must be at least 8 characters long');
+        if (!/[A-Z]/.test(password)) errors.push('Password must contain at least one uppercase letter');
+        if (!/[a-z]/.test(password)) errors.push('Password must contain at least one lowercase letter');
+        if (!/[0-9]/.test(password)) errors.push('Password must contain at least one number');
+        if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password))
+            errors.push('Password must contain at least one special character');
+        return errors;
+    };
+
+    useEffect(() => {
+        if (formData.password) {
+            setPasswordErrors(validatePassword(formData.password));
+        } else {
+            setPasswordErrors([]);
+        }
+    }, [formData.password]);
+
+    if (!isOpen && !isClosing) return null;
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+
+        if (!formData.birthMonth || !formData.birthDay || !formData.birthYear) {
+            setError('Please select your complete birthdate');
+            return;
+        }
+
+        const passwordValidationErrors = validatePassword(formData.password);
+        if (passwordValidationErrors.length > 0) {
+            setError('Password does not meet requirements: ' + passwordValidationErrors.join(', '));
+            return;
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+            setError('Passwords do not match!');
+            return;
+        }
+
+        const birthDate = new Date(
+            parseInt(formData.birthYear),
+            parseInt(formData.birthMonth) - 1,
+            parseInt(formData.birthDay)
+        );
+        const ageDiff = Date.now() - birthDate.getTime();
+        const ageDate = new Date(ageDiff);
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+
+        if (age < 15) {
+            setError('You must be at least 15 years old to register');
+            return;
+        }
+
+        const birthdate = `${formData.birthYear}-${formData.birthMonth}-${formData.birthDay}`;
+
+        const result = await register({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            birthdate,
+            email: formData.email,
+            password: formData.password,
+        });
+
+        if (result.success) {
+            handleClose();
+            setTimeout(() => {
+                onSwitchToLogin();
+            }, 300);
+        } else {
+            setError(result.error);
+        }
+    };
+
+    const handleOverlayClick = (e) => {
+        if (e.target === e.currentTarget && !isClosing) {
+            handleClose();
+        }
+    };
+
+    const handleLoginClick = (e) => {
+        e.preventDefault();
+        handleClose();
+        setTimeout(() => {
+            onSwitchToLogin();
+        }, 300);
+    };
+
+    return (
+        <div
+            className={`${styles.modalOverlay} ${isClosing ? styles.fadeOut : ''}`}
+            onClick={handleOverlayClick}
+        >
+            <div className={`${styles.modalContainer} ${isClosing ? styles.slideDown : ''}`}>
+                <button className={styles.closeButton} onClick={handleClose} aria-label="Close modal">
+                    <X size={18} strokeWidth={2.5} />
+                </button>
+
+                <div className={styles.welcomeContainer}>
+                    <h1 className={styles.welcomeTitle}>Welcome to CookBook!</h1>
+                    <p className={styles.welcomeSubtitle}>Create your account to get started</p>
+                </div>
+
+                <div className={styles.registerContainer}>
+                    {error && (
+                        <div className={styles.errorMessage}>{error}</div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className={styles.registerForm}>
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label className={styles.formLabel}>First Name</label>
+                                <input
+                                    type="text"
+                                    name="firstName"
+                                    value={formData.firstName}
+                                    onChange={handleChange}
+                                    className={`${styles.formInput} ${formData.firstName ? styles.inputActive : ''}`}
+                                    placeholder="Enter first name"
+                                    required
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label className={styles.formLabel}>Last Name</label>
+                                <input
+                                    type="text"
+                                    name="lastName"
+                                    value={formData.lastName}
+                                    onChange={handleChange}
+                                    className={`${styles.formInput} ${formData.lastName ? styles.inputActive : ''}`}
+                                    placeholder="Enter last name"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label className={styles.formLabel}>Birthdate</label>
+                                <div className={styles.birthdateSelectors}>
+                                    <select
+                                        name="birthMonth"
+                                        value={formData.birthMonth}
+                                        onChange={handleChange}
+                                        className={`${styles.formSelect} ${formData.birthMonth ? styles.selectActive : ''}`}
+                                        required
+                                    >
+                                        {months.map(month => (
+                                            <option key={month.value} value={month.value}>{month.label}</option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        name="birthDay"
+                                        value={formData.birthDay}
+                                        onChange={handleChange}
+                                        className={`${styles.formSelect} ${formData.birthDay ? styles.selectActive : ''}`}
+                                        required
+                                    >
+                                        {daysInMonth.map(day => (
+                                            <option key={day.value} value={day.value}>{day.label}</option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        name="birthYear"
+                                        value={formData.birthYear}
+                                        onChange={handleChange}
+                                        className={`${styles.formSelect} ${formData.birthYear ? styles.selectActive : ''}`}
+                                        required
+                                    >
+                                        {years.map(year => (
+                                            <option key={year.value} value={year.value}>{year.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label className={styles.formLabel}>Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className={`${styles.formInput} ${formData.email ? styles.inputActive : ''}`}
+                                    placeholder="Enter email"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label className={styles.formLabel}>Password</label>
+                                <div className={styles.passwordInputContainer}>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        className={`${styles.formInput} ${styles.passwordInput} ${formData.password ? styles.passwordInputActive : ''}`}
+                                        placeholder="Enter password"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className={styles.passwordToggle}
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showPassword
+                                            ? <EyeOff size={16} strokeWidth={2} />
+                                            : <Eye size={16} strokeWidth={2} />}
+                                    </button>
+                                </div>
+
+                                {formData.password && passwordErrors.length > 0 && (
+                                    <div className={styles.passwordRequirements}>
+                                        <p className={styles.passwordRequirementsTitle}>Password must contain:</p>
+                                        <ul className={styles.passwordRequirementsList}>
+                                            <li className={formData.password.length >= 8 ? styles.requirementMet : ''}>
+                                                {formData.password.length >= 8 ? '✓' : '○'} At least 8 characters
+                                            </li>
+                                            <li className={/[A-Z]/.test(formData.password) ? styles.requirementMet : ''}>
+                                                {/[A-Z]/.test(formData.password) ? '✓' : '○'} One uppercase letter
+                                            </li>
+                                            <li className={/[a-z]/.test(formData.password) ? styles.requirementMet : ''}>
+                                                {/[a-z]/.test(formData.password) ? '✓' : '○'} One lowercase letter
+                                            </li>
+                                            <li className={/[0-9]/.test(formData.password) ? styles.requirementMet : ''}>
+                                                {/[0-9]/.test(formData.password) ? '✓' : '○'} One number
+                                            </li>
+                                            <li className={/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(formData.password) ? styles.requirementMet : ''}>
+                                                {/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(formData.password) ? '✓' : '○'} One special character
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label className={styles.formLabel}>Confirm Password</label>
+                                <div className={styles.passwordInputContainer}>
+                                    <input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        className={`${styles.formInput} ${styles.passwordInput} ${formData.confirmPassword ? styles.passwordInputActive : ''}`}
+                                        placeholder="Confirm password"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className={styles.passwordToggle}
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showConfirmPassword
+                                            ? <EyeOff size={16} strokeWidth={2} />
+                                            : <Eye size={16} strokeWidth={2} />}
+                                    </button>
+                                </div>
+                                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                                    <div className={styles.passwordMismatch}>Passwords do not match</div>
+                                )}
+                                {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                                    <div className={styles.passwordMatch}>Passwords match ✓</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className={styles.submitButton}
+                            disabled={passwordErrors.length > 0}
+                        >
+                            Create Account
+                        </button>
+                    </form>
+
+                    <div className={styles.divider}>
+                        <hr className={styles.lineBreak} />
+                        <p className={styles.loginLinkContainer}>or</p>
+                        <hr className={styles.lineBreak} />
+                    </div>
+
+                    <div className={styles.loginLinkContainer}>
+                        <GoogleLoginButton />
+                    </div>
+
+                    <p className={styles.loginLinkContainer}>
+                        Already have an account?{' '}
+                        <button onClick={handleLoginClick} className={styles.loginLink}>
+                            Login here
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default RegisterModal;

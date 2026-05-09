@@ -1,0 +1,33 @@
+package edu.cit.besanez.cookbook.user;
+
+import java.time.LocalDate;
+import java.time.Period;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserResponseDTO {
+    private long userId;
+    private String firstName;
+    private String lastName;
+    private LocalDate birthdate;
+    private String email;
+    private String profileImage;
+    private CookingLevel cookingLevel;
+    private String role;
+    private LocalDate createdAt;
+    private boolean emailVerified;
+
+    public int getAge() {
+        if (this.birthdate == null) {
+            return 0;
+        }
+        return Period.between(this.birthdate, LocalDate.now()).getYears();
+    }
+}
