@@ -6,7 +6,6 @@ import Register from '../../features/auth/RegisterModal';
 import {
   UtensilsCrossed,
   User,
-  ShieldCheck,
   Settings,
   LogOut,
 } from 'lucide-react';

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import adminAPI from './admin';
 import {
@@ -7,7 +7,6 @@ import {
     Users,
     Utensils,
     FolderOpen,
-    Home,
     LogOut,
     ChefHat,
 } from 'lucide-react';

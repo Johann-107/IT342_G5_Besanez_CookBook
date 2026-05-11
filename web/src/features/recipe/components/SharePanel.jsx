@@ -1,15 +1,8 @@
 import { useState } from 'react';
-import { Link2, X, Unlink, Share2 } from 'lucide-react';
+import { X, Unlink, Share2 } from 'lucide-react';
 import shareAPI from '../../share/share';
 import styles from './SharePanel.module.css';
 
-/**
- * SharePanel — shown inside RecipeDetail for the recipe owner.
- *
- * Props:
- *   recipeId   {number}  — the recipe's id
- *   initialToken {string|null} — existing shareToken (from recipe data, if any)
- */
 const SharePanel = ({ recipeId, initialToken }) => {
     const [shareToken, setShareToken] = useState(initialToken || null);
     const [shareUrl, setShareUrl] = useState(

@@ -1,4 +1,4 @@
-import { Users, Utensils, FolderOpen, Globe, Lock, CookingPot, Loader2, ChefHat } from 'lucide-react';
+import { Users, Utensils, FolderOpen, Globe, Lock, CookingPot, ChefHat } from 'lucide-react';
 import MiniChart from './MiniChart';
 import RecentTable from './RecentTable';
 import { formatRelativeTime } from '../../../shared/utils/formatRelativeTime';
