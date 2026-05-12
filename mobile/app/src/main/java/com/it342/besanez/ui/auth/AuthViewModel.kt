@@ -16,6 +16,9 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     private val _registerResult = MutableLiveData<Result<AuthResponse>>()
     val registerResult: LiveData<Result<AuthResponse>> = _registerResult
 
+    private val _forgotPasswordResult = MutableLiveData<Result<com.it342.besanez.model.BaseResponse>>()
+    val forgotPasswordResult: LiveData<Result<com.it342.besanez.model.BaseResponse>> = _forgotPasswordResult
+
     private val _loading = MutableLiveData<Boolean>()
     val loading: LiveData<Boolean> = _loading
 
@@ -31,6 +34,14 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         _loading.value = true
         viewModelScope.launch {
             _registerResult.value = repository.register(firstName, lastName, email, password)
+            _loading.value = false
+        }
+    }
+
+    fun forgotPassword(email: String, newPassword: String) {
+        _loading.value = true
+        viewModelScope.launch {
+            _forgotPasswordResult.value = repository.forgotPassword(email, newPassword)
             _loading.value = false
         }
     }

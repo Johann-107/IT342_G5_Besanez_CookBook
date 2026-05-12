@@ -2,6 +2,8 @@ package com.it342.besanez.repository
 
 import com.it342.besanez.data.TokenManager
 import com.it342.besanez.model.AuthResponse
+import com.it342.besanez.model.BaseResponse
+import com.it342.besanez.model.ForgotPasswordRequest
 import com.it342.besanez.model.LoginRequest
 import com.it342.besanez.model.RegisterRequest
 import com.it342.besanez.network.ApiClient
@@ -56,6 +58,19 @@ class AuthRepository(private val tokenManager: TokenManager) {
             }
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    suspend fun forgotPassword(email: String, newPassword: String): Result<BaseResponse> {
+        return try {
+            val response = api.forgotPassword(ForgotPasswordRequest(email, newPassword))
+            if (response.isSuccessful) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Reset failed. Check your email address."))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Network error. Check your connection."))
         }
     }
 

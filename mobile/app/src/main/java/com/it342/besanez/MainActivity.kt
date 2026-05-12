@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -26,7 +25,7 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this@MainActivity, LoginActivity::class.java))
             }
 
-            finish() // remove MainActivity from back stack
+            finish()
         }
     }
 }

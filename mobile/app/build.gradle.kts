@@ -34,6 +34,8 @@ android {
 
 dependencies {
 
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+
     // Retrofit + OkHttp
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
@@ -52,6 +54,7 @@ dependencies {
     // ViewModel + LiveData
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // Navigation Component
     implementation(libs.androidx.navigation.fragment.ktx)
