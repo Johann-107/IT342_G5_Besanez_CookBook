@@ -28,6 +28,10 @@ data class ForgotPasswordRequest(
     val newPassword: String
 )
 
+data class GoogleLoginRequest(
+    val idToken: String
+)
+
 data class AuthResponse(
     val success: Boolean,
     val message: String,

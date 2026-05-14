@@ -137,6 +137,49 @@ public class AuthService {
         return buildLoginResponse(token, user);
     }
 
+    @Transactional
+    public LoginResponse loginOrRegisterMobileGoogleUser(
+            String email, String firstName, String lastName, String picture) {
+
+        boolean[] isNewUser = { false };
+
+        UserEntity user = userRepository.findByEmail(email).orElseGet(() -> {
+            String persistedImage = uploadGoogleAvatar(null, picture);
+
+            UserEntity newUser = UserEntity.builder()
+                    .email(email)
+                    .firstName(firstName != null ? firstName : "Google")
+                    .lastName(lastName != null ? lastName : "User")
+                    .password(null)
+                    .birthdate(null)
+                    .profileImage(persistedImage)
+                    .cookingLevel(CookingLevel.BEGINNER)
+                    .build();
+
+            UserEntity saved = userRepository.save(newUser);
+            isNewUser[0] = true;
+            return saved;
+        });
+
+        if (isNewUser[0]) {
+            seederService.seedDefaultData(user);
+        }
+
+        boolean storedIsGoogleUrl = user.getProfileImage() != null
+                && user.getProfileImage().contains("googleusercontent.com");
+
+        if (!isNewUser[0] && picture != null && (storedIsGoogleUrl || user.getProfileImage() == null)) {
+            String cloudinaryUrl = uploadGoogleAvatar(user.getId(), picture);
+            if (cloudinaryUrl != null) {
+                user.setProfileImage(cloudinaryUrl);
+                userRepository.save(user);
+            }
+        }
+
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId());
+        return buildLoginResponse(token, user);
+    }
+
     // ─── Password management ──────────────────────────────────────────────────
 
     @Transactional

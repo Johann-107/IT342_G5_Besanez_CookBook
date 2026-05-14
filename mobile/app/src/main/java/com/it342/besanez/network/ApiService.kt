@@ -24,6 +24,10 @@ interface ApiService {
     @POST("api/auth/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<BaseResponse>
 
+    // Mobile Google login — sends idToken to backend, backend verifies and returns JWT
+    @POST("api/auth/google/mobile")
+    suspend fun loginWithGoogle(@Body request: GoogleLoginRequest): Response<AuthResponse>
+
     // ─── User ─────────────────────────────────────────────────────────────────
 
     @GET("api/user/me")

@@ -1,36 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FAFAFA">
+    android:background="@color/cream">
 
-    <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#FFFFFF"
+        android:background="@color/warm_white"
         android:elevation="4dp"
         android:title="My Recipes"
-        android:titleTextColor="#1A1A1A" />
+        app:titleTextColor="@color/text_dark" />
 
-    <!-- Search Bar -->
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Search recipes…"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/CookBook.TextInputLayout"
         android:layout_margin="16dp">
-
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text" />
+            android:inputType="text"
+            android:textColor="@color/text_dark" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Recipe List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvRecipes"
         android:layout_width="match_parent"
@@ -39,7 +37,6 @@
         android:padding="8dp"
         android:clipToPadding="false" />
 
-    <!-- FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddRecipe"
         android:layout_width="wrap_content"
@@ -48,7 +45,7 @@
         android:layout_margin="16dp"
         android:contentDescription="Add Recipe"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="#FF6B35"
-        xmlns:app="http://schemas.android.com/apk/res-auto" />
+        app:backgroundTint="@color/terracotta"
+        app:tint="@color/white" />
 
 </LinearLayout>

@@ -19,6 +19,9 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     private val _forgotPasswordResult = MutableLiveData<Result<com.it342.besanez.model.BaseResponse>>()
     val forgotPasswordResult: LiveData<Result<com.it342.besanez.model.BaseResponse>> = _forgotPasswordResult
 
+    private val _googleLoginResult = MutableLiveData<Result<AuthResponse>>()
+    val googleLoginResult: LiveData<Result<AuthResponse>> = _googleLoginResult
+
     private val _loading = MutableLiveData<Boolean>()
     val loading: LiveData<Boolean> = _loading
 
@@ -42,6 +45,14 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         _loading.value = true
         viewModelScope.launch {
             _forgotPasswordResult.value = repository.forgotPassword(email, newPassword)
+            _loading.value = false
+        }
+    }
+
+    fun loginWithGoogle(idToken: String) {
+        _loading.value = true
+        viewModelScope.launch {
+            _googleLoginResult.value = repository.loginWithGoogle(idToken)
             _loading.value = false
         }
     }

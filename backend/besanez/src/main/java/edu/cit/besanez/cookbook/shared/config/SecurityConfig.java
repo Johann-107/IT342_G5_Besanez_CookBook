@@ -59,6 +59,9 @@ public class SecurityConfig {
                                                 // Admin endpoints — must be authenticated and have admin role
                                                 .requestMatchers("/api/admin/**").authenticated()
 
+                                                // Mobile Google login endpoint — must be public for mobile app to use
+                                                .requestMatchers("/api/auth/google/mobile").permitAll()
+
                                                 // Everything else requires a valid JWT
                                                 .anyRequest().authenticated())
 

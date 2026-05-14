@@ -1,5 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
+    <!-- ── Primary Brand ── -->
+    <color name="terracotta">#C97D4E</color>
+    <color name="terracotta_dark">#A05E33</color>
+
+    <!-- ── Backgrounds ── -->
+    <color name="cream">#FDF8F2</color>
+    <color name="warm_white">#FFF9F2</color>
+    <color name="warm_brown">#5C3D2E</color>
+
+    <!-- ── Peach Scale ── -->
+    <color name="peach_light">#FAE3CC</color>
+    <color name="peach">#F5C9A0</color>
+
+    <!-- ── Text ── -->
+    <color name="text_dark">#3A2A1E</color>
+    <color name="text_mid">#7A5C46</color>
+    <color name="text_light">#B09080</color>
+
+    <!-- ── Border ── -->
+    <color name="border">#EDD8C4</color>
+
+    <!-- ── Status ── -->
+    <color name="success">#4A8B4E</color>
+    <color name="success_bg">#D5EBD6</color>
+    <color name="error">#E05555</color>
+    <color name="error_bg">#FEF0EF</color>
+    <color name="error_border">#FABBBB</color>
+
+    <!-- ── White / Black ── -->
     <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
 </resources>
