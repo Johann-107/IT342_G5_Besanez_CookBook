@@ -1,49 +1,51 @@
 package com.it342.besanez.ui.auth
 
-import android.app.Activity
-import android.content.Intent
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.tasks.Task
+import android.content.Context
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 
-const val RC_GOOGLE_SIGN_IN = 1001
+class GoogleAuthHelper(private val context: Context) {
 
-class GoogleAuthHelper(private val activity: Activity) {
-    private val webClientId = "926457944849-icmu448b9f18dgafces9jv47r4t50vn4.apps.googleusercontent.com"
+    private val webClientId =
+        "926457944849-icmu448b9f18dgafces9jv47r4t50vn4.apps.googleusercontent.com"
 
-    private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-        .requestIdToken(webClientId)
-        .requestEmail()
-        .requestProfile()
-        .build()
+    private val credentialManager = CredentialManager.create(context)
 
-    private val client: GoogleSignInClient = GoogleSignIn.getClient(activity, gso)
-
-    fun signIn() {
-        val signInIntent = client.signInIntent
-        activity.startActivityForResult(signInIntent, RC_GOOGLE_SIGN_IN)
-    }
-
-    fun signOut(onComplete: () -> Unit) {
-        client.signOut().addOnCompleteListener { onComplete() }
-    }
-
-    fun handleResult(
-        requestCode: Int,
-        data: Intent?,
-        onSuccess: (GoogleSignInAccount) -> Unit,
+    suspend fun signIn(
+        onSuccess: (idToken: String) -> Unit,
         onFailure: (String) -> Unit
     ) {
-        if (requestCode != RC_GOOGLE_SIGN_IN) return
-        val task: Task<GoogleSignInAccount> = GoogleSignIn.getSignedInAccountFromIntent(data)
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(webClientId)
+            .setAutoSelectEnabled(false)
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
         try {
-            val account = task.getResult(ApiException::class.java)
-            onSuccess(account)
-        } catch (e: ApiException) {
-            onFailure("Google sign-in failed: ${e.statusCode}")
+            val result = credentialManager.getCredential(
+                context = context,
+                request = request
+            )
+            val credential = result.credential
+            if (credential is CustomCredential &&
+                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            ) {
+                val googleIdTokenCredential =
+                    GoogleIdTokenCredential.createFrom(credential.data)
+                onSuccess(googleIdTokenCredential.idToken)
+            } else {
+                onFailure("Unexpected credential type: ${credential.type}")
+            }
+        } catch (e: GetCredentialException) {
+            onFailure("Google sign-in failed: ${e.message}")
         }
     }
 }

@@ -10,10 +10,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.it342.besanez.BesanezApp
 import com.it342.besanez.R
 import com.it342.besanez.repository.AuthRepository
 import com.it342.besanez.ui.main.HomeActivity
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
 
@@ -57,7 +59,16 @@ class LoginActivity : AppCompatActivity() {
         }
 
         btnGoogle.setOnClickListener {
-            googleAuthHelper.signIn()
+            lifecycleScope.launch {
+                googleAuthHelper.signIn(
+                    onSuccess = { idToken ->
+                        viewModel.loginWithGoogle(idToken)
+                    },
+                    onFailure = { error ->
+                        Toast.makeText(this@LoginActivity, error, Toast.LENGTH_LONG).show()
+                    }
+                )
+            }
         }
 
         tvRegister.setOnClickListener {
@@ -101,24 +112,5 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this, error.message ?: "Google login failed", Toast.LENGTH_LONG).show()
             }
         }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        googleAuthHelper.handleResult(
-            requestCode = requestCode,
-            data = data,
-            onSuccess = { account ->
-                val idToken = account.idToken
-                if (idToken != null) {
-                    viewModel.loginWithGoogle(idToken)
-                } else {
-                    Toast.makeText(this, "Google sign-in failed: no token", Toast.LENGTH_SHORT).show()
-                }
-            },
-            onFailure = { error ->
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
-            }
-        )
     }
 }
