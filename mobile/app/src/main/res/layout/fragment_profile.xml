@@ -33,7 +33,7 @@
                 android:src="@android:drawable/ic_menu_my_calendar"
                 app:civ_border_color="@color/border"
                 app:civ_border_width="2dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="8dp" />
 
             <TextView
                 android:id="@+id/tvName"
@@ -53,7 +53,7 @@
                 android:text=""
                 android:textSize="14sp"
                 android:textColor="@color/text_mid"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="4dp" />
 
             <TextView
                 android:id="@+id/tvCookingLevel"
@@ -62,7 +62,116 @@
                 android:text=""
                 android:textSize="13sp"
                 android:textColor="@color/terracotta"
-                android:layout_marginBottom="32dp" />
+                android:layout_marginBottom="28dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/border"
+                android:layout_marginBottom="24dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Edit Information"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="serif"
+                android:textColor="@color/text_dark"
+                android:layout_marginBottom="16dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="First Name"
+                style="@style/CookBook.TextInputLayout"
+                android:layout_marginBottom="14dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etFirstName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
+                    android:textColor="@color/text_dark" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Last Name"
+                style="@style/CookBook.TextInputLayout"
+                android:layout_marginBottom="14dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etLastName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
+                    android:textColor="@color/text_dark" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Email"
+                style="@style/CookBook.TextInputLayout"
+                android:layout_marginBottom="14dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmailEdit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@color/text_dark"
+                    android:focusable="false"
+                    android:alpha="0.6" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Cooking Level"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_marginBottom="24dp">
+                <AutoCompleteTextView
+                    android:id="@+id/spinnerCookingLevel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:textColor="@color/text_dark"
+                    android:padding="16dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:id="@+id/tvError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/error"
+                android:textSize="13sp"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Save Changes"
+                android:textSize="15sp"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/terracotta"
+                android:layout_marginBottom="12dp" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminateTint="@color/terracotta"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/border"
+                android:layout_marginBottom="16dp" />
 
             <Button
                 android:id="@+id/btnLogout"
@@ -70,8 +179,10 @@
                 android:layout_height="52dp"
                 android:text="Log Out"
                 android:textSize="15sp"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/terracotta" />
+                android:textColor="@color/error"
+                android:backgroundTint="@color/error_bg"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="@color/error_border" />
 
         </LinearLayout>
     </ScrollView>
