@@ -6,6 +6,7 @@
     android:orientation="vertical"
     android:background="@color/cream">
 
+    <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -15,33 +16,60 @@
         android:title="My Recipes"
         app:titleTextColor="@color/text_dark" />
 
+    <!-- Search -->
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Search recipes…"
         style="@style/CookBook.TextInputLayout"
-        android:layout_margin="16dp">
+        android:layout_margin="12dp">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
-            android:textColor="@color/text_dark" />
+            android:textColor="@color/text_dark"
+            android:imeOptions="actionSearch"
+            android:singleLine="true" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Loading indicator — shown only on first load -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/terracotta"
+        android:visibility="gone"
+        android:layout_marginTop="32dp" />
+
+    <!-- Empty state -->
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No recipes yet. Tap + to add one!"
+        android:textSize="14sp"
+        android:textColor="@color/text_light"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="48dp" />
+
+    <!-- Recipe List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvRecipes"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp"
-        android:clipToPadding="false" />
+        android:clipToPadding="false"
+        android:paddingBottom="80dp" />
 
+    <!-- FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddRecipe"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
+        android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
         android:contentDescription="Add Recipe"
         android:src="@android:drawable/ic_input_add"
