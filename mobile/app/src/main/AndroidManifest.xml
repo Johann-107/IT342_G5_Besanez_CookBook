@@ -45,6 +45,12 @@
             android:name=".ui.main.HomeActivity"
             android:exported="false" />
 
+        <activity android:name=".ui.recipe.RecipeDetailActivity"
+            android:exported="false" />
+
+        <activity android:name=".ui.recipe.CreateRecipeActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

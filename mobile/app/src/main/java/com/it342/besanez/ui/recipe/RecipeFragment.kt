@@ -1,5 +1,6 @@
 package com.it342.besanez.ui.recipe
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -9,6 +10,8 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -30,6 +33,8 @@ class RecipeFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var tvEmpty: TextView
 
+    private lateinit var recipeActivityLauncher: ActivityResultLauncher<Intent>
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -39,7 +44,13 @@ class RecipeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(this)[RecipeViewModel::class.java]
+        viewModel = ViewModelProvider(this).get(RecipeViewModel::class.java)
+
+        recipeActivityLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { _ ->
+            viewModel.loadRecipes(reset = true)
+        }
 
         rvRecipes = view.findViewById(R.id.rvRecipes)
         etSearch = view.findViewById(R.id.etSearch)
@@ -51,12 +62,12 @@ class RecipeFragment : Fragment() {
         setupSearch()
         setupObservers()
 
-        // Load initial recipes
         viewModel.loadRecipes()
 
-        // FAB — placeholder for create recipe screen
         fabAddRecipe.setOnClickListener {
-            Toast.makeText(requireContext(), "Create recipe — coming soon", Toast.LENGTH_SHORT).show()
+            recipeActivityLauncher.launch(
+                Intent(requireContext(), CreateRecipeActivity::class.java)
+            )
         }
     }
 
@@ -70,7 +81,6 @@ class RecipeFragment : Fragment() {
         rvRecipes.layoutManager = layoutManager
         rvRecipes.adapter = adapter
 
-        // Pagination — load next page on scroll to bottom
         rvRecipes.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
@@ -100,28 +110,30 @@ class RecipeFragment : Fragment() {
         }
 
         viewModel.loading.observe(viewLifecycleOwner) { isLoading ->
-            progressBar.visibility = if (isLoading && adapter.itemCount == 0) View.VISIBLE else View.GONE
+            progressBar.visibility =
+                if (isLoading && adapter.itemCount == 0) View.VISIBLE else View.GONE
         }
 
-        viewModel.error.observe(viewLifecycleOwner) { error ->
-            if (!error.isNullOrBlank()) {
-                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+        viewModel.error.observe(viewLifecycleOwner) { errorMessage ->
+            if (errorMessage != null && errorMessage.isNotBlank()) {
+                Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
             }
         }
 
         viewModel.deleteResult.observe(viewLifecycleOwner) { result ->
-            result.onSuccess {
+            result.onSuccess { _ ->
                 Toast.makeText(requireContext(), "Recipe deleted", Toast.LENGTH_SHORT).show()
             }
-            result.onFailure { e ->
+            result.onFailure { e: Throwable ->
                 Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG).show()
             }
         }
     }
 
     private fun onRecipeClicked(recipe: RecipeResponse) {
-        // Placeholder — recipe detail screen coming next
-        Toast.makeText(requireContext(), "Opened: ${recipe.name}", Toast.LENGTH_SHORT).show()
+        val intent = Intent(requireContext(), RecipeDetailActivity::class.java)
+        intent.putExtra(RecipeDetailActivity.EXTRA_RECIPE_ID, recipe.id)
+        recipeActivityLauncher.launch(intent)
     }
 
     private fun confirmDelete(recipe: RecipeResponse) {
