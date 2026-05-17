@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_marginBottom="8dp">
+
+    <EditText
+        android:id="@+id/etQty"
+        android:layout_width="52dp" android:layout_height="44dp"
+        android:hint="Qty" android:textSize="13sp"
+        android:inputType="numberDecimal"
+        android:textColor="@color/text_dark"
+        android:background="@drawable/input_bg"
+        android:padding="8dp" android:layout_marginEnd="4dp" />
+
+    <EditText
+        android:id="@+id/etUnit"
+        android:layout_width="56dp" android:layout_height="44dp"
+        android:hint="Unit" android:textSize="13sp"
+        android:textColor="@color/text_dark"
+        android:background="@drawable/input_bg"
+        android:padding="8dp" android:layout_marginEnd="4dp" />
+
+    <EditText
+        android:id="@+id/etIngName"
+        android:layout_width="0dp" android:layout_height="44dp"
+        android:layout_weight="1"
+        android:hint="Ingredient" android:textSize="13sp"
+        android:textColor="@color/text_dark"
+        android:background="@drawable/input_bg"
+        android:padding="8dp" android:layout_marginEnd="4dp" />
+
+    <EditText
+        android:id="@+id/etIngNotes"
+        android:layout_width="72dp" android:layout_height="44dp"
+        android:hint="Notes" android:textSize="12sp"
+        android:textColor="@color/text_mid"
+        android:background="@drawable/input_bg"
+        android:padding="8dp" android:layout_marginEnd="4dp" />
+
+    <ImageButton
+        android:id="@+id/btnRemoveIng"
+        android:layout_width="32dp" android:layout_height="32dp"
+        android:src="@android:drawable/ic_delete"
+        android:tint="@color/error"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Remove" />
+</LinearLayout>

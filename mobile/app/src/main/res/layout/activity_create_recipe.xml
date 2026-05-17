@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/cream">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/warm_white"
+        android:elevation="4dp"
+        app:titleTextColor="@color/text_dark" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Basic Info Section -->
+            <TextView style="@style/SectionHeader" android:text="Basic Information" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Recipe Title *" style="@style/CookBook.TextInputLayout"
+                android:layout_marginBottom="12dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etName"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="textCapSentences" android:textColor="@color/text_dark" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Description" style="@style/CookBook.TextInputLayout"
+                android:layout_marginBottom="12dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etDesc"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="textMultiLine" android:minLines="2"
+                    android:textColor="@color/text_dark" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Time row -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginBottom="12dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:hint="Prep (min)"
+                    style="@style/CookBook.TextInputLayout" android:layout_marginEnd="6dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPrepTime"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:inputType="number" android:textColor="@color/text_dark" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:hint="Cook (min)"
+                    style="@style/CookBook.TextInputLayout" android:layout_marginEnd="6dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCookTime"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:inputType="number" android:textColor="@color/text_dark" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:hint="Total (min)"
+                    style="@style/CookBook.TextInputLayout">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etTotalTime"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:inputType="number" android:textColor="@color/text_dark" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Image URL" style="@style/CookBook.TextInputLayout"
+                android:layout_marginBottom="12dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etImageUrl"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="textUri" android:textColor="@color/text_dark" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <CheckBox
+                android:id="@+id/cbPublic"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Make this recipe public"
+                android:textColor="@color/text_mid"
+                android:buttonTint="@color/terracotta"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Ingredients -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+                <TextView style="@style/SectionHeader" android:text="Ingredients"
+                    android:layout_width="0dp" android:layout_weight="1" android:layout_marginBottom="0dp" />
+                <Button
+                    android:id="@+id/btnAddIngredient"
+                    android:layout_width="wrap_content" android:layout_height="36dp"
+                    android:text="+ Add" android:textSize="13sp"
+                    android:textColor="@color/terracotta_dark"
+                    android:backgroundTint="@color/peach_light"
+                    style="@style/Widget.MaterialComponents.Button.TextButton" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llIngredients"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:layout_marginBottom="16dp" />
+
+            <!-- Instructions -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+                <TextView style="@style/SectionHeader" android:text="Instructions"
+                    android:layout_width="0dp" android:layout_weight="1" android:layout_marginBottom="0dp" />
+                <Button
+                    android:id="@+id/btnAddStep"
+                    android:layout_width="wrap_content" android:layout_height="36dp"
+                    android:text="+ Step" android:textSize="13sp"
+                    android:textColor="@color/terracotta_dark"
+                    android:backgroundTint="@color/peach_light"
+                    style="@style/Widget.MaterialComponents.Button.TextButton" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llInstructions"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:layout_marginBottom="16dp" />
+
+            <!-- Notes -->
+            <TextView style="@style/SectionHeader" android:text="Notes" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Tips, variations, serving suggestions…"
+                style="@style/CookBook.TextInputLayout" android:layout_marginBottom="16dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etNotes"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="textMultiLine" android:minLines="3"
+                    android:textColor="@color/text_dark" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:id="@+id/tvError"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/error" android:textSize="13sp"
+                android:visibility="gone" android:layout_marginBottom="8dp" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="center" android:indeterminateTint="@color/terracotta"
+                android:visibility="gone" android:layout_marginBottom="8dp" />
+
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="Save Recipe"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/terracotta"
+                android:layout_marginBottom="24dp" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
