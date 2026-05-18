@@ -51,6 +51,10 @@
         <activity android:name=".ui.recipe.CreateRecipeActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.collection.CollectionDetailActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

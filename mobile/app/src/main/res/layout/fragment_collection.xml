@@ -15,21 +15,62 @@
         android:title="Collections"
         app:titleTextColor="@color/text_dark" />
 
+    <!-- Search bar -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search collections…"
+        style="@style/CookBook.TextInputLayout"
+        android:layout_margin="12dp">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:singleLine="true"
+            android:textColor="@color/text_dark" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Loading indicator -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/terracotta"
+        android:visibility="gone"
+        android:layout_marginTop="32dp" />
+
+    <!-- Empty state -->
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No collections yet. Tap + to create one!"
+        android:textSize="14sp"
+        android:textColor="@color/text_light"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="48dp" />
+
+    <!-- Collection list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvCollections"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp"
-        android:clipToPadding="false" />
+        android:clipToPadding="false"
+        android:paddingBottom="80dp" />
 
+    <!-- FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddCollection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
+        android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
-        android:contentDescription="Add Collection"
+        android:contentDescription="New Collection"
         android:src="@android:drawable/ic_input_add"
         app:backgroundTint="@color/terracotta"
         app:tint="@color/white" />
