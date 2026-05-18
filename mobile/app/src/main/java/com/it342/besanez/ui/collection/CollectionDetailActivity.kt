@@ -1,6 +1,8 @@
 package com.it342.besanez.ui.collection
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -10,29 +12,27 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.it342.besanez.R
 import com.it342.besanez.model.CollectionResponse
+import com.it342.besanez.model.RecipeResponse
 import com.it342.besanez.ui.recipe.RecipeDetailActivity
 import android.content.Intent
-import com.it342.besanez.model.RecipeResponse
 
 class CollectionDetailActivity : AppCompatActivity() {
 
     companion object {
-        const val EXTRA_ID = "collection_id"
+        const val EXTRA_ID   = "collection_id"
         const val EXTRA_NAME = "collection_name"
     }
 
     private lateinit var vm: CollectionViewModel
     private lateinit var recipeAdapter: CollectionRecipeAdapter
 
-    private lateinit var tvTitle: TextView
-    private lateinit var tvDesc: TextView
-    private lateinit var tvCount: TextView
-    private lateinit var rvRecipes: RecyclerView
-    private lateinit var progressBar: ProgressBar
-    private lateinit var tvEmpty: TextView
-    private lateinit var tvError: TextView
-    private lateinit var btnEdit: android.widget.ImageButton
-    private lateinit var btnDelete: android.widget.ImageButton
+    private lateinit var tvTitle:       TextView
+    private lateinit var tvDesc:        TextView
+    private lateinit var tvCount:       TextView
+    private lateinit var rvRecipes:     RecyclerView
+    private lateinit var progressBar:   ProgressBar
+    private lateinit var tvEmpty:       TextView
+    private lateinit var tvError:       TextView
 
     private var collectionId = 0L
 
@@ -50,24 +50,49 @@ class CollectionDetailActivity : AppCompatActivity() {
 
         vm = ViewModelProvider(this)[CollectionViewModel::class.java]
 
-        tvTitle = findViewById(R.id.tvTitle)
-        tvDesc = findViewById(R.id.tvDesc)
-        tvCount = findViewById(R.id.tvCount)
-        rvRecipes = findViewById(R.id.rvRecipes)
-        progressBar = findViewById(R.id.progressBar)
-        tvEmpty = findViewById(R.id.tvEmpty)
-        tvError = findViewById(R.id.tvError)
-        btnEdit = findViewById(R.id.btnEdit)
-        btnDelete = findViewById(R.id.btnDelete)
-
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = collectionName
+        tvTitle      = findViewById(R.id.tvTitle)
+        tvDesc       = findViewById(R.id.tvDesc)
+        tvCount      = findViewById(R.id.tvCount)
+        rvRecipes    = findViewById(R.id.rvRecipes)
+        progressBar  = findViewById(R.id.progressBar)
+        tvEmpty      = findViewById(R.id.tvEmpty)
+        tvError      = findViewById(R.id.tvError)
 
         setupList()
         setupObservers()
-        setupActions()
 
         vm.loadById(collectionId)
+    }
+
+    // ── Options menu ─────────────────────────────────────────────────────────
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_collection_detail, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_edit -> {
+                val col = vm.selected.value ?: return true
+                showEditDialog(col)
+                true
+            }
+            R.id.action_delete -> {
+                AlertDialog.Builder(this)
+                    .setTitle("Delete Collection")
+                    .setMessage("Delete this collection? Recipes inside are not deleted.")
+                    .setPositiveButton("Delete") { _, _ -> vm.delete(collectionId) }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+                true
+            }
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     // ── Recipes list ─────────────────────────────────────────────────────────
@@ -92,7 +117,7 @@ class CollectionDetailActivity : AppCompatActivity() {
         vm.selected.observe(this) { col ->
             col ?: return@observe
             tvTitle.text = col.name
-            tvDesc.text = col.description ?: ""
+            tvDesc.text  = col.description ?: ""
             tvDesc.visibility = if (col.description.isNullOrBlank()) View.GONE else View.VISIBLE
             tvCount.text = "${col.recipeCount} recipe${if (col.recipeCount != 1) "s" else ""}"
             supportActionBar?.title = col.name
@@ -126,7 +151,6 @@ class CollectionDetailActivity : AppCompatActivity() {
                 is CollectionViewModel.Event.RecipeRemoved -> {
                     Toast.makeText(this, "Recipe removed", Toast.LENGTH_SHORT).show()
                     vm.clearEvent()
-                    // Reload full detail to refresh recipe list
                     vm.loadById(collectionId)
                 }
                 else -> {}
@@ -134,22 +158,7 @@ class CollectionDetailActivity : AppCompatActivity() {
         }
     }
 
-    // ── Actions ──────────────────────────────────────────────────────────────
-
-    private fun setupActions() {
-        btnEdit.setOnClickListener {
-            val col = vm.selected.value ?: return@setOnClickListener
-            showEditDialog(col)
-        }
-        btnDelete.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("Delete Collection")
-                .setMessage("Delete this collection? Recipes inside are not deleted.")
-                .setPositiveButton("Delete") { _, _ -> vm.delete(collectionId) }
-                .setNegativeButton("Cancel", null)
-                .show()
-        }
-    }
+    // ── Helpers ──────────────────────────────────────────────────────────────
 
     private fun showEditDialog(col: CollectionResponse) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_collection_form, null)
@@ -176,6 +185,4 @@ class CollectionDetailActivity : AppCompatActivity() {
             .setNegativeButton("Cancel", null)
             .show()
     }
-
-    override fun onSupportNavigateUp(): Boolean { finish(); return true }
 }

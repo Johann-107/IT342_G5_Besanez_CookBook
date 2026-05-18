@@ -12,36 +12,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@color/warm_white"
         android:elevation="4dp"
-        app:titleTextColor="@color/text_dark">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:orientation="horizontal">
-
-            <ImageButton
-                android:id="@+id/btnEdit"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@android:drawable/ic_menu_edit"
-                app:tint="@color/text_mid"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Edit"
-                android:layout_marginEnd="4dp" />
-
-            <ImageButton
-                android:id="@+id/btnDelete"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@android:drawable/ic_menu_delete"
-                app:tint="@color/error"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Delete"
-                android:layout_marginEnd="8dp" />
-        </LinearLayout>
-
-    </androidx.appcompat.widget.Toolbar>
+        app:titleTextColor="@color/text_dark" />
 
     <!-- Collection header card -->
     <LinearLayout
@@ -85,7 +56,6 @@
         android:layout_height="8dp"
         android:background="@color/cream" />
 
-    <!-- Section label -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -98,7 +68,6 @@
         android:paddingVertical="10dp"
         android:background="@color/warm_white" />
 
-    <!-- States -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -128,7 +97,6 @@
         android:padding="16dp"
         android:visibility="gone" />
 
-    <!-- Recipe list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvRecipes"
         android:layout_width="match_parent"

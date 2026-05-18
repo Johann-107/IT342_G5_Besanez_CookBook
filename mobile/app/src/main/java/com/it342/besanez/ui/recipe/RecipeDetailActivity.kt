@@ -2,6 +2,8 @@ package com.it342.besanez.ui.recipe
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -20,7 +22,6 @@ class RecipeDetailActivity : AppCompatActivity() {
     private lateinit var vm: RecipeDetailViewModel
     private var recipeId = 0L
 
-    // Views
     private lateinit var ivImage: ImageView
     private lateinit var tvName: TextView
     private lateinit var tvDesc: TextView
@@ -34,7 +35,6 @@ class RecipeDetailActivity : AppCompatActivity() {
     private lateinit var sectionNotes: View
     private lateinit var progressBar: ProgressBar
     private lateinit var tvError: TextView
-    private lateinit var btnEdit: com.google.android.material.floatingactionbutton.FloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,37 +43,57 @@ class RecipeDetailActivity : AppCompatActivity() {
         recipeId = intent.getLongExtra(EXTRA_RECIPE_ID, 0L)
         vm = ViewModelProvider(this)[RecipeDetailViewModel::class.java]
 
-        ivImage = findViewById(R.id.ivImage)
-        tvName = findViewById(R.id.tvName)
-        tvDesc = findViewById(R.id.tvDesc)
-        tvPrepTime = findViewById(R.id.tvPrepTime)
-        tvCookTime = findViewById(R.id.tvCookTime)
-        tvTotalTime = findViewById(R.id.tvTotalTime)
-        tvVisibility = findViewById(R.id.tvVisibility)
+        ivImage       = findViewById(R.id.ivImage)
+        tvName        = findViewById(R.id.tvName)
+        tvDesc        = findViewById(R.id.tvDesc)
+        tvPrepTime    = findViewById(R.id.tvPrepTime)
+        tvCookTime    = findViewById(R.id.tvCookTime)
+        tvTotalTime   = findViewById(R.id.tvTotalTime)
+        tvVisibility  = findViewById(R.id.tvVisibility)
         llIngredients = findViewById(R.id.llIngredients)
         llInstructions = findViewById(R.id.llInstructions)
-        tvNotes = findViewById(R.id.tvNotes)
-        sectionNotes = findViewById(R.id.sectionNotes)
-        progressBar = findViewById(R.id.progressBar)
-        tvError = findViewById(R.id.tvError)
-        btnEdit = findViewById(R.id.fabEdit)
+        tvNotes       = findViewById(R.id.tvNotes)
+        sectionNotes  = findViewById(R.id.sectionNotes)
+        progressBar   = findViewById(R.id.progressBar)
+        tvError       = findViewById(R.id.tvError)
 
         val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Recipe"
 
-        findViewById<View>(R.id.btnDelete).setOnClickListener { confirmDelete() }
-
-        btnEdit.setOnClickListener {
-            val intent = Intent(this, CreateRecipeActivity::class.java)
-            intent.putExtra(CreateRecipeActivity.EXTRA_RECIPE_ID, recipeId)
-            startActivityForResult(intent, 200)
-        }
-
         observe()
         vm.load(recipeId)
     }
+
+    // ── Options menu ─────────────────────────────────────────────────────────
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_recipe_detail, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_edit -> {
+                val intent = Intent(this, CreateRecipeActivity::class.java)
+                intent.putExtra(CreateRecipeActivity.EXTRA_RECIPE_ID, recipeId)
+                startActivityForResult(intent, 200)
+                true
+            }
+            R.id.action_delete -> {
+                confirmDelete()
+                true
+            }
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    // ── Observers ────────────────────────────────────────────────────────────
 
     private fun observe() {
         vm.loading.observe(this) {
@@ -94,8 +114,8 @@ class RecipeDetailActivity : AppCompatActivity() {
             tvDesc.text = recipe.description ?: ""
             tvDesc.visibility = if (recipe.description.isNullOrBlank()) View.GONE else View.VISIBLE
 
-            tvPrepTime.text = formatTime(recipe.prepTimeMinutes, "Prep")
-            tvCookTime.text = formatTime(recipe.cookTimeMinutes, "Cook")
+            tvPrepTime.text  = formatTime(recipe.prepTimeMinutes, "Prep")
+            tvCookTime.text  = formatTime(recipe.cookTimeMinutes, "Cook")
             tvTotalTime.text = formatTime(recipe.totalTimeMinutes, "Total")
 
             listOf(tvPrepTime, tvCookTime, tvTotalTime).forEach { tv ->
@@ -118,10 +138,11 @@ class RecipeDetailActivity : AppCompatActivity() {
         vm.ingredients.observe(this) { list ->
             llIngredients.removeAllViews()
             list.forEach { ing ->
+                val qty  = if (ing.quantity > 0) "${ing.quantity} " else ""
+                val unit = if (!ing.unit.isNullOrBlank()) "${ing.unit.lowercase()} " else ""
                 val tv = TextView(this).apply {
-                    val qty = if (ing.quantity > 0) "${ing.quantity} " else ""
-                    val unit = if (!ing.unit.isNullOrBlank()) "${ing.unit.lowercase()} " else ""
-                    text = "• $qty$unit${ing.name}" + if (!ing.notes.isNullOrBlank()) "  (${ing.notes})" else ""
+                    text = "• $qty$unit${ing.name}" +
+                            if (!ing.notes.isNullOrBlank()) "  (${ing.notes})" else ""
                     textSize = 14f
                     setTextColor(getColor(R.color.text_mid))
                     setPadding(0, 8, 0, 8)
@@ -151,6 +172,8 @@ class RecipeDetailActivity : AppCompatActivity() {
         }
     }
 
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
     private fun confirmDelete() {
         AlertDialog.Builder(this)
             .setTitle("Delete Recipe")
@@ -169,8 +192,6 @@ class RecipeDetailActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 200 && resultCode == RESULT_OK) vm.load(recipeId) // Refresh after edit
+        if (requestCode == 200 && resultCode == RESULT_OK) vm.load(recipeId)
     }
-
-    override fun onSupportNavigateUp(): Boolean { finish(); return true }
 }
