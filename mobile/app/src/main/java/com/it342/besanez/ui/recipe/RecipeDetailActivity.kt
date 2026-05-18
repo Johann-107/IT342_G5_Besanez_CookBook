@@ -58,10 +58,11 @@ class RecipeDetailActivity : AppCompatActivity() {
         tvError = findViewById(R.id.tvError)
         btnEdit = findViewById(R.id.fabEdit)
 
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Recipe"
 
-        // Delete button in toolbar menu
         findViewById<View>(R.id.btnDelete).setOnClickListener { confirmDelete() }
 
         btnEdit.setOnClickListener {

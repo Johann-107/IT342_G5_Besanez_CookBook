@@ -43,6 +43,11 @@ class CreateRecipeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_recipe)
 
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = if (editId > 0) "Edit Recipe" else "New Recipe"
+
         editId = intent.getLongExtra(EXTRA_RECIPE_ID, 0L)
         vm = ViewModelProvider(this)[CreateRecipeViewModel::class.java]
 

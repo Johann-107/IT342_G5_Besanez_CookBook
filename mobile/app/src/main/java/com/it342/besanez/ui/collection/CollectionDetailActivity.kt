@@ -43,6 +43,11 @@ class CollectionDetailActivity : AppCompatActivity() {
         collectionId = intent.getLongExtra(EXTRA_ID, 0L)
         val collectionName = intent.getStringExtra(EXTRA_NAME) ?: "Collection"
 
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = collectionName
+
         vm = ViewModelProvider(this)[CollectionViewModel::class.java]
 
         tvTitle = findViewById(R.id.tvTitle)
