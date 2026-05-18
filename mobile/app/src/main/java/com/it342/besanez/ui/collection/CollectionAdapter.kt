@@ -3,7 +3,6 @@ package com.it342.besanez.ui.collection
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -30,8 +29,6 @@ class CollectionAdapter(
         private val tvName: TextView = itemView.findViewById(R.id.tvCollectionName)
         private val tvDesc: TextView = itemView.findViewById(R.id.tvCollectionDesc)
         private val tvCount: TextView = itemView.findViewById(R.id.tvRecipeCount)
-        private val btnEdit: ImageButton = itemView.findViewById(R.id.btnEdit)
-        private val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
 
         fun bind(col: CollectionResponse) {
             tvName.text = col.name
@@ -40,8 +37,6 @@ class CollectionAdapter(
             tvCount.text = "${col.recipeCount} recipe${if (col.recipeCount != 1) "s" else ""}"
 
             itemView.setOnClickListener { onClick(col) }
-            btnEdit.setOnClickListener { onEdit(col) }
-            btnDelete.setOnClickListener { onDelete(col) }
         }
     }
 

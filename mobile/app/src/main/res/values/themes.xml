@@ -12,9 +12,14 @@
 
     <!-- Outlined input fields using terracotta accent -->
     <style name="CookBook.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <item name="boxStrokeColor">@color/terracotta</item>
-        <item name="hintTextColor">@color/text_mid</item>
+        <item name="boxStrokeColor">@color/text_input_stroke_color</item>
+        <item name="boxStrokeWidth">1.5dp</item>
+        <item name="boxStrokeWidthFocused">1.5dp</item>
+
+        <item name="hintTextColor">@color/terracotta</item>
+        <item name="android:textColorHint">@color/text_mid</item>
         <item name="boxBackgroundColor">@color/warm_white</item>
+        <item name="endIconTint">@color/terracotta</item>
     </style>
 
     <!-- Primary button -->

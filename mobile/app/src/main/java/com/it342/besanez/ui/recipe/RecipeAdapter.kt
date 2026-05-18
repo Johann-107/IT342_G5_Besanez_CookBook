@@ -35,14 +35,12 @@ class RecipeAdapter(
         private val tvDesc: TextView = itemView.findViewById(R.id.tvRecipeDesc)
         private val tvTime: TextView = itemView.findViewById(R.id.tvTime)
         private val tvVisibility: TextView = itemView.findViewById(R.id.tvVisibility)
-        private val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
 
         fun bind(recipe: RecipeResponse) {
             tvName.text = recipe.name
             tvDesc.text = recipe.description ?: ""
             tvDesc.visibility = if (recipe.description.isNullOrBlank()) View.GONE else View.VISIBLE
 
-            // Time badge
             val time = recipe.totalTimeMinutes
             if (time != null && time > 0) {
                 tvTime.visibility = View.VISIBLE
@@ -56,10 +54,8 @@ class RecipeAdapter(
                 tvTime.visibility = View.GONE
             }
 
-            // Visibility badge
             tvVisibility.text = if (recipe.isPublic) "Public" else "Private"
 
-            // Image
             if (!recipe.imageUrl.isNullOrBlank()) {
                 Glide.with(itemView.context)
                     .load(recipe.imageUrl)
@@ -71,7 +67,6 @@ class RecipeAdapter(
             }
 
             itemView.setOnClickListener { onItemClick(recipe) }
-            btnDelete.setOnClickListener { onDeleteClick(recipe) }
         }
     }
 
