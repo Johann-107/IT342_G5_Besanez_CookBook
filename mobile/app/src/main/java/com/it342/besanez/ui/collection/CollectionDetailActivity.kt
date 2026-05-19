@@ -123,6 +123,11 @@ class CollectionDetailActivity : AppCompatActivity() {
             supportActionBar?.title = col.name
         }
 
+        vm.recipes.observe(this) { list ->
+            recipeAdapter.submitList(list)
+            tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+        }
+
         vm.loading.observe(this) {
             progressBar.visibility = if (it) View.VISIBLE else View.GONE
         }

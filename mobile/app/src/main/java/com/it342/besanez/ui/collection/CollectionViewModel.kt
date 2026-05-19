@@ -2,6 +2,7 @@ package com.it342.besanez.ui.collection
 
 import androidx.lifecycle.*
 import com.it342.besanez.model.CollectionResponse
+import com.it342.besanez.model.RecipeResponse
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -12,6 +13,9 @@ class CollectionViewModel : ViewModel() {
 
     private val _collections = MutableLiveData<List<CollectionResponse>>()
     val collections: LiveData<List<CollectionResponse>> = _collections
+
+    private val _recipes = MutableLiveData<List<RecipeResponse>>()
+    val recipes: LiveData<List<RecipeResponse>> = _recipes
 
     private val _selected = MutableLiveData<CollectionResponse?>()
     val selected: LiveData<CollectionResponse?> = _selected
@@ -64,6 +68,12 @@ class CollectionViewModel : ViewModel() {
                 .onSuccess { _selected.value = it; _error.value = null }
                 .onFailure { _error.value = it.message }
             _loading.value = false
+        }
+
+        viewModelScope.launch {
+            repo.getRecipesByCollection(id)
+                .onSuccess { _recipes.value = it; _error.value = null }
+                .onFailure { _error.value = it.message }
         }
     }
 

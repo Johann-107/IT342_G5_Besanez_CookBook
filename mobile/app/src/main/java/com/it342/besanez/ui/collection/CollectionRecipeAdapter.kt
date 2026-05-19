@@ -32,7 +32,6 @@ class CollectionRecipeAdapter(
         private val tvName: TextView = itemView.findViewById(R.id.tvRecipeName)
         private val tvMeta: TextView = itemView.findViewById(R.id.tvMeta)
         private val tvVisibility: TextView = itemView.findViewById(R.id.tvVisibility)
-        private val btnView: ImageButton = itemView.findViewById(R.id.btnView)
         private val btnRemove: ImageButton = itemView.findViewById(R.id.btnRemove)
 
         fun bind(recipe: RecipeResponse) {
@@ -51,7 +50,6 @@ class CollectionRecipeAdapter(
             }
 
             itemView.setOnClickListener { onView(recipe) }
-            btnView.setOnClickListener { onView(recipe) }
             btnRemove.setOnClickListener { onRemove(recipe) }
         }
     }

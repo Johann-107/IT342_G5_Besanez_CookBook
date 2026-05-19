@@ -3,6 +3,7 @@ package com.it342.besanez.ui.collection
 import com.it342.besanez.model.CollectionRequest
 import com.it342.besanez.model.CollectionResponse
 import com.it342.besanez.model.PageResponse
+import com.it342.besanez.model.RecipeResponse
 import com.it342.besanez.network.ApiClient
 
 class CollectionRepository {
@@ -45,6 +46,12 @@ class CollectionRepository {
     suspend fun deleteCollection(id: Long): Result<Unit> = runCatching {
         val res = api.deleteCollection(id)
         if (!res.isSuccessful) error("Failed to delete collection")
+    }
+
+    suspend fun getRecipesByCollection(collectionId: Long): Result<List<RecipeResponse>> = runCatching {
+        val res = api.getRecipes(collectionId = collectionId, size = 200)
+        if (res.isSuccessful) res.body()!!.content
+        else error("Failed to load recipes")
     }
 
     suspend fun addRecipe(collectionId: Long, recipeId: Long): Result<CollectionResponse> =

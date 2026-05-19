@@ -77,16 +77,6 @@
             android:orientation="horizontal">
 
             <ImageButton
-                android:id="@+id/btnView"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:src="@android:drawable/ic_menu_view"
-                app:tint="@color/text_mid"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="View"
-                android:layout_marginEnd="4dp" />
-
-            <ImageButton
                 android:id="@+id/btnRemove"
                 android:layout_width="34dp"
                 android:layout_height="34dp"
