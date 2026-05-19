@@ -45,6 +45,13 @@ interface ApiService {
         @Part file: MultipartBody.Part
     ): Response<UserResponse>
 
+    @Multipart
+    @POST("api/image/upload")
+    suspend fun uploadImage(
+        @Part file: MultipartBody.Part,
+        @Query("folder") folder: String
+    ): Response<ImageUploadResponse>
+
     // ─── Recipe ───────────────────────────────────────────────────────────────
 
     @GET("api/recipe")

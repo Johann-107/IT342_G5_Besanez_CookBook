@@ -1,15 +1,21 @@
 package com.it342.besanez.ui.recipe
 
 import android.app.Activity
+import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.it342.besanez.R
 import com.it342.besanez.network.ApiClient
 import kotlinx.coroutines.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class CreateRecipeActivity : AppCompatActivity() {
 
@@ -35,6 +41,9 @@ class CreateRecipeActivity : AppCompatActivity() {
     private lateinit var btnAddStep: Button
     private lateinit var progressBar: ProgressBar
     private lateinit var tvError: TextView
+    private lateinit var ivImagePreview: ImageView
+    private lateinit var btnPickImage: Button
+    private var uploadedImageUrl: String? = null
 
     private val ingredientRows = mutableListOf<IngredientRow>()
     private val instructionRows = mutableListOf<InstructionRow>()
@@ -65,6 +74,15 @@ class CreateRecipeActivity : AppCompatActivity() {
         }
     }
 
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri ?: return@registerForActivityResult
+        ivImagePreview.setImageURI(uri)
+        ivImagePreview.visibility = View.VISIBLE
+        uploadImage(uri)
+    }
+
     private fun bindViews() {
         etName = findViewById(R.id.etName)
         etDesc = findViewById(R.id.etDesc)
@@ -72,7 +90,6 @@ class CreateRecipeActivity : AppCompatActivity() {
         etCookTime = findViewById(R.id.etCookTime)
         etTotalTime = findViewById(R.id.etTotalTime)
         etNotes = findViewById(R.id.etNotes)
-        etImageUrl = findViewById(R.id.etImageUrl)
         cbPublic = findViewById(R.id.cbPublic)
         llIngredients = findViewById(R.id.llIngredients)
         llInstructions = findViewById(R.id.llInstructions)
@@ -80,12 +97,47 @@ class CreateRecipeActivity : AppCompatActivity() {
         btnAddStep = findViewById(R.id.btnAddStep)
         progressBar = findViewById(R.id.progressBar)
         tvError = findViewById(R.id.tvError)
+
+        ivImagePreview = findViewById(R.id.ivImagePreview)
+        btnPickImage = findViewById(R.id.btnPickImage)
     }
 
     private fun setupListeners() {
         btnAddIngredient.setOnClickListener { addIngredientRow() }
         btnAddStep.setOnClickListener { addInstructionRow() }
         findViewById<Button>(R.id.btnSave).setOnClickListener { save() }
+
+        btnPickImage.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+    }
+
+    private fun uploadImage(uri: Uri) {
+        val stream = contentResolver.openInputStream(uri) ?: return
+        val bytes = stream.readBytes()
+        val mime = contentResolver.getType(uri) ?: "image/jpeg"
+        val ext = when (mime) {
+            "image/png" -> "png"
+            "image/webp" -> "webp"
+            else -> "jpg"
+        }
+        val part = MultipartBody.Part.createFormData(
+            "file", "recipe.$ext",
+            bytes.toRequestBody(mime.toMediaType())
+        )
+        lifecycleScope.launch {
+            try {
+                val res = ApiClient.apiService.uploadImage(part, "recipes")
+                if (res.isSuccessful) {
+                    uploadedImageUrl = res.body()?.url
+                    Toast.makeText(this@CreateRecipeActivity, "Photo uploaded", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@CreateRecipeActivity, "Upload failed", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@CreateRecipeActivity, "Network error", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun observe() {
@@ -176,11 +228,11 @@ class CreateRecipeActivity : AppCompatActivity() {
 
         if (editId > 0) {
             vm.update(editId, name, etDesc.text(), prep, cook, total,
-                etNotes.text(), etImageUrl.text(), cbPublic.isChecked,
+                etNotes.text(), uploadedImageUrl, cbPublic.isChecked,
                 ingredientRows, instructionRows)
         } else {
             vm.create(name, etDesc.text(), prep, cook, total,
-                etNotes.text(), etImageUrl.text(), cbPublic.isChecked,
+                etNotes.text(), uploadedImageUrl, cbPublic.isChecked,
                 ingredientRows, instructionRows)
         }
     }
@@ -202,6 +254,13 @@ class CreateRecipeActivity : AppCompatActivity() {
                     etNotes.setText(recipe.notes ?: "")
                     etImageUrl.setText(recipe.imageUrl ?: "")
                     cbPublic.isChecked = recipe.isPublic
+
+                    if (!recipe.imageUrl.isNullOrBlank()) {
+                        uploadedImageUrl = recipe.imageUrl
+                        ivImagePreview.visibility = View.VISIBLE
+                        Glide.with(this@CreateRecipeActivity).load(recipe.imageUrl).centerCrop().into(ivImagePreview)
+                    }
+
                 }
                 if (ing.isSuccessful) ing.body()?.forEach { i ->
                     addIngredientRow(IngredientRow(i.id, i.name, i.quantity, i.unit ?: "", i.notes ?: ""))

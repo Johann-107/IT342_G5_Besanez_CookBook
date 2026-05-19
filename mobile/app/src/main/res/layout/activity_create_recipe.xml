@@ -89,10 +89,26 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:hint="Image URL" style="@style/CookBook.TextInputLayout"
                 android:layout_marginBottom="12dp">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etImageUrl"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:inputType="textUri" android:textColor="@color/text_dark" />
+
+                <ImageView
+                    android:id="@+id/ivImagePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:scaleType="centerCrop"
+                    android:background="@color/peach_light"
+                    android:visibility="gone"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnPickImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Add Photo"
+                    android:textColor="@color/terracotta_dark"
+                    android:backgroundTint="@color/peach_light"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    app:strokeColor="@color/border"
+                    android:layout_marginBottom="12dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <CheckBox

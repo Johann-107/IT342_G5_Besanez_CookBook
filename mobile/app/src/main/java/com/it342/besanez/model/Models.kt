@@ -156,3 +156,7 @@ data class PageResponse<T>(
     val size: Int,
     val last: Boolean
 )
+
+data class ImageUploadResponse(
+    val url: String
+)
