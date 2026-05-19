@@ -6,12 +6,12 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
 import com.it342.besanez.R
@@ -134,7 +134,7 @@ class CollectionFragment : Fragment() {
             etDesc.setText(it.description ?: "")
         }
 
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext(),  R.style.CookBook_Dialog)
             .setTitle(if (existing == null) "New Collection" else "Edit Collection")
             .setView(dialogView)
             .setPositiveButton(if (existing == null) "Create" else "Save") { _, _ ->
@@ -150,7 +150,7 @@ class CollectionFragment : Fragment() {
     // ── Delete confirm ───────────────────────────────────────────────────────
 
     private fun confirmDelete(col: CollectionResponse) {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext(), R.style.CookBook_Dialog)
             .setTitle("Delete Collection")
             .setMessage("Delete \"${col.name}\"? Recipes inside are not deleted.")
             .setPositiveButton("Delete") { _, _ -> vm.delete(col.id) }

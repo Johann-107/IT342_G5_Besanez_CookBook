@@ -15,6 +15,7 @@ import com.it342.besanez.model.CollectionResponse
 import com.it342.besanez.model.RecipeResponse
 import com.it342.besanez.ui.recipe.RecipeDetailActivity
 import android.content.Intent
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class CollectionDetailActivity : AppCompatActivity() {
 
@@ -79,7 +80,7 @@ class CollectionDetailActivity : AppCompatActivity() {
                 true
             }
             R.id.action_delete -> {
-                AlertDialog.Builder(this)
+                MaterialAlertDialogBuilder(this, R.style.CookBook_Dialog)
                     .setTitle("Delete Collection")
                     .setMessage("Delete this collection? Recipes inside are not deleted.")
                     .setPositiveButton("Delete") { _, _ -> vm.delete(collectionId) }
@@ -172,7 +173,7 @@ class CollectionDetailActivity : AppCompatActivity() {
         etName.setText(col.name)
         etDesc.setText(col.description ?: "")
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this, R.style.CookBook_Dialog)
             .setTitle("Edit Collection")
             .setView(dialogView)
             .setPositiveButton("Save") { _, _ ->
@@ -183,7 +184,7 @@ class CollectionDetailActivity : AppCompatActivity() {
     }
 
     private fun confirmRemove(recipe: RecipeResponse) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this, R.style.CookBook_Dialog)
             .setTitle("Remove Recipe")
             .setMessage("Remove \"${recipe.name}\" from this collection?")
             .setPositiveButton("Remove") { _, _ -> vm.removeRecipe(collectionId, recipe.id) }
