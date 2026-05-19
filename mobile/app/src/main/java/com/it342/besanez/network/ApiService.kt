@@ -45,6 +45,9 @@ interface ApiService {
         @Part file: MultipartBody.Part
     ): Response<UserResponse>
 
+    @DELETE("api/user/{id}")
+    suspend fun deleteUser(@Path("id") id: Long): Response<Unit>
+
     @Multipart
     @POST("api/image/upload")
     suspend fun uploadImage(

@@ -1,5 +1,6 @@
 package com.it342.besanez.ui.profile
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.it342.besanez.R
 import com.it342.besanez.ui.main.HomeActivity
+import com.it342.besanez.ui.settings.SettingsActivity
 import de.hdodenhof.circleimageview.CircleImageView
 
 class ProfileFragment : Fragment() {
@@ -150,6 +152,10 @@ class ProfileFragment : Fragment() {
             }
 
             viewModel.updateProfile(userId, firstName, lastName, email, cookingLevel)
+        }
+
+        view.findViewById<Button>(R.id.btnSettings).setOnClickListener {
+            startActivity(Intent(requireContext(), SettingsActivity::class.java))
         }
 
         // Logout button
